@@ -15,8 +15,8 @@ from typing import Any
 import requests
 
 environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"  # noqa: S105
-environ["AWS_SESSION_TOKEN"] = "dummy"  # noqa: S105
+environ["AWS_SECRET_ACCESS_KEY"] = "dummy" # noqa: S105
+environ["AWS_SESSION_TOKEN"] = "dummy" # noqa: S105
 
 import pandas as pd
 from ga4gh.core.models import (
@@ -64,10 +64,10 @@ STUDY_GENOME_BUILD = {
 
 DEFAULT_GENOME_BUILD = "GRCh37"
 
-TRANSFORMER_CLASS_NAME = "CBioPortalTransformer"
+TRANSFORMER_CLASS_NAME = "CBioportalTransformer"
 
 
-class CBioPortalTransformerBase(Transformer):
+class CBioportalTransformerBase(Transformer):
     """Orchestrates per-study cBioportal transformers AND performs centralized
     gene mapping via the VICC normalizers.
     """
@@ -94,15 +94,7 @@ class CBioPortalTransformerBase(Transformer):
 
         # Collect mappable genes + QC per study so we can write combined outputs at the end
         self.mappable_genes_by_study: dict[str, list[MappableConcept]] = {}
-        self.mappable_variants_by_study: dict[str, list[MappableConcept]] = {}
         self.gene_qc_by_study: dict[str, dict[str, Any]] = {}
-        self.variant_qc_by_study: dict[str, dict[str, Any]] = {}
-
-        # Frequency results stores
-        self.freq_results_this_study: dict[str, list[dict]] = {}
-        self.freq_results_all_studies: list[dict] = []
-        self.freq_results_cancer_this_study: dict[str, list[dict]] = {}
-        self.freq_results_cancer_all_studies: list[dict] = []
 
         # Track failed normalizations
         self.failed_genes: list[dict[str, str]] = []
@@ -142,60 +134,21 @@ class CBioPortalTransformerBase(Transformer):
         :raises NotImplementedError: cBioportalTransformerBase is an orchestrator
         """
         msg = (
-            "CBioPortalTransformerBase is an orchestrator. "
+            "CBioportalTransformerBase is an orchestrator. "
             "Use `run_transformers({study: harvested_data})` instead of `.transform()`."
         )
-        raise NotImplementedError(msg)
+        raise NotImplementedError(
+            msg
+        )
 
     # ======================================================
     #  Gene-mapping utilities (instance methods)
     # ======================================================
 
-    def _get_entrez_id(self, norm_response: object) -> str | None:
-        """Extract NCBI Entrez Gene ID from VICC normalizer response mappings."""
-        if not norm_response:
-            return None
-        try:
-            # First check mappings
-            for mapping in getattr(norm_response.gene, "mappings", []) or []:
-                coding_id = getattr(mapping.coding, "id", "")
-                if coding_id.lower().startswith("ncbigene:"):
-                    return coding_id.split(":", 1)[1]
-
-            # Fall back to primaryCoding if not found in mappings
-            primary = getattr(norm_response.gene, "primaryCoding", None)
-            if primary:
-                primary_id = getattr(primary, "id", "")
-                if primary_id.lower().startswith("ncbigene:"):
-                    return primary_id.split(":", 1)[1]
-
-        except AttributeError:
-            pass
-        return None
-
-    def _get_refseq_id(self, norm_response: object) -> str | None:
-        """Extract RefSeq accession from VICC normalizer response mappings."""
-        if not norm_response:
-            return None
-        try:
-            for mapping in getattr(norm_response.gene, "mappings", []) or []:
-                coding_id = getattr(mapping.coding, "id", "")
-                if coding_id.lower().startswith("refseq:"):
-                    return coding_id.split(":", 1)[1]
-        except AttributeError:
-            pass
-        return None
-
     def _get_exact_gene_mappings(
         self, hgnc_id: str | None, gene_symbol: str
     ) -> list[ConceptMapping]:
-        """Return EXACT_MATCH mapping for HGNC ID, if we have one.
-
-        :param hgnc_id: HGNC identifier string (e.g. "8619"), or None if unavailable.
-        :param gene_symbol: Hugo gene symbol used as the display name in the mapping.
-        :return: List containing a single EXACT_MATCH ConceptMapping if a valid
-            HGNC ID is provided, otherwise an empty list.
-        """
+        """Return EXACT_MATCH mapping for HGNC ID, if we have one."""
         if not hgnc_id or hgnc_id == "untested":
             return []
 
@@ -220,14 +173,9 @@ class CBioPortalTransformerBase(Transformer):
         """Central gene mapping: runs for EVERY study automatically.
         Uses the transformer's `vicc_normalizers`.
 
-        :param transformer: The study-level transformer instance, used to access
-            ``vicc_normalizers`` for gene symbol normalization.
-        :param df: Combined DataFrame for the study, must contain a ``Hugo_Symbol``
-            column. A ``gene_hgnc_id`` column will be added or updated in place.
-        :return: A tuple of (mappable_genes, qc_dict) where ``mappable_genes`` is a
-            list of GA4GH MappableConcept objects and ``qc_dict`` contains summary
-            metrics with keys ``total_unique_symbols``, ``normalized_hgnc``,
-            ``failed``, and ``pct_normalized``.
+        Returns:
+          (mappable_genes, qc_dict)
+
         """
         if "Hugo_Symbol" not in df.columns:
             logger.warning("No 'Hugo_Symbol' column found; skipping gene mapping.")
@@ -239,15 +187,9 @@ class CBioPortalTransformerBase(Transformer):
                 "note": "missing Hugo_Symbol column",
             }
 
-        # Ensure columns exist to store HGNC and Entrez IDs resolved from the normalizer
+        # Ensure a column exists to store HGNC IDs resolved from the normalizer
         if "gene_hgnc_id" not in df.columns:
             df["gene_hgnc_id"] = pd.NA
-
-        if "Entrez_Gene_Id" not in df.columns:
-            df["Entrez_Gene_Id"] = pd.NA
-
-        if "RefSeq" not in df.columns:
-            df["RefSeq"] = pd.NA
 
         # Unique gene symbols across the DataFrame
         symbols = df["Hugo_Symbol"].dropna().drop_duplicates().tolist()
@@ -310,26 +252,6 @@ class CBioPortalTransformerBase(Transformer):
             if hgnc_numeric:
                 df.loc[df["Hugo_Symbol"] == symbol, "gene_hgnc_id"] = hgnc_numeric
 
-            # get entrez id
-            entrez_id = self._get_entrez_id(norm_response)
-            if entrez_id:
-                df.loc[
-                    (df["Hugo_Symbol"] == symbol)
-                    & (
-                        df["Entrez_Gene_Id"].isna() | df["Entrez_Gene_Id"].eq("No_Data")
-                    ),
-                    "Entrez_Gene_Id",
-                ] = entrez_id
-
-            # get RefSeq:
-            refseq_id = self._get_refseq_id(norm_response)
-            if refseq_id:
-                df.loc[
-                    (df["Hugo_Symbol"] == symbol)
-                    & (df["RefSeq"].isna() | df["RefSeq"].eq("No_Data")),
-                    "RefSeq",
-                ] = refseq_id
-
             # Build GA4GH mapping objects
             if not normalized_id:
                 mappings = self._get_exact_gene_mappings(None, symbol)
@@ -350,8 +272,6 @@ class CBioPortalTransformerBase(Transformer):
             )
 
         df["gene_hgnc_id"] = df["gene_hgnc_id"].fillna("No_Data")
-        df["Entrez_Gene_Id"] = df["Entrez_Gene_Id"].fillna("No_Data")
-        df["RefSeq"] = df["RefSeq"].fillna("No_Data")
 
         total = len(symbols)
         pct = (normalized_hgnc / total * 100.0) if total else 0.0
@@ -363,55 +283,6 @@ class CBioPortalTransformerBase(Transformer):
             "pct_normalized": round(pct, 2),
         }
         return mappable, qc
-
-    def _add_variants(self, df: pd.DataFrame) -> list[MappableConcept]:
-        """Build MappableConcept objects for normalized variants in the DataFrame."""
-        if "Gnomad_Notation" not in df.columns or "vrs_id" not in df.columns:
-            logger.warning(
-                "Missing Gnomad_Notation or vrs_id column; skipping variant mapping."
-            )
-            return []
-
-        mappable: list[MappableConcept] = []
-
-        variant_df = (
-            df[["Gnomad_Notation", "vrs_id", "Hugo_Symbol"]]
-            .dropna(subset=["Gnomad_Notation"])
-            .drop_duplicates(subset=["Gnomad_Notation"])
-        )
-
-        for _, row in variant_df.iterrows():
-            notation = row["Gnomad_Notation"]
-            vrs_id = row.get("vrs_id")
-            row.get("Hugo_Symbol", "")
-
-            if vrs_id and not pd.isna(vrs_id):
-                mappings = [
-                    ConceptMapping(
-                        coding=Coding(
-                            id=vrs_id,
-                            name=notation,
-                            code=vrs_id,
-                            system="https://vrs.ga4gh.org/",
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-                extensions = None
-            else:
-                mappings = []
-                extensions = [self._get_vicc_normalizer_failure_ext()]
-
-            mappable.append(
-                MappableConcept(
-                    conceptType="Variant",
-                    name=notation,
-                    mappings=mappings,
-                    extensions=extensions,
-                )
-            )
-
-        return mappable
 
     def _normalize_variant(self, variant_notation: str) -> str | None:
         """Normalize variant using VICC variation normalizer with caching.
@@ -465,300 +336,214 @@ class CBioPortalTransformerBase(Transformer):
         self.variant_cache[cache_key] = vrs_id
         return vrs_id
 
-    def _normalize_variants(self, df: pd.DataFrame, study_id: str) -> pd.DataFrame:
-        """Normalize all unique variants in the DataFrame and add a vrs_id column.
+    def _create_tumor_variant_frequency_result(
+        self,
+        variant_notation: str,
+        affected_count: int,
+        total_count: int,
+        study_id: str,
+        study_label: str,
+        cancer_type: str | None = None,
+        cancer_type_detailed: str | None = None,
+        oncotree_code: str | None = None,
+        sample_ids: list[str] | None = None,
+    ) -> dict | None:
+        """Create a TumorVariantFrequencyStudyResult object.
 
-        Uses the VICC variation normalizer (with caching) to resolve each unique
-        Gnomad_Notation to a VRS identifier. Failed normalizations are tracked in
-        ``self.failed_variants``.
+        Args:
+            variant_notation: Genomic notation (e.g., "8-67380528-T-C")
+            affected_count: Number of samples with the variant
+            total_count: Total number of samples in the study
+            study_id: cBioPortal study ID
+            study_label: Human-readable study name
+            cancer_type: Cancer type (optional)
+            cancer_type_detailed: Detailed cancer type (optional)
+            oncotree_code: OncoTree code (optional)
+            sample_ids: List of sample IDs with this variant (optional)
 
-        :param df: DataFrame with a Gnomad_Notation column
-        :param study_id: Study identifier for failure tracking
-        :return: DataFrame with a ``vrs_id`` column added
+        Returns:
+            TumorVariantFrequencyStudyResult dict or None if normalization fails
+
         """
-        if "Gnomad_Notation" not in df.columns:
-            logger.warning(
-                "No Gnomad_Notation column in study %s; skipping variant normalization.",
-                study_id,
-            )
-            df["vrs_id"] = None
-            return df
-
-        unique_variants = df["Gnomad_Notation"].dropna().drop_duplicates().tolist()
-        vrs_map: dict[str, str | None] = {}
-
-        for variant in tqdm(
-            unique_variants, desc=f"Normalizing variants for {study_id}", unit="variant"
-        ):
-            vrs_id = self._normalize_variant(variant)
-            vrs_map[variant] = vrs_id
-
-            if not vrs_id:
-                # Track failed variant normalizations
+        # Normalize variant to get VRS ID (uses cache internally)
+        vrs_id = self._normalize_variant(variant_notation)
+        if not vrs_id:
+            logger.warning("Could not normalize variant: %s", variant_notation)
+            # Track failed variant normalizations
+            # Check if this variant has already been recorded for this study
+            if sample_ids:
                 already_tracked = any(
-                    f["variant_notation"] == variant and f["study_id"] == study_id
+                    f["variant_notation"] == variant_notation
+                    and f["study_id"] == study_id
                     for f in self.failed_variants
                 )
                 if not already_tracked:
-                    sample_ids = (
-                        df.loc[df["Gnomad_Notation"] == variant, "SAMPLE_ID"].tolist()
-                        if "SAMPLE_ID" in df.columns
-                        else []
-                    )
                     for sid in sample_ids:
                         self.failed_variants.append(
                             {
                                 "study_id": study_id,
                                 "sample_id": sid,
-                                "variant_notation": variant,
+                                "variant_notation": variant_notation,
                             }
                         )
+            return None
 
-        df["vrs_id"] = df["Gnomad_Notation"].map(vrs_map)
+        # Calculate frequency
+        affected_frequency = float(affected_count) / float(total_count)
 
-        total = len(unique_variants)
-        normalized = sum(1 for v in vrs_map.values() if v is not None)
-        failed = total - normalized
-        pct = (normalized / total * 100.0) if total else 0.0
-        logger.info(
-            "[%s] Variant normalization: %d/%d (%.1f%%) succeeded, %d failed",
-            study_id,
-            normalized,
-            total,
-            pct,
-            failed,
-        )
+        # Build study group
+        study_group = {"id": study_id, "label": study_label, "type": "StudyGroup"}
 
-        self.variant_qc_by_study[study_id] = {
-            "total_unique_variants": total,
-            "normalized_vrs": normalized,
-            "failed": failed,
-            "pct_normalized": round(pct, 2),
+        # Add characteristics to study group if available
+        characteristics = []
+        if cancer_type:
+            characteristics.append({"label": cancer_type, "value": cancer_type})
+        if oncotree_code:
+            characteristics.append(
+                {"label": f"OncoTree: {oncotree_code}", "value": oncotree_code}
+            )
+
+        if characteristics:
+            study_group["characteristics"] = characteristics
+
+        # Build the study result
+        result = {
+            "type": "TumorVariantFrequencyStudyResult",
+            "id": f"{study_id}:{vrs_id}",
+            "focusVariant": vrs_id,
+            "affectedSampleCount": affected_count,
+            "totalSampleCount": total_count,
+            "affectedFrequency": round(affected_frequency, 6),
+            "sampleGroup": study_group,
         }
 
-        return df
+        # Add optional description
+        if cancer_type_detailed:
+            result["description"] = (
+                f"Frequency of variant in {cancer_type_detailed} samples "
+                f"from {study_label}"
+            )
 
-    def _add_variant_frequency_columns(
-        self, combined: pd.DataFrame, multi_study: bool
-    ) -> pd.DataFrame:
-        """Add four variant frequency columns to the combined DataFrame.
+        return result
 
-        Columns added:
-          - freq_variant_inter_study: variant count / total samples across ALL studies
-          - freq_variant_intra_study: variant count in study / total samples in study
-          - freq_variant_cancer_inter_study: variant count for cancer type across ALL
-              studies / total samples of that cancer type across ALL studies
-          - freq_variant_cancer_intra_study: variant count for cancer type in study /
-              total samples of that cancer type in study
-
-        When only a single study is being transformed, the cross-study columns
-        are set to ``"uncalculated"``.
-
-        :param combined: Combined DataFrame with Gnomad_Notation, STUDY_ID,
-            CANCER_TYPE, and SAMPLE_ID columns
-        :param multi_study: True when more than one study was transformed
-        :return: DataFrame with the four new frequency columns added
-        """
-        uncalculated = "uncalculated"
-
-        if "Gnomad_Notation" not in combined.columns:
-            logger.warning("No Gnomad_Notation column; skipping frequency columns.")
-            combined["freq_variant_inter_study"] = uncalculated
-            combined["freq_variant_intra_study"] = uncalculated
-            combined["freq_variant_cancer_inter_study"] = uncalculated
-            combined["freq_variant_cancer_intra_study"] = uncalculated
-            return combined
-
-        sample_col = "SAMPLE_ID" if "SAMPLE_ID" in combined.columns else None
-        variant_col = "Gnomad_Notation"
-        study_col = "STUDY_ID"
-        cancer_col = "CANCER_TYPE"
-
-        # -- freq_variant_intra_study --
-        # variant count within study / total unique samples in study
-        if sample_col:
-            study_total = combined.groupby(study_col)[sample_col].transform("count")
-            study_variant_count = combined.groupby([study_col, variant_col])[
-                sample_col
-            ].transform("count")
-            combined["freq_variant_intra_study"] = (
-                study_variant_count / study_total
-            ).round(6)
-        else:
-            study_total = combined.groupby(study_col)[variant_col].transform("count")
-            study_variant_count = combined.groupby([study_col, variant_col])[
-                variant_col
-            ].transform("count")
-            combined["freq_variant_intra_study"] = (
-                study_variant_count / study_total
-            ).round(6)
-
-        # -- freq_variant_cancer_intra_study --
-        # variant count for cancer type in study / total samples of cancer type in study
-        if cancer_col in combined.columns and sample_col:
-            cancer_study_total = combined.groupby([study_col, cancer_col])[
-                sample_col
-            ].transform("count")
-            cancer_study_variant = combined.groupby(
-                [study_col, cancer_col, variant_col]
-            )[sample_col].transform("count")
-            combined["freq_variant_cancer_intra_study"] = (
-                cancer_study_variant / cancer_study_total
-            ).round(6)
-        else:
-            combined["freq_variant_cancer_intra_study"] = uncalculated
-
-        # -- Cross-study columns (only when multiple studies) --
-        if multi_study:
-            # freq_variant_inter_study
-            if sample_col:
-                global_total = combined[sample_col].count()
-                global_variant_count = combined.groupby(variant_col)[
-                    sample_col
-                ].transform("count")
-                combined["freq_variant_inter_study"] = (
-                    global_variant_count / global_total
-                ).round(6)
-            else:
-                global_total = len(combined)
-                global_variant_count = combined.groupby(variant_col)[
-                    variant_col
-                ].transform("count")
-                combined["freq_variant_inter_study"] = (
-                    global_variant_count / global_total
-                ).round(6)
-
-            # freq_variant_cancer_inter_study
-            if cancer_col in combined.columns and sample_col:
-                cancer_global_total = combined.groupby(cancer_col)[
-                    sample_col
-                ].transform("count")
-                cancer_global_variant = combined.groupby([cancer_col, variant_col])[
-                    sample_col
-                ].transform("count")
-                combined["freq_variant_cancer_inter_study"] = (
-                    cancer_global_variant / cancer_global_total
-                ).round(6)
-            else:
-                combined["freq_variant_cancer_inter_study"] = uncalculated
-        else:
-            combined["freq_variant_inter_study"] = uncalculated
-            combined["freq_variant_cancer_inter_study"] = uncalculated
-
-        logger.info("Added variant frequency columns (multi_study=%s)", multi_study)
-        return combined
-
-    def _build_frequency_results(
-        self,
-        df: pd.DataFrame,
-        freq_col: str,
-        study_id: str | None = None,
-        group_by_cancer: bool = False,
+    def _calculate_variant_frequencies(
+        self, df: pd.DataFrame, study_id: str
     ) -> list[dict]:
-        """Build frequency result dicts for a given frequency column.
+        """Calculate variant frequencies for all unique variants in a study.
 
-        :param df: DataFrame (already filtered to study if study_id provided)
-        :param freq_col: Column name to use for frequency value
-        :param study_id: Study identifier, or None for cross-study results
-        :param group_by_cancer: Whether to include cancer type grouping
-        :return: List of frequency result dicts
+        Args:
+            df: DataFrame with variant data (must have Gnomad_Notation column)
+            study_id: Study identifier
+
+        Returns:
+            List of TumorVariantFrequencyStudyResult objects
+
         """
         if "Gnomad_Notation" not in df.columns:
+            logger.warning("No Gnomad_Notation column in study %s", study_id)
             return []
 
+        # Get study metadata from first row
+        study_label = df["STUDY_ID"].iloc[0] if "STUDY_ID" in df.columns else study_id
+
+        # Get total unique samples in study
+        total_samples = (
+            df["SAMPLE_ID"].nunique() if "SAMPLE_ID" in df.columns else len(df)
+        )
+
+        # Group by variant and count unique samples with each variant
+        variant_counts = (
+            df.groupby("Gnomad_Notation")["SAMPLE_ID"].nunique().reset_index()
+        )
+        variant_counts.columns = ["Gnomad_Notation", "affected_count"]
+
         results = []
-        group_cols = ["Gnomad_Notation"]
-        if group_by_cancer and "CANCER_TYPE" in df.columns:
-            group_cols.append("CANCER_TYPE")
 
-        for _keys, group in df.groupby(group_cols):
-            first_row = group.iloc[0]
-            vrs_id = first_row.get("vrs_id")
-            if pd.isna(vrs_id) or not vrs_id:
-                continue
+        for _, row in tqdm(
+            variant_counts.iterrows(),
+            total=len(variant_counts),
+            desc=f"Creating frequency results for {study_id}",
+            unit="variant",
+        ):
+            variant = row["Gnomad_Notation"]
+            affected = int(row["affected_count"])
 
-            freq_value = first_row.get(freq_col)
-            if freq_value == "uncalculated" or pd.isna(freq_value):
-                continue
+            # Get additional metadata from first occurrence of this variant
+            variant_rows = df[df["Gnomad_Notation"] == variant]
+            first_row = variant_rows.iloc[0]
 
-            label = study_id or "all_studies"
-            result = {
-                "type": "TumorVariantFrequencyStudyResult",
-                "id": f"{label}:{vrs_id}",
-                "focusVariant": vrs_id,
-                "affectedFrequency": float(freq_value),
-                "frequencyType": freq_col,
-            }
+            cancer_type = first_row.get("CANCER_TYPE")
+            cancer_type_detailed = first_row.get("CANCER_TYPE_DETAILED")
+            oncotree_code = first_row.get("ONCOTREE_CODE")
 
-            if study_id:
-                result["studyId"] = study_id
+            # Get sample IDs for failure tracking
+            sample_ids = (
+                variant_rows["SAMPLE_ID"].tolist()
+                if "SAMPLE_ID" in variant_rows.columns
+                else None
+            )
 
-            if group_by_cancer and "CANCER_TYPE" in df.columns:
-                cancer_type = first_row.get("CANCER_TYPE")
-                if cancer_type and cancer_type != "No_Data":
-                    result["cancerType"] = cancer_type
+            # Create study result (uses cached normalization)
+            study_result = self._create_tumor_variant_frequency_result(
+                variant_notation=variant,
+                affected_count=affected,
+                total_count=total_samples,
+                study_id=study_id,
+                study_label=study_label,
+                cancer_type=cancer_type,
+                cancer_type_detailed=cancer_type_detailed,
+                oncotree_code=oncotree_code,
+                sample_ids=sample_ids,
+            )
 
-            results.append(result)
+            if study_result:
+                results.append(study_result)
 
         return results
 
-    def _write_frequency_json(
-        self,
-        payload: dict[str, list[dict]] | list[dict],
-        filename: str,
-        out_dir: Path,
-    ) -> Path:
-        """Write frequency results to a JSON file.
+    def _write_frequency_results_json(
+        self, study: str, frequency_results: list[dict], out_dir: str
+    ) -> str:
+        """Write TumorVariantFrequencyStudyResult objects to JSON file."""
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        out_path = Path(out_dir) / f"{study}_tumor_variant_frequencies.json"
 
-        :param payload: Data to serialize
-        :param filename: Output filename (without directory)
-        :param out_dir: Output directory
-        :return: Path to the written file
-        """
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / filename
         with out_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2)
+            json.dump(frequency_results, f, indent=2)
+
         return out_path
 
-    def _create_frequency_qc_summary(self, combined: pd.DataFrame) -> pd.DataFrame:
-        """Create QC summary across all 4 frequency types.
+    def _write_all_frequency_results_json(self, out_path: str) -> str:
+        """Merge all studies' frequency results into one JSON file."""
+        payload = {"frequency_results_by_study": self.frequency_results_by_study}
 
-        :param combined: Combined DataFrame with all frequency columns
-        :return: DataFrame with one row per study and QC metrics for all 4 frequency types
-        """
-        qc_rows = []
+        Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+        with Path(out_path).open("w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
 
-        for study_id in combined["STUDY_ID"].unique():
-            study_df = combined[combined["STUDY_ID"] == study_id]
-            total = study_df["Gnomad_Notation"].dropna().nunique()
+        return out_path
 
-            row = {"STUDY_ID": study_id, "total_unique_variants": total}
+    def _create_frequency_qc_summary(self) -> pd.DataFrame:
+        """Create QC summary for frequency results."""
+        qc_data = []
 
-            for freq_col in [
-                "freq_variant_intra_study",
-                "freq_variant_cancer_intra_study",
-                "freq_variant_inter_study",
-                "freq_variant_cancer_inter_study",
-            ]:
-                if freq_col in study_df.columns:
-                    calculable = (
-                        study_df[freq_col]
-                        .apply(lambda v: v != "uncalculated" and not pd.isna(v))
-                        .sum()
-                    )
-                else:
-                    calculable = 0
+        for study, results in self.frequency_results_by_study.items():
+            total = len(results)
+            normalized = sum(1 for r in results if r.get("focusVariant"))
+            failed = total - normalized
+            pct = (normalized / total * 100.0) if total else 0.0
 
-                failed = total - calculable
-                pct = round((calculable / total * 100.0) if total else 0.0, 2)
-                row[f"{freq_col}_calculable"] = int(calculable)
-                row[f"{freq_col}_failed"] = int(failed)
-                row[f"{freq_col}_pct"] = pct
+            qc_data.append(
+                {
+                    "STUDY_ID": study,
+                    "total_variants": total,
+                    "normalized_variants": normalized,
+                    "failed_normalization": failed,
+                    "pct_normalized": round(pct, 2),
+                }
+            )
 
-            qc_rows.append(row)
-
-        return pd.DataFrame(qc_rows).sort_values("STUDY_ID")
+        return pd.DataFrame(qc_data).sort_values("STUDY_ID")
 
     def _write_mappable_genes_json(
         self, study: str, mappable_genes: list[MappableConcept], out_dir: str
@@ -795,35 +580,6 @@ class CBioPortalTransformerBase(Transformer):
             json.dump(payload, f, indent=2)
         return out_path
 
-    def _write_mappable_variants_json(
-        self, study: str, mappable_variants: list[MappableConcept], out_dir: str | Path
-    ) -> Path:
-        """Write this study's mappable variants to JSON."""
-        out_dir = Path(out_dir)
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{study}_mappable_variants.json"
-
-        payload = [mv.model_dump(exclude_none=True) for mv in mappable_variants]
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2)
-
-        return out_path
-
-    def _write_all_mappable_variants_json(self, out_path: str | Path) -> Path:
-        """Merge all studies' mappable variants into one JSON file."""
-        out_path = Path(out_path)
-        payload = {
-            "mappable_variants_by_study": {
-                study: [mv.model_dump(exclude_none=True) for mv in variants]
-                for study, variants in self.mappable_variants_by_study.items()
-            }
-        }
-        out_path.parent.mkdir(parents=True, exist_ok=True)
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, indent=2)
-
-        return out_path
-
     # ======================================================
     #  Loading and running transformers (instance methods)
     # ======================================================
@@ -835,18 +591,20 @@ class CBioPortalTransformerBase(Transformer):
                 f"No transformer module registered for '{study}'. "
                 f"Add to STUDY_TO_MODULE in base.py."
             )
-            raise ImportError(msg)
+            raise ImportError(
+                msg
+            )
 
         module = importlib.import_module(mod_path)
         try:
             return getattr(module, self.transformer_class_name)
         except AttributeError as err:
             msg = f"Module '{mod_path}' does not define class '{self.transformer_class_name}'."
-            raise ImportError(msg) from err
+            raise ImportError(
+                msg
+            ) from err
 
-    def _transform_one(
-        self, study: str, harvested: CBioPortalHarvestedData
-    ) -> pd.DataFrame:
+    def _transform_one(self, study: str, harvested: CBioPortalHarvestedData) -> pd.DataFrame:
         # Set current study for genome build lookup
         self.current_study = study
         genome_build = self.study_genome_build.get(study, DEFAULT_GENOME_BUILD)
@@ -861,7 +619,7 @@ class CBioPortalTransformerBase(Transformer):
         logger.info("Adding AGE_TERM classifications for study: %s", study)
         if "AGE" in df.columns:
             # Convert AGE to numeric, handling any non-numeric values
-            df["AGE"] = pd.to_numeric(df["AGE"], errors="coerce")
+            df["AGE"] = pd.to_numeric(df["AGE"], errors='coerce')
 
             # Age range cutoffs (in years)
             _age_congenital_max = 0.07
@@ -878,15 +636,9 @@ class CBioPortalTransformerBase(Transformer):
                 return "Adult"
 
             df["AGE_TERM"] = df["AGE"].apply(classify_age)
-            logger.info(
-                "[%s] AGE_TERM distribution: %s",
-                study,
-                df["AGE_TERM"].value_counts().to_dict(),
-            )
+            logger.info("[%s] AGE_TERM distribution: %s", study, df["AGE_TERM"].value_counts().to_dict())
         else:
-            logger.warning(
-                "[%s] No AGE column found; setting AGE_TERM to 'Unknown'", study
-            )
+            logger.warning("[%s] No AGE column found; setting AGE_TERM to 'Unknown'", study)
             df["AGE_TERM"] = "Unknown"
 
         # Harmonize ETHNICITY column
@@ -899,21 +651,28 @@ class CBioPortalTransformerBase(Transformer):
                 "White/Europe": "White",
                 "White/Latin America": "White",
                 "White/North Africa": "White",
+
                 # Black/African
                 "African": "Black or African American",
                 "Black": "Black or African American",
                 "Black/Sub-Saharan Africa": "Black or African American",
+
                 # Asian
                 "EastAsian": "Asian",
                 "Asian Indian": "Asian",
+
                 # South Asian or Hispanic (Option A - combined category)
                 "SouthAsianOrHispanic": "Asian or Hispanic",
+
                 # Hispanic/Latino
                 "Hispanic": "Hispanic or Latino",
+
                 # Pacific Islander
                 "Native Hawaiian or other Pacific Islander": "Native Hawaiian or Pacific Islander",
+
                 # Native American
                 "American Indian or Alaska Native": "American Indian or Alaska Native",
+
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
@@ -931,16 +690,10 @@ class CBioPortalTransformerBase(Transformer):
             df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ethnicity_mapping)
 
             # Log the harmonized distribution
-            logger.info(
-                "[%s] ETHNICITY_HARMONIZED distribution: %s",
-                study,
-                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
-            )
+            logger.info("[%s] ETHNICITY_HARMONIZED distribution: %s",
+                       study, df["ETHNICITY_HARMONIZED"].value_counts().to_dict())
         else:
-            logger.warning(
-                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
-                study,
-            )
+            logger.warning("[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'", study)
             df["ETHNICITY_ORIGINAL"] = "No_Data"
             df["ETHNICITY_HARMONIZED"] = "No_Data"
 
@@ -950,6 +703,22 @@ class CBioPortalTransformerBase(Transformer):
         # Persist in-memory so we can write merged JSON + QC table at the end
         self.mappable_genes_by_study[study] = mappable_genes
         self.gene_qc_by_study[study] = gene_qc
+
+        # calculte variant frequencies for study
+        logger.info("Calculating variant frequencies for study: %s", study)
+        frequency_results = self._calculate_variant_frequencies(df, study)
+
+        # Store frequency results
+        if not hasattr(self, "frequency_results_by_study"):
+            self.frequency_results_by_study = {}
+        self.frequency_results_by_study[study] = frequency_results
+
+        # Write per-study frequency results JSON
+        if hasattr(self, "_frequency_results_out_dir"):
+            self._write_frequency_results_json(
+                study, frequency_results, self._frequency_results_out_dir
+            )
+
 
         # Attach them so caller can use `.mappable_genes`
         transformer.mappable_genes = mappable_genes
@@ -962,15 +731,6 @@ class CBioPortalTransformerBase(Transformer):
 
         # Simple debug output
         logger.info("[%s] mappable_genes count: %d", study, len(mappable_genes))
-
-        # Normalize variants to VRS IDs
-        logger.info("Normalizing variants for study: %s", study)
-        df = self._normalize_variants(df, study)
-
-        # Build mappable variants (after vrs_id column exists)
-        mappable_variants = self._add_variants(df)
-        self.mappable_variants_by_study[study] = mappable_variants
-        logger.info("[%s] mappable_variants count: %d", study, len(mappable_variants))
 
         if "STUDY_ID" not in df.columns:
             df = df.assign(STUDY_ID=study)
@@ -987,7 +747,9 @@ class CBioPortalTransformerBase(Transformer):
         """
         if not isinstance(harvested, dict):
             msg = "run_transformers() requires a dict:  {study: harvested_data}"
-            raise TypeError(msg)
+            raise TypeError(
+                msg
+            )
 
         # -----------------------------------------
         # Output directory (define ONCE, BEFORE loop)
@@ -1002,6 +764,13 @@ class CBioPortalTransformerBase(Transformer):
         # Per-study mappable genes JSON output dir
         # -----------------------------------------
         self._mappable_genes_out_dir = save_loc / "mappable_genes"
+
+        # frequency results
+        self._frequency_results_out_dir = save_loc / "frequency_results"
+        self._frequency_results_out_dir.mkdir(parents=True, exist_ok=True)
+
+        # Initialize storage for frequency results
+        self.frequency_results_by_study = {}
 
         self._mappable_genes_out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1021,21 +790,13 @@ class CBioPortalTransformerBase(Transformer):
         combined = pd.concat(dfs, ignore_index=True, sort=False)
 
         # -----------------------------------------
-        # Add variant frequency columns
-        # -----------------------------------------
-        multi_study = len(harvested) > 1
-        combined = self._add_variant_frequency_columns(combined, multi_study)
-
-        # -----------------------------------------
         # Create subdirectories for organized output
         # -----------------------------------------
         mappable_genes_dir = save_loc / "mappable_genes"
-        mappable_variants_dir = save_loc / "mappable_variants"
         frequencies_dir = save_loc / "frequencies"
         norm_failures_dir = save_loc / "norm_failures"
 
         mappable_genes_dir.mkdir(parents=True, exist_ok=True)
-        mappable_variants_dir.mkdir(parents=True, exist_ok=True)
         frequencies_dir.mkdir(parents=True, exist_ok=True)
         norm_failures_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1051,88 +812,19 @@ class CBioPortalTransformerBase(Transformer):
         gene_qc_out_path = mappable_genes_dir / "gene_qc_summary_per_study.csv"
         gene_qc_df.to_csv(gene_qc_out_path, index=False)
 
-        variant_qc_df = (
-            pd.DataFrame.from_dict(self.variant_qc_by_study, orient="index")
-            .reset_index()
-            .rename(columns={"index": "STUDY_ID"})
-            .sort_values("STUDY_ID")
-        )
-        variant_qc_out_path = mappable_variants_dir / "variant_qc_summary_per_study.csv"
-        variant_qc_df.to_csv(variant_qc_out_path, index=False)
-
         # Merged mappable genes JSON (all studies in one file)
         merged_genes_out_path = mappable_genes_dir / "mappable_genes_all_studies.json"
         self._write_all_mappable_genes_json(merged_genes_out_path)
 
-        # Per-study variant JSON files
-        for study_id, mappable_variants in self.mappable_variants_by_study.items():
-            self._write_mappable_variants_json(
-                study_id, mappable_variants, mappable_variants_dir
-            )
-
-        # Merged variants JSON (all studies in one file)
-        merged_variants_out_path = (
-            mappable_variants_dir / "mappable_variants_all_studies.json"
-        )
-        self._write_all_mappable_variants_json(merged_variants_out_path)
-
         # -----------------------------------------
-        # Frequency results — all 4 types
+        # Frequency results and QC
         # -----------------------------------------
+        # Write merged frequency results
+        merged_freq_out_path = frequencies_dir / "frequency_results_all_studies.json"
+        self._write_all_frequency_results_json(merged_freq_out_path)
 
-        # freq_variant_intra_study — per study
-        for study_id in combined["STUDY_ID"].unique():
-            study_df = combined[combined["STUDY_ID"] == study_id]
-            self.freq_results_this_study[study_id] = self._build_frequency_results(
-                study_df, freq_col="freq_variant_intra_study", study_id=study_id
-            )
-
-        self._write_frequency_json(
-            payload=self.freq_results_this_study,
-            filename="freq_variant_intra_study.json",
-            out_dir=frequencies_dir,
-        )
-
-        # freq_variant_inter_study — single combined list
-        self.freq_results_all_studies = self._build_frequency_results(
-            combined, freq_col="freq_variant_inter_study"
-        )
-        self._write_frequency_json(
-            payload=self.freq_results_all_studies,
-            filename="freq_variant_inter_study.json",
-            out_dir=frequencies_dir,
-        )
-
-        # freq_variant_cancer_intra_study — per study, grouped by cancer
-        for study_id in combined["STUDY_ID"].unique():
-            study_df = combined[combined["STUDY_ID"] == study_id]
-            self.freq_results_cancer_this_study[study_id] = (
-                self._build_frequency_results(
-                    study_df,
-                    freq_col="freq_variant_cancer_intra_study",
-                    study_id=study_id,
-                    group_by_cancer=True,
-                )
-            )
-
-        self._write_frequency_json(
-            payload=self.freq_results_cancer_this_study,
-            filename="freq_variant_cancer_intra_study.json",
-            out_dir=frequencies_dir,
-        )
-
-        # freq_variant_cancer_inter_study — single combined list, grouped by cancer
-        self.freq_results_cancer_all_studies = self._build_frequency_results(
-            combined, freq_col="freq_variant_cancer_inter_study", group_by_cancer=True
-        )
-        self._write_frequency_json(
-            payload=self.freq_results_cancer_all_studies,
-            filename="freq_variant_cancer_inter_study.json",
-            out_dir=frequencies_dir,
-        )
-
-        # Frequency QC summary (all 4 types in one CSV)
-        freq_qc_df = self._create_frequency_qc_summary(combined)
+        # Frequency QC summary
+        freq_qc_df = self._create_frequency_qc_summary()
         freq_qc_out_path = frequencies_dir / "frequency_qc_summary_per_study.csv"
         freq_qc_df.to_csv(freq_qc_out_path, index=False)
 
@@ -1145,6 +837,15 @@ class CBioPortalTransformerBase(Transformer):
             "ETHNICITY", pd.Series(pd.NA, index=eth_df.index)
         )
         eth_df["ETHNICITY"] = eth_df["ETHNICITY"].replace("", pd.NA).fillna("Unknown")
+
+        ethnicity_table = (
+            eth_df.groupby(["ETHNICITY", "STUDY_ID"])
+            .size()
+            .unstack("STUDY_ID", fill_value=0)
+            .sort_index()
+        )
+        ethnicity_out_path = save_loc / "ethnicity_counts_per_study_wide.csv"
+        ethnicity_table.to_csv(ethnicity_out_path, index=True)
 
         # -----------------------------------------
         # AGE bucket counts: rows=STUDY_ID, cols=AGE_RANGE
@@ -1177,6 +878,16 @@ class CBioPortalTransformerBase(Transformer):
             age_df["AGE_RANGE"].cat.add_categories(["Unknown"]).fillna("Unknown")
         )
 
+        age_table = (
+            age_df.groupby(["STUDY_ID", "AGE_RANGE"])
+            .size()
+            .unstack("AGE_RANGE", fill_value=0)
+            .reindex(columns=[*age_labels, "Unknown"], fill_value=0)
+            .sort_index()
+        )
+        age_out_path = save_loc / "age_range_counts_per_study_wide.csv"
+        age_table.to_csv(age_out_path, index=True)
+
         # -----------------------------------------
         # Failed normalizations CSVs
         # -----------------------------------------
@@ -1184,26 +895,20 @@ class CBioPortalTransformerBase(Transformer):
             failed_genes_df = pd.DataFrame(self.failed_genes)
 
             # Write combined file with all studies
-            combined_genes_path = (
-                norm_failures_dir / "combined_failed_gene_normalizations.csv"
-            )
+            combined_genes_path = norm_failures_dir / "combined_failed_gene_normalizations.csv"
             failed_genes_df.to_csv(combined_genes_path, index=False)
 
             # Write per-study files
             for study_id in failed_genes_df["study_id"].unique():
                 study_genes = failed_genes_df[failed_genes_df["study_id"] == study_id]
-                failed_genes_path = (
-                    norm_failures_dir / f"{study_id}_failed_gene_normalizations.csv"
-                )
+                failed_genes_path = norm_failures_dir / f"{study_id}_failed_gene_normalizations.csv"
                 study_genes.to_csv(failed_genes_path, index=False)
 
         if self.failed_variants:
             failed_variants_df = pd.DataFrame(self.failed_variants)
 
             # Write combined file with all studies
-            combined_variants_path = (
-                norm_failures_dir / "combined_failed_variant_normalizations.csv"
-            )
+            combined_variants_path = norm_failures_dir / "combined_failed_variant_normalizations.csv"
             failed_variants_df.to_csv(combined_variants_path, index=False)
 
             # Write per-study files
@@ -1211,9 +916,7 @@ class CBioPortalTransformerBase(Transformer):
                 study_variants = failed_variants_df[
                     failed_variants_df["study_id"] == study_id
                 ]
-                failed_variants_path = (
-                    norm_failures_dir / f"{study_id}_failed_variant_normalizations.csv"
-                )
+                failed_variants_path = norm_failures_dir / f"{study_id}_failed_variant_normalizations.csv"
                 study_variants.to_csv(failed_variants_path, index=False)
 
         # -----------------------------------------
@@ -1223,6 +926,8 @@ class CBioPortalTransformerBase(Transformer):
         combined.to_csv(output_path, index=False)
 
         return combined
+
+
 
     # ====================
     # Static utility methods for study transformers
@@ -1254,18 +959,10 @@ class CBioPortalTransformerBase(Transformer):
     def filter_and_rename_variants(
         variants_df: pd.DataFrame,
         mut_headers: list[str],
-        amino_acid_change_source: str | None = None,
+        amino_acid_change_source: str | None = None
     ) -> pd.DataFrame:
         """Filter variant columns and perform common transformations."""
-        # Keep Sequence_Source from mutations if it exists, even if not in mut_headers
-        keep_cols = list(mut_headers)
-        if (
-            "Sequence_Source" in variants_df.columns
-            and "Sequence_Source" not in keep_cols
-        ):
-            keep_cols.append("Sequence_Source")
-
-        df = variants_df.filter(keep_cols)
+        df = variants_df.filter(mut_headers)
         df.columns = df.columns.str.strip()
         df = df.rename(columns={"Tumor_Sample_Barcode": "SAMPLE_ID"})
 
@@ -1282,7 +979,7 @@ class CBioPortalTransformerBase(Transformer):
         patients_df: pd.DataFrame,
         patient_headers: list[str],
         ethnicity_source: str = "RACE",
-        age_source: str | None = None,
+        age_source: str | None = None
     ) -> pd.DataFrame:
         """Filter patient columns and perform common transformations."""
         df = patients_df.filter(patient_headers)
@@ -1305,9 +1002,13 @@ class CBioPortalTransformerBase(Transformer):
     def filter_and_rename_samples(
         samples_df: pd.DataFrame,
         sample_headers: list[str],
+        sequence_source: str | None = None
     ) -> pd.DataFrame:
         """Filter sample columns and perform common transformations."""
         df = samples_df.filter(sample_headers)
+
+        if sequence_source and sequence_source in df.columns:
+            df = df.rename(columns={sequence_source: "Sequence_Source"})
 
         if "ONCOTREE_CODE_CANCER_TYPE" in df.columns:
             df = df.rename(columns={"ONCOTREE_CODE_CANCER_TYPE": "ONCOTREE_CODE"})
@@ -1315,44 +1016,11 @@ class CBioPortalTransformerBase(Transformer):
         return df
 
     @staticmethod
-    def resolve_sequence_source(
-        df: pd.DataFrame,
-        fallback_column: str | None = None,
-    ) -> pd.DataFrame:
-        """Resolve the Sequence_Source column with row-level fallback.
-
-        Priority:
-          1. ``Sequence_Source`` from the mutations data (if populated)
-          2. A study-specific fallback column from the samples data
-          3. ``"No_Data"``
-
-        :param df: Combined DataFrame (variants + samples + patients)
-        :param fallback_column: Column name to use as fallback (e.g. GENE_PANEL,
-            PLATFORM). Provided by each study's ``get_sample_transformations()``.
-        :return: DataFrame with a ``Sequence_Source`` column
-        """
-        # If Sequence_Source came from mutations, fill gaps with fallback
-        if "Sequence_Source" not in df.columns:
-            df["Sequence_Source"] = pd.NA
-
-        if fallback_column and fallback_column in df.columns:
-            mask = (
-                df["Sequence_Source"].isna()
-                | (df["Sequence_Source"] == "")
-                | (df["Sequence_Source"] == "No_Data")
-            )
-            df.loc[mask, "Sequence_Source"] = df.loc[mask, fallback_column]
-            # Drop the original fallback column now that it's merged
-            if fallback_column != "Sequence_Source":
-                df = df.drop(columns=[fallback_column])
-
-        df["Sequence_Source"] = df["Sequence_Source"].fillna("No_Data")
-
-        return df
-
-    @staticmethod
     def handle_duplicates(
-        df: pd.DataFrame, study: str, save_loc: Path, df_type: str
+        df: pd.DataFrame,
+        study: str,
+        save_loc: Path,
+        df_type: str
     ) -> pd.DataFrame:
         """Check for and handle duplicates in a DataFrame."""
         num_duplicates = df.duplicated().sum()
@@ -1361,9 +1029,7 @@ class CBioPortalTransformerBase(Transformer):
             dupes = df[df.duplicated(keep=False)]
             file_path = save_loc / f"{study}_{df_type}_dupes.csv"
             dupes.to_csv(file_path, index=False)
-            logger.info(
-                "Saved %s %s duplicates to %s", num_duplicates, df_type, file_path
-            )
+            logger.info("Saved %s %s duplicates to %s", num_duplicates, df_type, file_path)
             df = df.drop_duplicates()
 
         return df
@@ -1374,7 +1040,7 @@ class CBioPortalTransformerBase(Transformer):
         samples: pd.DataFrame,
         patients: pd.DataFrame,
         metadata: pd.DataFrame,
-        study_id_override: str | None = None,
+        study_id_override: str | None = None
     ) -> pd.DataFrame:
         """Combine variant, sample, and patient dataframes."""
         init_combined_df = variants.merge(samples, on="SAMPLE_ID", how="left")
@@ -1401,21 +1067,19 @@ class CBioPortalTransformerBase(Transformer):
 
     @staticmethod
     def remove_patient_variant_duplicates(
-        df: pd.DataFrame, study: str, save_loc: Path
+        df: pd.DataFrame,
+        study: str,
+        save_loc: Path
     ) -> pd.DataFrame:
         """Remove duplicate variants per patient."""
-        dupe_mask = df.duplicated(
-            subset=["PATIENT_ID", "Gnomad_Notation"], keep="first"
-        )
+        dupe_mask = df.duplicated(subset=["PATIENT_ID", "Gnomad_Notation"], keep="first")
         patient_variant_dupes = df[dupe_mask]
         final_df = df[~dupe_mask]
 
         if len(patient_variant_dupes) > 0:
             file_path = save_loc / f"{study}_patient_variant_dupes.csv"
             patient_variant_dupes.to_csv(file_path, index=False)
-            logger.info(
-                "Removed %s patient-variant duplicates", len(patient_variant_dupes)
-            )
+            logger.info("Removed %s patient-variant duplicates", len(patient_variant_dupes))
 
         return final_df
 
@@ -1426,14 +1090,25 @@ class CBioPortalTransformerBase(Transformer):
         return df.replace(r"^\s*$", pd.NA, regex=True).fillna("No_Data")
 
     @staticmethod
-    def save_study_outputs(df: pd.DataFrame, study: str, save_loc: Path) -> None:
+    def save_study_outputs(
+        df: pd.DataFrame,
+        study: str,
+        save_loc: Path
+    ) -> None:
         """Save final study outputs to CSV files."""
-        file_path = save_loc / f"{study}_df_premerge.csv"
+        file_path = save_loc / f"{study}_final_no_NAs.csv"
+        df.to_csv(file_path, index=False)
+        logger.info("Saved final data (no NAs) to %s", file_path)
+
+        file_path = save_loc / f"{study}_final_df_logic_cols.csv"
+        df.to_csv(file_path, index=False)
+
+        file_path = save_loc / f"{study}_final_df_clean.csv"
         df.to_csv(file_path, index=False)
         logger.info("Saved clean final data to %s", file_path)
 
 
-class CBioPortalStudyTransformer(Transformer):
+class CBioportalStudyTransformer(Transformer):
     """Base class for individual study transformers with common transformation logic."""
 
     def __init__(self) -> None:
@@ -1500,26 +1175,20 @@ class CBioPortalStudyTransformer(Transformer):
     def transform(self, harvested_data: CBioPortalHarvestedData) -> pd.DataFrame:
         """Run the standard transformation pipeline for cBioportal studies."""
         study = self.get_study_name()
-        save_loc = CBioPortalTransformerBase.setup_save_location(study)
+        save_loc = CBioportalTransformerBase.setup_save_location(study)
 
         # Extract data
-        self.variants = pd.DataFrame(harvested_data.variants).filter(
-            self.get_mut_headers()
-        )
-        self.patients = pd.DataFrame(harvested_data.patients).filter(
-            self.get_patient_headers()
-        )
-        self.samples = pd.DataFrame(harvested_data.samples).filter(
-            self.get_sample_headers()
-        )
+        self.variants = pd.DataFrame(harvested_data.variants).filter(self.get_mut_headers())
+        self.patients = pd.DataFrame(harvested_data.patients).filter(self.get_patient_headers())
+        self.samples = pd.DataFrame(harvested_data.samples).filter(self.get_sample_headers())
         self.metadata = pd.DataFrame(harvested_data.metadata)
 
         # Process variants
         variant_transforms = self.get_variant_transformations()
-        self.variants = CBioPortalTransformerBase.filter_and_rename_variants(
+        self.variants = CBioportalTransformerBase.filter_and_rename_variants(
             self.variants,
             self.get_mut_headers(),
-            amino_acid_change_source=variant_transforms.get("amino_acid_change_source"),
+            amino_acid_change_source=variant_transforms.get("amino_acid_change_source")
         )
 
         if "center_value" in variant_transforms:
@@ -1531,51 +1200,55 @@ class CBioPortalStudyTransformer(Transformer):
                     self.variants[col] = default_val
 
         self.variants = self.apply_custom_variant_logic(self.variants)
+        self.variants = CBioportalTransformerBase.handle_duplicates(
+            self.variants, study, save_loc, "mut"
+        )
 
         # Process patients
         patient_transforms = self.get_patient_transformations()
-        self.patients = CBioPortalTransformerBase.filter_and_rename_patients(
+        self.patients = CBioportalTransformerBase.filter_and_rename_patients(
             self.patients,
             self.get_patient_headers(),
             ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
-            age_source=patient_transforms.get("age_source"),
+            age_source=patient_transforms.get("age_source")
+        )
+        self.patients = CBioportalTransformerBase.handle_duplicates(
+            self.patients, study, save_loc, "patient"
         )
 
         # Process samples
         sample_transforms = self.get_sample_transformations()
-        self.samples = CBioPortalTransformerBase.filter_and_rename_samples(
+        self.samples = CBioportalTransformerBase.filter_and_rename_samples(
             self.samples,
             self.get_sample_headers(),
+            sequence_source=sample_transforms.get("sequence_source")
         )
         self.samples = self.apply_custom_sample_logic(self.samples)
+        self.samples = CBioportalTransformerBase.handle_duplicates(
+            self.samples, study, save_loc, "samples"
+        )
 
         # Combine dataframes
-        combined_df = CBioPortalTransformerBase.combine_dataframes(
+        combined_df = CBioportalTransformerBase.combine_dataframes(
             self.variants, self.samples, self.patients, self.metadata
         )
-        combined_df = CBioPortalTransformerBase.handle_duplicates(
+        combined_df = CBioportalTransformerBase.handle_duplicates(
             combined_df, study, save_loc, "combined"
         )
 
-        # Resolve Sequence_Source (mutations first, then sample fallback)
-        combined_df = CBioPortalTransformerBase.resolve_sequence_source(
-            combined_df,
-            fallback_column=sample_transforms.get("sequence_source"),
-        )
-
         # Add Gnomad notation
-        combined_df = CBioPortalTransformerBase.add_gnomad_notation(combined_df)
+        combined_df = CBioportalTransformerBase.add_gnomad_notation(combined_df)
 
         # Remove patient-variant duplicates
-        final_df = CBioPortalTransformerBase.remove_patient_variant_duplicates(
+        final_df = CBioportalTransformerBase.remove_patient_variant_duplicates(
             combined_df, study, save_loc
         )
 
         # Fill missing values
-        final_df = CBioPortalTransformerBase.fill_missing_values(final_df)
+        final_df = CBioportalTransformerBase.fill_missing_values(final_df)
 
         # Save outputs
-        CBioPortalTransformerBase.save_study_outputs(final_df, study, save_loc)
+        CBioportalTransformerBase.save_study_outputs(final_df, study, save_loc)
 
         self.final_df = final_df
         return final_df
@@ -1588,7 +1261,7 @@ def run_transformers(harvested: dict[str, Any]) -> pd.DataFrame:
     :param harvested: Mapping of study names to their harvested data
     :return: Combined DataFrame of all transformed study data
     """
-    base = CBioPortalTransformerBase()
+    base = CBioportalTransformerBase()
     return base.run_transformers(harvested)
 
 
@@ -1599,5 +1272,5 @@ if __name__ == "__main__":
     harvester = cBioportalHarvester()
     data = harvester.harvest()  # all studies
 
-    base = CBioPortalTransformerBase()
+    base = CBioportalTransformerBase()
     df = base.run_transformers(data)
