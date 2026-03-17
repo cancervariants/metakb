@@ -236,6 +236,49 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         df = self._check_for_x_variant(df, variant)
         return self._check_for_y_variant(df, variant)
 
+    def _test_gene_tokenization(self, gene: str, delay: float = 0.5) -> pd.DataFrame:
+        """Fetch normalized gene info from VICC API for a single gene."""
+        base_url = "https://normalize.cancervariants.org/gene/"
+        headers = {"Accept": "application/json", "User-Agent": "Mozilla/5.0"}
+        results = []
+        url = f"{base_url}normalize?q={gene}"
+        try:
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                data = response.json()
+                results.append({"gene": gene, "response": json.dumps(data)})
+            else:
+                results.append({"gene": gene, "response": f"Error {response.status_code}: {response.text}"})
+        except Exception as e:
+            results.append({"gene": gene, "response": f"Exception: {e!s}"})
+        time.sleep(delay)
+        return pd.DataFrame(results)
+
+    def _populate_gene_hgnc_col(self, gene_list, df, col="temp_gene_hgnc_id"):
+        """Populate gene hgnc id column for chr23 male variants."""
+        if col not in df.columns:
+            df[col] = "untested"
+        for gene in tqdm(gene_list, desc="Processing genes"):
+            gene_df = self._test_gene_tokenization(gene)
+            raw_response = gene_df.loc[0, "response"]
+            try:
+                parsed_response = json.loads(raw_response)
+            except json.JSONDecodeError:
+                continue
+            if "gene" not in parsed_response:
+                continue
+            try:
+                hgnc_id = parsed_response["gene"]["id"].split(":")[-1]
+            except (KeyError, IndexError, TypeError):
+                continue
+            df.loc[
+                (df["Chrom_23"])
+                & (df["SEX"].str.strip().str.lower() == "male")
+                & (df["Hugo_Symbol"].str.strip() == gene.strip()),
+                col,
+            ] = hgnc_id
+        return df
+
     def _correct_male_chrom23(self, df):
         """Correct male chromosome 23 variants."""
         df["ambig_chrom"] = "non-ambiguous"
@@ -262,39 +305,31 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         return df
 
     def _resolve_ambiguous_chromosomes(self, df):
-        """Resolve ambiguous Chr23 variants in male samples using HGNC ID matching."""
-        if "gene_hgnc_id" not in df.columns:
-            df["gene_hgnc_id"] = "no_value"
-        if "hgnc_id_match" not in df.columns:
-            df["hgnc_id_match"] = "no_value"
+        """Resolve ambiguous Chr23 variants using x/y hgnc_id and temp_gene_hgnc_id."""
+        if "ambig_chrom" not in df.columns:
+            return df
 
-        def resolve_row(row):
-            if row.get("ambig_chrom") not in ["XY", "neither"]:
-                return row
+        for idx, row in df[df["ambig_chrom"].isin(["XY", "neither"])].iterrows():
+            x_id = str(row.get("x_hgnc_id", "no_value")).strip()
+            y_id = str(row.get("y_hgnc_id", "no_value")).strip()
+            gene_id = str(row.get("temp_gene_hgnc_id", "untested")).strip()
 
-            x_hgnc = str(row.get("x_hgnc_id", "no_value"))
-            y_hgnc = str(row.get("y_hgnc_id", "no_value"))
-            gene_hgnc = str(row.get("gene_hgnc_id", "no_value"))
-
-            if gene_hgnc == "no_value":
-                return row
-
-            if x_hgnc == gene_hgnc and y_hgnc != gene_hgnc:
-                row["Chromosome"] = "X"
-                row["hgnc_id_match"] = "X"
-                row["ambig_chrom"] = "resolved_to_X"
-            elif y_hgnc == gene_hgnc and x_hgnc != gene_hgnc:
-                row["Chromosome"] = "Y"
-                row["hgnc_id_match"] = "Y"
-                row["ambig_chrom"] = "resolved_to_Y"
-            elif x_hgnc == y_hgnc == gene_hgnc:
-                row["hgnc_id_match"] = "both_match"
+            if gene_id not in ("untested", "no_value", ""):
+                if x_id == gene_id and y_id != gene_id:
+                    df.at[idx, "Chromosome"] = "X"
+                    df.at[idx, "ambig_chrom"] = "resolved_to_X"
+                elif y_id == gene_id and x_id != gene_id:
+                    df.at[idx, "Chromosome"] = "Y"
+                    df.at[idx, "ambig_chrom"] = "resolved_to_Y"
             else:
-                row["hgnc_id_match"] = "neither_match"
+                if x_id != "no_value" and y_id == "no_value":
+                    df.at[idx, "Chromosome"] = "X"
+                    df.at[idx, "ambig_chrom"] = "resolved_to_X"
+                elif y_id != "no_value" and x_id == "no_value":
+                    df.at[idx, "Chromosome"] = "Y"
+                    df.at[idx, "ambig_chrom"] = "resolved_to_Y"
 
-            return row
-
-        return df.apply(resolve_row, axis=1)
+        return df
 
     # ========================================================================
     # Override transform to include chromosome 23 processing
@@ -391,7 +426,17 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         # Correct male chr23 assignments
         combined_df = self._correct_male_chrom23(combined_df)
 
-        # Resolve ambiguous cases using HGNC ID matching
+        # Populate temp_gene_hgnc_id and resolve ambiguous cases
+        combined_df["temp_gene_hgnc_id"] = "untested"
+        gene_list = (
+            combined_df[
+                (combined_df["SEX"].str.lower() == "male")
+                & (combined_df["Chrom_23"])
+            ]["Hugo_Symbol"]
+            .dropna()
+            .tolist()
+        )
+        combined_df = self._populate_gene_hgnc_col(gene_list, combined_df, col="temp_gene_hgnc_id")
         combined_df = self._resolve_ambiguous_chromosomes(combined_df)
 
         # ========================================================================
@@ -406,8 +451,22 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         # Fill missing values
         final_df = CBioPortalTransformerBase.fill_missing_values(final_df)
 
-        # Save outputs
+        # Save full file with logic columns before dropping
         CBioPortalTransformerBase.save_study_outputs(final_df, study, save_loc)
+
+        # Drop chromosome 23 processing columns
+        cols_to_drop = [
+            "Chrom_23",
+            "Chr23_X",
+            "Chr23_Y",
+            "x_hgnc_id",
+            "y_hgnc_id",
+            "ambig_chrom",
+            "temp_gene_hgnc_id",
+        ]
+        final_df = final_df.drop(
+            columns=[c for c in cols_to_drop if c in final_df.columns]
+        )
 
         self.final_df = final_df
         return final_df
