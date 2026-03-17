@@ -385,9 +385,6 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         combined_df = CBioPortalTransformerBase.combine_dataframes(
             self.variants, self.samples, self.patients, self.metadata
         )
-        combined_df = CBioPortalTransformerBase.handle_duplicates(
-            combined_df, study, save_loc, "combined"
-        )
 
         # Resolve Sequence_Source (mutations first, then sample fallback)
         combined_df = CBioPortalTransformerBase.resolve_sequence_source(
@@ -439,6 +436,11 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         combined_df = self._populate_gene_hgnc_col(gene_list, combined_df, col="temp_gene_hgnc_id")
         combined_df = self._resolve_ambiguous_chromosomes(combined_df)
 
+        # Handle duplicates after chromosome 23 resolution
+        combined_df = CBioPortalTransformerBase.handle_duplicates(
+            combined_df, study, save_loc, "combined"
+        )
+
         # ========================================================================
         # CONTINUE WITH STANDARD PROCESSING
         # ========================================================================
@@ -456,6 +458,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
         # Drop chromosome 23 processing columns
         cols_to_drop = [
+            "SAMPLE_CLASS",
             "Chrom_23",
             "Chr23_X",
             "Chr23_Y",

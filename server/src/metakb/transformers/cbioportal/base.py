@@ -452,7 +452,7 @@ class CBioPortalTransformerBase(Transformer):
                     vrs_id = data["variation"]["id"]
 
             # Rate limiting
-            time.sleep(self.rate_limit_delay)
+            # time.sleep(self.rate_limit_delay)
         except Exception as e:
             logger.warning(
                 "Variant normalization failed for %s (%s): %s",
