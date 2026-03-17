@@ -10,7 +10,7 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import iriReference
+from ga4gh.core.models import Extension, iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -188,8 +188,20 @@ class CivicTransformer(Transformer):
                     item.id,
                 )
                 return None
+            statement.strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=f"Level {statement.strength.primaryCoding.code.root}",
+                )
+            ]
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
+            statement.strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=f"Level {statement.strength.primaryCoding.code}",
+                )
+            ]
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
@@ -234,7 +246,6 @@ class CivicTransformer(Transformer):
                     reported_in.append(doc)
 
             statement.reportedIn = reported_in
-
         return statement
 
     async def _normalize_variant(

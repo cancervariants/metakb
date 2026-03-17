@@ -36,7 +36,13 @@ from metakb.transformers.base import (
     Transformer,
 )
 from metakb.transformers.identifiers import compute_combo_id
-from metakb.transformers.methodology import MoaEvidenceLevel, merge_assertions
+from metakb.transformers.methodology import (
+    MoaEvidenceLevel,
+    get_aac_strength,
+    get_evidence_code,
+    get_evidence_level_coding,
+    merge_assertions,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -197,7 +203,19 @@ class MoaTransformer(Transformer):
             .upper()
         )
         evidence_level = MoaEvidenceLevel[predictive_implication]
-        return evidence_level.get_mapcon()
+        strength = MappableConcept(
+            primaryCoding=get_evidence_level_coding(evidence_level)
+        )
+        vicc_ev_code = get_evidence_code(strength)
+        if vicc_ev_code is not None:
+            aac_strength = get_aac_strength(vicc_ev_code)
+            strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=aac_strength.primaryCoding.code.root,
+                )
+            ]
+        return strength
 
     def _create_moa_disease(
         self, name: str, oncotree_code: str | None, oncotree_term: str | None

@@ -41,7 +41,7 @@ from metakb.transformers.identifiers import compute_aggr_statement_id, compute_c
 from metakb.transformers.methodology import (
     AMP_ASCO_CAP_METHOD,
     calculate_aggregate_values,
-    get_aac_strength,
+    get_evidence_code,
 )
 
 _logger = logging.getLogger(__name__)
@@ -410,19 +410,19 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
-            aac_strength = get_aac_strength(statement.strength)
-            if not aac_strength:
+            vicc_ev_code = get_evidence_code(statement.strength)
+            if not vicc_ev_code:
                 _logger.debug(
-                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
                     statement.id,
-                    statement.strength.primaryCoding,
                 )
                 return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=statement.direction,
-                    strengthOfEvidenceProvided=aac_strength,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
             strength, direction = calculate_aggregate_values(evidence)
@@ -457,19 +457,19 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
-            aac_strength = get_aac_strength(statement.strength)
-            if not aac_strength:
+            vicc_ev_code = get_evidence_code(statement.strength)
+            if not vicc_ev_code:
                 _logger.debug(
-                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
                     statement.id,
-                    statement.strength.primaryCoding,
                 )
                 return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=aac_strength,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
             strength, direction = calculate_aggregate_values(evidence)
@@ -512,19 +512,19 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
-            aac_strength = get_aac_strength(statement.strength)
-            if not aac_strength:
+            vicc_ev_code = get_evidence_code(statement.strength)
+            if not vicc_ev_code:
                 _logger.debug(
-                    "Unable to build aggregate assertion for %s because strength value is too low/unsupported: %s",
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
                     statement.id,
-                    statement.strength.primaryCoding,
                 )
                 return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=aac_strength,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
             strength, direction = calculate_aggregate_values(evidence)

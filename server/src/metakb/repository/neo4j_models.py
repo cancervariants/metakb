@@ -666,6 +666,7 @@ class StrengthNode(BaseNode):
     id: str
     name: str
     mappings: str
+    extensions: str
     primary_coding: str
 
     @classmethod
@@ -686,6 +687,7 @@ class StrengthNode(BaseNode):
             name=strength.name or "",
             mappings=_Mappings(strength.mappings or []).model_dump_json(),
             primary_coding=strength.primaryCoding.model_dump_json(),
+            extensions=_Extensions(strength.extensions or []).model_dump_json(),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -693,10 +695,12 @@ class StrengthNode(BaseNode):
         coding = (
             Coding(**json.loads(self.primary_coding)) if self.primary_coding else None
         )
+        extensions = _Extensions(json.loads(self.extensions)).root
         return MappableConcept(
-            name=self.name if self.name else None,
+            name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root or None,
             primaryCoding=coding,
+            extensions=extensions or None,
         )
 
 

@@ -1,10 +1,16 @@
-"""Provide definitions and basic functions relating to assessments and methods."""
+"""Provide definitions and basic functions relating to assessments and methods
+
+* Define source evidence levels and VICC evidence codes
+* Provide functions for converting between different systems of evidence strength
+* Provide a function for properly merging evidence into existing assertions
+
+"""
 
 import logging
 from collections.abc import Sequence
 from enum import StrEnum
 
-from ga4gh.core.models import Coding, Relation, code
+from ga4gh.core.models import Coding, Extension, Relation, code
 from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
 from ga4gh.va_spec.base import (
     Direction,
@@ -17,7 +23,7 @@ from ga4gh.va_spec.base import (
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
-_logger = logging.getLogger()
+_logger = logging.getLogger(__name__)
 
 
 # --- Global assertion method ---
@@ -35,31 +41,10 @@ AMP_ASCO_CAP_METHOD = Method(
 # --- Evidence levels and coding systems ---
 
 
-# class _EvidenceLevelMixin:
-#     """Abstract EvidenceLevel enum class
-#
-#     abc.ABC doesn't play nicely with enums so this doesn't implement any instance guards
-#     """
-#
-#     _SYSTEM: str
-#
-#     def get_system(self) -> str:
-#         """Get evidence coding system value"""
-#         return self._SYSTEM
-#
-#     def get_mapcon(self) -> MappableConcept:
-#         """Create MappableConcept for evidence strength"""
-#         return MappableConcept(
-#             primaryCoding=Coding(
-#                 system=self.get_system(),
-#                 code=code(self.value),
-#             ),
-#         )
-
-
 ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
 CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
 MOA_SYSTEM = "https://moalmanac.org/about"
+VICC_EVIDENCE_CODE_SYSTEM = "https://go.osu.edu/evidence-codes"
 
 
 class EcoLevel(StrEnum):
@@ -82,8 +67,6 @@ class CivicEvidenceLevel(StrEnum):
 class MoaEvidenceLevel(StrEnum):
     """Define constraints MOAlmanac evidence levels"""
 
-    _SYSTEM = MOA_SYSTEM
-
     FDA_APPROVED = "FDA-Approved"
     GUIDELINE = "Guideline"
     CLINICAL_TRIAL = "Clinical trial"
@@ -98,6 +81,11 @@ def get_evidence_level_coding(
     | MoaEvidenceLevel
     | AmpAscoCapStrength,
 ) -> Coding:
+    """Create a GKS Coding object for an evidence level instance
+
+    :param evidence_level: instance of known source evidence level enum
+    :return: complete coding (incl level + system)
+    """
     match evidence_level:
         case EcoLevel():
             system = ECO_SYSTEM
@@ -108,45 +96,8 @@ def get_evidence_level_coding(
         case AmpAscoCapStrength():
             system = System.AMP_ASCO_CAP
         case _:
-            raise ValueError
+            raise ValueError  # just in case
     return Coding(system=system, code=code(evidence_level.value))
-
-
-# EVIDENCE_LEVEL_MAPPING = {
-#     CivicEvidenceLevel.A: AmpAscoCapStrength.LEVEL_A,
-#     CivicEvidenceLevel.B: AmpAscoCapStrength.LEVEL_B,
-#     CivicEvidenceLevel.C: AmpAscoCapStrength.LEVEL_C,
-#     CivicEvidenceLevel.D: AmpAscoCapStrength.LEVEL_D,
-#     CivicEvidenceLevel.E: None,
-#     MoaEvidenceLevel.CLINICAL_EVIDENCE: AmpAscoCapStrength.LEVEL_C,
-#     MoaEvidenceLevel.CLINICAL_TRIAL: AmpAscoCapStrength.LEVEL_C,
-#     MoaEvidenceLevel.FDA_APPROVED: AmpAscoCapStrength.LEVEL_A,
-#     MoaEvidenceLevel.GUIDELINE: AmpAscoCapStrength.LEVEL_A,
-#     MoaEvidenceLevel.INFERENTIAL: None,
-#     MoaEvidenceLevel.PRECLINICAL: AmpAscoCapStrength.LEVEL_D,
-# }
-#
-#
-# def normalize_evidence_level(
-#     src_level: CivicEvidenceLevel | MoaEvidenceLevel,
-# ) -> AmpAscoCapStrength | None:
-#     """Convert source evidence levels into a normalized AMP/ASCO/CAP level
-#
-#     Use to generate assessment strength values.
-#
-#     :param src_level: evidence level from source statement
-#     :return: normalized equivalent if available
-#     """
-#     return EVIDENCE_LEVEL_MAPPING[src_level]
-
-
-# # AMP/ASCO/CAP strength level enum values -> Strength MappableConcepts
-# aac_strength_index = {
-#     i: MappableConcept(
-#         primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(i.value))
-#     )
-#     for i in AmpAscoCapStrength
-# }
 
 
 class ViccConceptVocabEntry(BaseModel):
@@ -172,6 +123,7 @@ _vicc_concept_vocab = [
         term="evidence",
         parents=[],
         source_mappings={EcoLevel.EVIDENCE},
+        aac_mapping=AmpAscoCapStrength.LEVEL_A,
         definition="A type of information that is used to support statements.",
     ),
     ViccConceptVocabEntry(
@@ -207,6 +159,7 @@ _vicc_concept_vocab = [
         term="clinical evidence",
         parents=["vicc:e000000"],
         source_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
+        aac_mapping=AmpAscoCapStrength.LEVEL_B,
         definition="Evidence derived from clinical research studies",
     ),
     ViccConceptVocabEntry(
@@ -272,74 +225,78 @@ vicc_concept_vocab_exact_mapping_index = {
 # vicc concept ID -> vocab entry
 vicc_concept_vocab_index = {v.id: v for v in _vicc_concept_vocab}
 
+# --- Helper functions for converting/normalizing evidence and performing aggregation ---
 
-def get_evidence_code(
-    src_level: CivicEvidenceLevel | MoaEvidenceLevel,
-) -> MappableConcept:
-    vicc_vocab_entry = vicc_concept_vocab_exact_mapping_index[src_level]
+
+def get_evidence_code(strength: MappableConcept) -> MappableConcept | None:
+    """Convert source strength object into a VICC evidence code concept"""
+    if strength.primaryCoding.system == System.AMP_ASCO_CAP:
+        # TODO these are pending final signoff for handling civic assertions
+        match strength.primaryCoding.code.root:
+            case AmpAscoCapStrength.LEVEL_A:
+                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000001"]
+            case AmpAscoCapStrength.LEVEL_B:
+                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000005"]
+            case AmpAscoCapStrength.LEVEL_C:
+                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000008"]
+            case AmpAscoCapStrength.LEVEL_D:
+                vicc_vocab_entry = vicc_concept_vocab_index["vicc.e000009"]
+            case _:
+                raise ValueError
+    else:
+        if strength.primaryCoding.system == CIVIC_SYSTEM:
+            src_level = CivicEvidenceLevel(strength.primaryCoding.code.root)
+        elif strength.primaryCoding.system == MOA_SYSTEM:
+            src_level = MoaEvidenceLevel(strength.primaryCoding.code.root)
+        else:
+            _logger.debug(
+                "Tried to get A/A/C strength equivalent for unrecognized strength object: %s",
+                strength,
+            )
+            raise NotImplementedError
+        vicc_vocab_entry = vicc_concept_vocab_exact_mapping_index[src_level]
+    if not vicc_vocab_entry.aac_mapping:
+        return None
 
     return MappableConcept(
+        id=vicc_vocab_entry.id,
         name=vicc_vocab_entry.term,
         primaryCoding=Coding(
-            system="https://go.osu.edu/evidence-codes",
+            system=VICC_EVIDENCE_CODE_SYSTEM,
             code=code(vicc_vocab_entry.id.split("vicc:")[-1]),
         ),
-    )
-
-
-def to_mapcon(self) -> MappableConcept:
-    """Construct Mappable Concept instance
-
-    :return: simple MappableConcept equivalent
-    """
-    exact_mappings = [
-        ConceptMapping(
-            coding=get_evidence_level_coding(em),
-            relation=Relation.EXACT_MATCH,
-        )
-        for em in self.source_mappings
-    ]
-    return MappableConcept(
-        name=self.term,
-        primaryCoding=get_evidence_level_coding(),
-        mappings=exact_mappings,
+        mappings=[
+            ConceptMapping(
+                relation=Relation.EXACT_MATCH, coding=get_evidence_level_coding(i)
+            )
+            for i in vicc_vocab_entry.source_mappings
+        ],
+        extensions=[
+            Extension(
+                name="metakb_display_value", value=vicc_vocab_entry.aac_mapping.value
+            )
+        ],
     )
 
 
 def get_aac_strength(
     strength: MappableConcept,
 ) -> MappableConcept | None:
-    """Get AMP/ASCO/CAP strength from a source-provided strength of evidence value
+    """Get AMP/ASCO/CAP strength from a VICC evidence code
 
-    :param strength: source strength instance
-    :return: the equivalent AMP/ASCO/CAP strength concept, if available
-    :raise NotImplementedError: if unrecognized concept system is provided
+    :param strength:
+    :return: the corresponding AMP/ASCO/CAP strength concept, if available
+    :raise ValueError:
     """
-    if strength.primaryCoding.system == CIVIC_SYSTEM:
-        src_level = CivicEvidenceLevel(strength.primaryCoding.code.root)
-        aac_strength_level = normalize_evidence_level(src_level)
-    elif strength.primaryCoding.system == MOA_SYSTEM:
-        src_level = MoaEvidenceLevel(strength.primaryCoding.code.root)
-        aac_strength_level = normalize_evidence_level(src_level)
-    elif strength.primaryCoding.system == System.AMP_ASCO_CAP:
-        aac_strength_level = AmpAscoCapStrength(strength.primaryCoding.code.root)
-    else:
-        _logger.debug(
-            "Tried to get A/A/C strength equivalent for unrecognized strength object: %s",
-            strength,
-        )
-        raise NotImplementedError
-    if not aac_strength_level:
-        return None
-    return aac_strength_index[aac_strength_level]
-
-
-_AAC_STRENGTH_RANK = {
-    AmpAscoCapStrength.LEVEL_A.value: 0,
-    AmpAscoCapStrength.LEVEL_B.value: 1,
-    AmpAscoCapStrength.LEVEL_C.value: 2,
-    AmpAscoCapStrength.LEVEL_D.value: 3,
-}
+    if strength.primaryCoding.system != VICC_EVIDENCE_CODE_SYSTEM or not strength.id:
+        raise ValueError
+    vocab_entry = vicc_concept_vocab_index[strength.id]
+    aac_level = vocab_entry.aac_mapping
+    if not aac_level:
+        raise ValueError
+    return MappableConcept(
+        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(aac_level.value))
+    )
 
 
 def calculate_aggregate_values(
@@ -351,29 +308,29 @@ def calculate_aggregate_values(
     * Take directionality from the highest-strength evidence. In the case of a tie,
       direction is "neutral"
 
-    :param evidence_lines: supporting evidence lines for the assertion
-    :return: aggregate strength and direction
+    :param evidence_lines: supporting evidence lines for the assertion. Each line must
+        have a ``strengthOfEvidenceProvided`` property which is a MappableConcept for
+        a VICC evidence coding.
+    :return: aggregated AMP/ASCO/CAP strength mapping, and direction
     """
     if not evidence_lines:
         msg = "evidence_lines must not be empty"
         raise ValueError(msg)
 
     best_line = evidence_lines[0]
-    best_strength = best_line.strengthOfEvidenceProvided
-    best_rank = _AAC_STRENGTH_RANK[best_strength.primaryCoding.code.root]
+    best_strength = get_aac_strength(best_line.strengthOfEvidenceProvided)
     tied_directions = {best_line.directionOfEvidenceProvided}
 
     for line in evidence_lines[1:]:
-        strength = line.strengthOfEvidenceProvided
-        rank = _AAC_STRENGTH_RANK[strength.primaryCoding.code.root]
+        ev_code = line.strengthOfEvidenceProvided
+        strength = get_aac_strength(ev_code)
         direction = line.directionOfEvidenceProvided
 
-        if rank < best_rank:
+        if strength.primaryCoding.code.root < best_strength.primaryCoding.code.root:
             best_line = line
             best_strength = strength
-            best_rank = rank
             tied_directions = {direction}
-        elif rank == best_rank:
+        elif strength.primaryCoding.code.root == best_strength.primaryCoding.code.root:
             tied_directions.add(direction)
 
     aggregate_direction = (
