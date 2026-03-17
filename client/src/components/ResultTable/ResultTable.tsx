@@ -22,7 +22,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { NormalizedResult, TherapyInteractionType } from '../../utils'
-import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
+import { getEvidenceGrade } from '../../utils/results'
 import { EvidenceLevel } from '../../models/codings'
 import { PieChart, Pie, Cell } from 'recharts'
 import theme from '../../theme'
@@ -120,9 +120,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       render: (value: NormalizedResult) => {
         const supportingEvidence = value.grouped_evidence
         // get array of normalized codes from supporting evidence
-        const codeGroups = supportingEvidence.map((evidence) =>
-          normalizeEvidenceLevelFromStrength(evidence.strength),
-        )
+        const codeGroups = supportingEvidence.map((evidence) => getEvidenceGrade(evidence.strength))
 
         // format into object with counts
         const counts = codeGroups.reduce<Record<EvidenceLevel, number>>(
