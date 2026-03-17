@@ -354,6 +354,5 @@ export function getEvidenceGrade(strength?: MappableConcept | null): string {
   if (typeof displayExtension?.value === 'string') {
     return stripLevel(displayExtension.value)
   }
-  console.log(strength)
   return ''
 }
