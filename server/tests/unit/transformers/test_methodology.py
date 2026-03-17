@@ -1,6 +1,7 @@
 import re
 
 import pytest
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
 from ga4gh.va_spec.base import (
     DiagnosticPredicate,
@@ -12,19 +13,24 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import iriReference
 
 from metakb.transformers.methodology import (
+    AAC_STRENGTH_INDEX,
     MoaEvidenceLevel,
-    aac_strength_index,
     calculate_aggregate_values,
+    get_evidence_level_coding,
     merge_assertions,
+    src_strength_to_vicc_code,
 )
 
 
 @pytest.fixture
 def supporting_line_level_a() -> EvidenceLine:
+    strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.FDA_APPROVED)
+    )
     stmt = Statement(
         id="stmt:supporting_level_a_moa",
         direction=Direction.SUPPORTS,
-        strength=MoaEvidenceLevel.FDA_APPROVED.get_mapcon(),
+        strength=strength,
         proposition=VariantDiagnosticProposition(
             subjectVariant=iriReference("metakb.cv:abcdef"),
             predicate=DiagnosticPredicate.INCLUSIVE,
@@ -34,16 +40,19 @@ def supporting_line_level_a() -> EvidenceLine:
     return EvidenceLine(
         hasEvidenceItems=[stmt],
         directionOfEvidenceProvided=stmt.direction,
-        strengthOfEvidenceProvided=aac_strength_index[AmpAscoCapStrength.LEVEL_A],
+        strengthOfEvidenceProvided=src_strength_to_vicc_code(strength),
     )
 
 
 @pytest.fixture
 def disputing_line_level_a() -> EvidenceLine:
+    strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.FDA_APPROVED)
+    )
     stmt = Statement(
         id="stmt:disputing_level_a_moa",
         direction=Direction.DISPUTES,
-        strength=MoaEvidenceLevel.FDA_APPROVED.get_mapcon(),
+        strength=strength,
         proposition=VariantDiagnosticProposition(
             subjectVariant=iriReference("metakb.cv:abcdef"),
             predicate=DiagnosticPredicate.INCLUSIVE,
@@ -53,16 +62,19 @@ def disputing_line_level_a() -> EvidenceLine:
     return EvidenceLine(
         hasEvidenceItems=[stmt],
         directionOfEvidenceProvided=stmt.direction,
-        strengthOfEvidenceProvided=aac_strength_index[AmpAscoCapStrength.LEVEL_A],
+        strengthOfEvidenceProvided=src_strength_to_vicc_code(strength),
     )
 
 
 @pytest.fixture
 def supporting_line_level_c() -> EvidenceLine:
+    strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
+    )
     stmt = Statement(
         id="stmt:supporting_level_c_moa",
         direction=Direction.SUPPORTS,
-        strength=MoaEvidenceLevel.CLINICAL_EVIDENCE.get_mapcon(),
+        strength=strength,
         proposition=VariantDiagnosticProposition(
             subjectVariant=iriReference("metakb.cv:abcdef"),
             predicate=DiagnosticPredicate.INCLUSIVE,
@@ -72,16 +84,19 @@ def supporting_line_level_c() -> EvidenceLine:
     return EvidenceLine(
         hasEvidenceItems=[stmt],
         directionOfEvidenceProvided=stmt.direction,
-        strengthOfEvidenceProvided=aac_strength_index[AmpAscoCapStrength.LEVEL_C],
+        strengthOfEvidenceProvided=src_strength_to_vicc_code(strength),
     )
 
 
 @pytest.fixture
-def refuting_line_level_c() -> EvidenceLine:
+def disputing_line_level_c() -> EvidenceLine:
+    strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
+    )
     stmt = Statement(
         id="stmt:disputing_level_c_moa",
         direction=Direction.DISPUTES,
-        strength=MoaEvidenceLevel.CLINICAL_EVIDENCE.get_mapcon(),
+        strength=strength,
         proposition=VariantDiagnosticProposition(
             subjectVariant=iriReference("metakb.cv:abcdef"),
             predicate=DiagnosticPredicate.INCLUSIVE,
@@ -91,7 +106,7 @@ def refuting_line_level_c() -> EvidenceLine:
     return EvidenceLine(
         hasEvidenceItems=[stmt],
         directionOfEvidenceProvided=stmt.direction,
-        strengthOfEvidenceProvided=aac_strength_index[AmpAscoCapStrength.LEVEL_C],
+        strengthOfEvidenceProvided=src_strength_to_vicc_code(strength),
     )
 
 
@@ -104,15 +119,15 @@ def refuting_line_level_c() -> EvidenceLine:
     [
         (
             ["supporting_line_level_a"],
-            (aac_strength_index[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
+            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
         ),
         (
             ["supporting_line_level_a", "supporting_line_level_c"],
-            (aac_strength_index[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
+            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
         ),
         (
-            ["supporting_line_level_c", "refuting_line_level_c"],
-            (aac_strength_index[AmpAscoCapStrength.LEVEL_C], Direction.NEUTRAL),
+            ["supporting_line_level_c", "disputing_line_level_c"],
+            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C], Direction.NEUTRAL),
         ),
     ],
 )
@@ -170,7 +185,7 @@ def test_merge_assertions_recalc_strength(
         id="asdf",
         proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
         direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=supporting_line_level_c.strengthOfEvidenceProvided,
+        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
         hasEvidenceLines=[supporting_line_level_c],
     )
     existing_assertion_copy = existing_assertion.model_copy(deep=True)
@@ -178,7 +193,7 @@ def test_merge_assertions_recalc_strength(
         id="asdf",
         proposition=supporting_line_level_a.hasEvidenceItems[0].proposition,
         direction=supporting_line_level_a.directionOfEvidenceProvided,
-        strength=supporting_line_level_a.strengthOfEvidenceProvided,
+        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A],
         hasEvidenceLines=[supporting_line_level_a],
     )
     merge_assertions(existing_assertion, new_assertion)
@@ -197,7 +212,7 @@ def test_merge_assertions_recalc_strength_and_direction(
         id="asdf",
         proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
         direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=supporting_line_level_c.strengthOfEvidenceProvided,
+        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
         hasEvidenceLines=[supporting_line_level_c],
     )
     existing_assertion_copy = existing_assertion.model_copy(deep=True)
@@ -205,7 +220,7 @@ def test_merge_assertions_recalc_strength_and_direction(
         id="asdf",
         proposition=disputing_line_level_a.hasEvidenceItems[0].proposition,
         direction=disputing_line_level_a.directionOfEvidenceProvided,
-        strength=disputing_line_level_a.strengthOfEvidenceProvided,
+        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A],
         hasEvidenceLines=[disputing_line_level_a],
     )
     merge_assertions(existing_assertion, new_assertion)

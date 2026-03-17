@@ -41,7 +41,7 @@ from metakb.transformers.identifiers import compute_aggr_statement_id, compute_c
 from metakb.transformers.methodology import (
     AMP_ASCO_CAP_METHOD,
     calculate_aggregate_values,
-    get_evidence_code,
+    src_strength_to_vicc_code,
 )
 
 _logger = logging.getLogger(__name__)
@@ -410,7 +410,7 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
-            vicc_ev_code = get_evidence_code(statement.strength)
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
             if not vicc_ev_code:
                 _logger.debug(
                     "Source evidence strength (%s) is too low or unsupported for statement ID %s",
@@ -457,7 +457,7 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
-            vicc_ev_code = get_evidence_code(statement.strength)
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
             if not vicc_ev_code:
                 _logger.debug(
                     "Source evidence strength (%s) is too low or unsupported for statement ID %s",
@@ -512,7 +512,7 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
-            vicc_ev_code = get_evidence_code(statement.strength)
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
             if not vicc_ev_code:
                 _logger.debug(
                     "Source evidence strength (%s) is too low or unsupported for statement ID %s",

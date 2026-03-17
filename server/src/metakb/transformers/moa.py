@@ -38,10 +38,10 @@ from metakb.transformers.base import (
 from metakb.transformers.identifiers import compute_combo_id
 from metakb.transformers.methodology import (
     MoaEvidenceLevel,
-    get_aac_strength,
-    get_evidence_code,
     get_evidence_level_coding,
     merge_assertions,
+    src_strength_to_vicc_code,
+    vicc_code_to_aac,
 )
 
 _logger = logging.getLogger(__name__)
@@ -206,9 +206,9 @@ class MoaTransformer(Transformer):
         strength = MappableConcept(
             primaryCoding=get_evidence_level_coding(evidence_level)
         )
-        vicc_ev_code = get_evidence_code(strength)
+        vicc_ev_code = src_strength_to_vicc_code(strength)
         if vicc_ev_code is not None:
-            aac_strength = get_aac_strength(vicc_ev_code)
+            aac_strength = vicc_code_to_aac(vicc_ev_code)
             strength.extensions = [
                 Extension(
                     name="metakb_display_value",

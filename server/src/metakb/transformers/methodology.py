@@ -218,29 +218,29 @@ _vicc_concept_vocab = [
 ]
 
 # source evidence level enum instance -> vicc concept vocab entry
-vicc_concept_vocab_exact_mapping_index = {
+VICC_CODE_EXACT_MAPPING_INDEX = {
     mapping: entry for entry in _vicc_concept_vocab for mapping in entry.source_mappings
 }
 
 # vicc concept ID -> vocab entry
-vicc_concept_vocab_index = {v.id: v for v in _vicc_concept_vocab}
+VICC_CODE_INDEX = {v.id: v for v in _vicc_concept_vocab}
 
 # --- Helper functions for converting/normalizing evidence and performing aggregation ---
 
 
-def get_evidence_code(strength: MappableConcept) -> MappableConcept | None:
+def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | None:
     """Convert source strength object into a VICC evidence code concept"""
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
         # TODO these are pending final signoff for handling civic assertions
         match strength.primaryCoding.code.root:
             case AmpAscoCapStrength.LEVEL_A:
-                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000001"]
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
             case AmpAscoCapStrength.LEVEL_B:
-                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000005"]
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000005"]
             case AmpAscoCapStrength.LEVEL_C:
-                vicc_vocab_entry = vicc_concept_vocab_index["vicc:e000008"]
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
             case AmpAscoCapStrength.LEVEL_D:
-                vicc_vocab_entry = vicc_concept_vocab_index["vicc.e000009"]
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
             case _:
                 raise ValueError
     else:
@@ -254,7 +254,7 @@ def get_evidence_code(strength: MappableConcept) -> MappableConcept | None:
                 strength,
             )
             raise NotImplementedError
-        vicc_vocab_entry = vicc_concept_vocab_exact_mapping_index[src_level]
+        vicc_vocab_entry = VICC_CODE_EXACT_MAPPING_INDEX[src_level]
     if not vicc_vocab_entry.aac_mapping:
         return None
 
@@ -279,24 +279,29 @@ def get_evidence_code(strength: MappableConcept) -> MappableConcept | None:
     )
 
 
-def get_aac_strength(
+AAC_STRENGTH_INDEX = {
+    s: MappableConcept(
+        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(s.value))
+    )
+    for s in AmpAscoCapStrength
+}
+
+
+def vicc_code_to_aac(
     strength: MappableConcept,
 ) -> MappableConcept | None:
     """Get AMP/ASCO/CAP strength from a VICC evidence code
 
-    :param strength:
+    :param strength: VICC evidence code
     :return: the corresponding AMP/ASCO/CAP strength concept, if available
-    :raise ValueError:
+    :raise ValueError: if given ``strength`` value isn't a VICC evidence concept
     """
     if strength.primaryCoding.system != VICC_EVIDENCE_CODE_SYSTEM or not strength.id:
         raise ValueError
-    vocab_entry = vicc_concept_vocab_index[strength.id]
-    aac_level = vocab_entry.aac_mapping
+    aac_level = VICC_CODE_INDEX[strength.id].aac_mapping
     if not aac_level:
         raise ValueError
-    return MappableConcept(
-        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(aac_level.value))
-    )
+    return AAC_STRENGTH_INDEX[aac_level]
 
 
 def calculate_aggregate_values(
@@ -310,20 +315,21 @@ def calculate_aggregate_values(
 
     :param evidence_lines: supporting evidence lines for the assertion. Each line must
         have a ``strengthOfEvidenceProvided`` property which is a MappableConcept for
-        a VICC evidence coding.
+        a VICC evidence coding. Must be non-empty
     :return: aggregated AMP/ASCO/CAP strength mapping, and direction
+    :raise ValueError: if evidence lines array is empty
     """
     if not evidence_lines:
         msg = "evidence_lines must not be empty"
         raise ValueError(msg)
 
     best_line = evidence_lines[0]
-    best_strength = get_aac_strength(best_line.strengthOfEvidenceProvided)
+    best_strength = vicc_code_to_aac(best_line.strengthOfEvidenceProvided)
     tied_directions = {best_line.directionOfEvidenceProvided}
 
     for line in evidence_lines[1:]:
         ev_code = line.strengthOfEvidenceProvided
-        strength = get_aac_strength(ev_code)
+        strength = vicc_code_to_aac(ev_code)
         direction = line.directionOfEvidenceProvided
 
         if strength.primaryCoding.code.root < best_strength.primaryCoding.code.root:
