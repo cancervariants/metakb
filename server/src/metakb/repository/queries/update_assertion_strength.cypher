@@ -10,7 +10,8 @@ MERGE (strength:Strength {id: $strength.id})
       {
         name: $strength.name,
         mappings: $strength.mappings,
-        primary_coding: $strength.primary_coding
+        primary_coding: $strength.primary_coding,
+        extensions: $strength.extensions
       }
 
 // delete edge to previous and merge into an edge to the new strength value
