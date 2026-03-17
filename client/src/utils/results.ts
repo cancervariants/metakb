@@ -332,18 +332,6 @@ export function buildVariantDiseaseMatrix(
 /**
  * Transform an evidence strength concept to a simple A–D grade for display.
  *
- * Supports two evidence representations:
- *
- * 1. AMP/ASCO/CAP guideline strengths, where the grade is encoded in
- *    `primaryCoding.code` (e.g. `"Level A"`). For MetaKB assertions.
- *
- * 2. VICC evidence strength concepts (https://go.osu.edu/evidence-codes),
- *    where the display value is provided via the `metakb_display_value`
- *    extension (e.g. `"Level B"`). For evidence lines.
- *
- * In both cases, the `"Level "` prefix is removed and the remaining grade
- * letter is returned.
- *
  * @param strength - Evidence strength concept object or null/undefined.
  * @returns Evidence grade (`"A"`, `"B"`, `"C"`, `"D"`) or an empty string if
  * the grade cannot be determined.
