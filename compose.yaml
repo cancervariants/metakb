@@ -1,6 +1,6 @@
 services:
   metakb:
-    image: ghcr.io/cancervariants/metakb:issue-671-docker-startup
+    image: ghcr.io/cancervariants/metakb:big-dawg-aggregation
     environment:
       AWS_ACCESS_KEY_ID: dummy
       AWS_SECRET_ACCESS_KEY: dummy
@@ -54,7 +54,7 @@ services:
       - 127.0.0.1:5432:5432
 
   neo4j:
-    image: ghcr.io/cancervariants/metakb-neo4j:20260116
+    image: ghcr.io/cancervariants/metakb-neo4j:big-dawg-aggregation
     ports:
       - "7474:7474"
       - "7687:7687"

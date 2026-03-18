@@ -1,4 +1,4 @@
-"""Transformer for the all_stjude_2015 cBioPortal study."""
+"""Transformer for the all_stjude_2016 cBioPortal study."""
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
@@ -31,7 +31,7 @@ PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE"]
 SAMPLE_HEADERS = [
     "PATIENT_ID",
     "SAMPLE_ID",
-    "GENE_PANEL",
+    "PLATFORM",
     "ONCOTREE_CODE",
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
@@ -40,11 +40,11 @@ SAMPLE_HEADERS = [
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for all_stjude_2015 study."""
+    """Transformer for all_stjude_2016 study."""
 
     def get_study_name(self) -> str:
         """Return the cBioPortal study identifier."""
-        return "all_stjude_2015"
+        return "all_stjude_2016"
 
     def get_mut_headers(self) -> list[str]:
         """Return mutation data column headers."""
@@ -58,6 +58,10 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         """Return sample data column headers."""
         return SAMPLE_HEADERS
 
+    def get_variant_transformations(self) -> dict:
+        """Return variant column transformation mappings."""
+        return {"center_value": "St. Jude Children's Research Hospital"}
+
     def get_sample_transformations(self) -> dict:
         """Return sample column transformation mappings."""
-        return {"sequence_source": "GENE_PANEL"}
+        return {"sequence_source": "PLATFORM"}

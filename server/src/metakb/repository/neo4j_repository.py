@@ -798,3 +798,26 @@ class Neo4jRepository(AbstractRepository):
         with self.session.begin_transaction() as tx:
             for query in queries_catalog.teardown():
                 tx.run(query)
+
+    def get_all_assertion_ids(self) -> list[str]:
+        """Return all assertion IDs"""
+        result = self.session.execute_read(
+            lambda tx: list(tx.run(queries_catalog.get_all_assertion_ids()))
+        )
+        return [r["s.id"] for r in result]
+
+    def update_assertion_strength(
+        self, assertion_id: str, strength: MappableConcept
+    ) -> None:
+        """Update strength associated with an assertion
+
+        :param assertion_id: ID of statement to update
+        :param strength: new strength concept
+        """
+        strength_node = StrengthNode.from_gks(strength)
+        with self.session.begin_transaction() as tx:
+            tx.run(
+                queries_catalog.update_assertion_strength(),
+                statement_id=assertion_id,
+                strength=strength_node.model_dump(mode="json"),
+            )
