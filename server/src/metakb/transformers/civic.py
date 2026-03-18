@@ -10,7 +10,7 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import iriReference
+from ga4gh.core.models import Extension, iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -28,6 +28,7 @@ from metakb.transformers.catvars import (
     build_proteinsequenceconsequence_catvar,
 )
 from metakb.transformers.identifiers import compute_combo_id
+from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 
@@ -110,20 +111,15 @@ class CivicTransformer(Transformer):
                 )
                 continue
             statements.append(transformed_statement)
-
             if aggregate_statement := await self._create_aggregate_statement(
                 transformed_statement
             ):
-                # include this statement as an item within an existing evidence line
-                # if there is already an aggregate statement for this set of entities
                 for existing_statement in statements:
                     if (
                         existing_statement.proposition
                         == aggregate_statement.proposition
                     ):
-                        existing_statement.hasEvidenceLines[0].hasEvidenceItems.append(
-                            transformed_statement
-                        )
+                        merge_assertions(existing_statement, aggregate_statement)
                         break
                 else:
                     statements.append(aggregate_statement)
@@ -192,8 +188,20 @@ class CivicTransformer(Transformer):
                     item.id,
                 )
                 return None
+            statement.strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=f"Level {statement.strength.primaryCoding.code.root}",
+                )
+            ]
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
+            statement.strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=f"Level {statement.strength.primaryCoding.code}",
+                )
+            ]
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
@@ -238,7 +246,6 @@ class CivicTransformer(Transformer):
                     reported_in.append(doc)
 
             statement.reportedIn = reported_in
-
         return statement
 
     async def _normalize_variant(

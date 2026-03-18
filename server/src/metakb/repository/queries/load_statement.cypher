@@ -18,7 +18,8 @@ MERGE (strength:Strength {id: $statement.has_strength.id})
       {
         name: $statement.has_strength.name,
         mappings: $statement.has_strength.mappings,
-        primary_coding: $statement.has_strength.primary_coding
+        primary_coding: $statement.has_strength.primary_coding,
+        extensions: $statement.has_strength.extensions
       }
 MERGE (statement)-[:HAS_STRENGTH]->(strength)
 
@@ -64,7 +65,7 @@ CALL {
     WHERE conditionInput.conditions IS NOT NULL
 
     MERGE (conditionSet:ConditionSet {id: conditionInput.id})
-      SET conditionSet.membershipOperator = conditionInput.membershipOperator
+    SET conditionSet.membershipOperator = conditionInput.membershipOperator
 
     WITH conditionSet, conditionInput
     UNWIND conditionInput.conditions AS childInput
@@ -76,11 +77,11 @@ CALL {
       WHERE childInput.conditions IS NOT NULL
 
       MERGE (childConditionSet:ConditionSet {id: childInput.id})
-        SET childConditionSet.membershipOperator = childInput.membershipOperator
+      SET childConditionSet.membershipOperator = childInput.membershipOperator
 
       RETURN childConditionSet AS childNode
 
-      UNION
+        UNION
 
       // child condition
       WITH childInput
@@ -88,7 +89,7 @@ CALL {
       WHERE childInput.conditions IS NULL
 
       MERGE (childCondition:Condition {id: childInput.id})
-        SET childCondition += childInput
+      SET childCondition += childInput
 
       RETURN childCondition AS childNode
     }
@@ -96,7 +97,7 @@ CALL {
     MERGE (conditionSet)-[:HAS_CONDITION]->(childNode)
     RETURN conditionSet AS builtCondition
 
-    UNION
+      UNION
 
     // Condition case
     WITH conditionInput
@@ -104,7 +105,7 @@ CALL {
     WHERE conditionInput.conditions IS NULL
 
     MERGE (condition:Condition {id: conditionInput.id})
-      SET condition += conditionInput
+    SET condition += conditionInput
 
     RETURN condition AS builtCondition
   }
@@ -113,7 +114,11 @@ CALL {
 }
 
 WITH statement, builtCondition
-FOREACH (_ IN CASE WHEN builtCondition IS NOT NULL THEN [1] ELSE [] END |
+FOREACH (_ IN
+CASE
+  WHEN builtCondition IS NOT NULL THEN [1]
+  ELSE []
+END |
   MERGE (statement)-[:HAS_TUMOR_TYPE]->(builtCondition)
 )
 
@@ -139,7 +144,12 @@ CALL {
   WITH statement, coalesce($statement.has_evidence_lines, []) AS ev_lines
   UNWIND ev_lines AS ev_line
   MERGE (el:EvidenceLine {id: ev_line.id})
-    ON CREATE SET el += {direction: ev_line.direction, strength_of_evidence_provided: ev_line.strength_of_evidence_provided}
+    ON CREATE SET
+      el +=
+        {
+          direction: ev_line.direction,
+          strength_of_evidence_provided: ev_line.strength_of_evidence_provided
+        }
   MERGE (statement)-[:HAS_EVIDENCE_LINE]->(el)
 
   WITH statement, el, ev_line

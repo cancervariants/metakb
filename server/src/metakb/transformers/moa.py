@@ -32,11 +32,17 @@ from tqdm import tqdm
 from metakb.harvesters.moa import MoaHarvestedData
 from metakb.transformers import catvars as build_catvars
 from metakb.transformers.base import (
-    MoaEvidenceLevel,
     TransformedData,
     Transformer,
 )
 from metakb.transformers.identifiers import compute_combo_id
+from metakb.transformers.methodology import (
+    MoaEvidenceLevel,
+    get_evidence_level_coding,
+    merge_assertions,
+    src_strength_to_vicc_code,
+    vicc_code_to_aac,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -84,19 +90,16 @@ class MoaTransformer(Transformer):
             source = docs_map[assertion["source_id"]]
             if transformed_statement := self._create_statement(assertion, source):
                 statements.append(transformed_statement)
+
                 if aggregate_statement := await self._create_aggregate_statement(
                     transformed_statement
                 ):
-                    # include this statement as an item within an existing evidence line
-                    # if there is already an aggregate statement for this set of entities
                     for existing_statement in statements:
                         if (
                             existing_statement.proposition
                             == aggregate_statement.proposition
                         ):
-                            existing_statement.hasEvidenceLines[
-                                0
-                            ].hasEvidenceItems.append(transformed_statement)
+                            merge_assertions(existing_statement, aggregate_statement)
                             break
                     else:
                         statements.append(aggregate_statement)
@@ -200,13 +203,19 @@ class MoaTransformer(Transformer):
             .upper()
         )
         evidence_level = MoaEvidenceLevel[predictive_implication]
-        return MappableConcept(
-            primaryCoding=Coding(
-                system="https://moalmanac.org/about",
-                code=code(evidence_level.value),
-            ),
-            mappings=self.evidence_level_to_vicc_concept_mapping[evidence_level],
+        strength = MappableConcept(
+            primaryCoding=get_evidence_level_coding(evidence_level)
         )
+        vicc_ev_code = src_strength_to_vicc_code(strength)
+        if vicc_ev_code is not None:
+            aac_strength = vicc_code_to_aac(vicc_ev_code)
+            strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=aac_strength.primaryCoding.code.root,
+                )
+            ]
+        return strength
 
     def _create_moa_disease(
         self, name: str, oncotree_code: str | None, oncotree_term: str | None

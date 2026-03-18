@@ -5,7 +5,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { Statement } from '../../models/domain'
 import { ResultColumn } from './types'
 import { getEvidenceLabelUrl, getEvidenceSource, NormalizedResult } from '../../utils'
-import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
+import { getEvidenceGrade } from '../../utils/results'
 
 const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = ({
   row,
@@ -41,7 +41,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(e.id || '')
               const evidenceSource = e.id ? getEvidenceSource(e.id) : null
               const originalCode = e.strength?.primaryCoding?.code
-              const normalizedLevel = normalizeEvidenceLevelFromStrength(e.strength)
+              const normalizedLevel = getEvidenceGrade(e.strength)
               const levelColor =
                 normalizedLevel in theme.palette.evidence
                   ? theme.palette.evidence[normalizedLevel as keyof typeof theme.palette.evidence]

@@ -14,6 +14,9 @@ A few basic motifs are important here --
   These should be returned as `None` in the `to_gks()` method.
 * In general, nodes should have some deterministic ID based on their values, if an ID
   isn't already given. This is to ensure that repeat nodes aren't inadvertently added.
+  Note that some nodes, like assertions and evidence lines, might need to be updated
+  in-place as evidence is aggregated together -- DO NOT generate IDs based on those
+  values which are subject to change
 
 """
 
@@ -663,6 +666,7 @@ class StrengthNode(BaseNode):
     id: str
     name: str
     mappings: str
+    extensions: str
     primary_coding: str
 
     @classmethod
@@ -683,6 +687,7 @@ class StrengthNode(BaseNode):
             name=strength.name or "",
             mappings=_Mappings(strength.mappings or []).model_dump_json(),
             primary_coding=strength.primaryCoding.model_dump_json(),
+            extensions=_Extensions(strength.extensions or []).model_dump_json(),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -690,10 +695,12 @@ class StrengthNode(BaseNode):
         coding = (
             Coding(**json.loads(self.primary_coding)) if self.primary_coding else None
         )
+        extensions = _Extensions(json.loads(self.extensions)).root
         return MappableConcept(
-            name=self.name if self.name else None,
+            name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root or None,
             primaryCoding=coding,
+            extensions=extensions or None,
         )
 
 
@@ -710,9 +717,10 @@ class EvidenceLineNode(BaseNode):
     strength_of_evidence_provided: str
 
     @classmethod
-    def from_gks(cls, evidence_line: EvidenceLine) -> Self:
+    def from_gks(cls, evidence_line: EvidenceLine, statement_id: str) -> Self:
         """Construct node representation of Evidence Line object"""
-        evidence_line_id = f"evidence_line:{','.join(sorted(item.id for item in evidence_line.hasEvidenceItems))}"
+        strength_serialized = evidence_line.strengthOfEvidenceProvided.model_dump_json()
+        evidence_line_id = f"evidence_line:{statement_id}_{strength_serialized}"
         evidence_items = []
         for item in evidence_line.hasEvidenceItems:
             proposition_type = item.proposition.type
@@ -731,7 +739,7 @@ class EvidenceLineNode(BaseNode):
             id=evidence_line_id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
-            strength_of_evidence_provided=evidence_line.strengthOfEvidenceProvided.model_dump_json(),
+            strength_of_evidence_provided=strength_serialized,
         )
 
     def to_gks(self) -> EvidenceLine:
@@ -845,7 +853,7 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
         tr_proposition = statement.proposition
         evidence_line_nodes = (
             [
-                EvidenceLineNode.from_gks(evidence_line)
+                EvidenceLineNode.from_gks(evidence_line, statement.id)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines
@@ -943,7 +951,7 @@ class DiagnosticStatementNode(StatementNodeBase):
         strength_node = StrengthNode.from_gks(statement.strength)
         evidence_lines = (
             [
-                EvidenceLineNode.from_gks(evidence_line)
+                EvidenceLineNode.from_gks(evidence_line, statement.id)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines
@@ -1031,7 +1039,7 @@ class PrognosticStatementNode(StatementNodeBase):
         strength_node = StrengthNode.from_gks(statement.strength)
         evidence_line_nodes = (
             [
-                EvidenceLineNode.from_gks(evidence_line)
+                EvidenceLineNode.from_gks(evidence_line, statement.id)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines
