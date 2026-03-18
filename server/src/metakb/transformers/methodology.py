@@ -229,7 +229,12 @@ VICC_CODE_INDEX = {v.id: v for v in _vicc_concept_vocab}
 
 
 def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | None:
-    """Convert source strength object into a VICC evidence code concept"""
+    """Convert source strength object into a VICC evidence code concept
+
+    :param strength: strength object used in a source statement
+    :return: the equivalent VICC code strength object, if available
+    :raise ValueError: if input arg has an unknown coding system
+    """
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
         # TODO these are pending final signoff for handling civic assertions
         match strength.primaryCoding.code.root:
@@ -253,7 +258,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
                 "Tried to get A/A/C strength equivalent for unrecognized strength object: %s",
                 strength,
             )
-            raise NotImplementedError
+            raise ValueError
         vicc_vocab_entry = VICC_CODE_EXACT_MAPPING_INDEX[src_level]
     if not vicc_vocab_entry.aac_mapping:
         return None
