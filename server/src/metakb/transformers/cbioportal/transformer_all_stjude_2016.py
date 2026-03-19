@@ -43,25 +43,25 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for all_stjude_2016 study."""
 
     def get_study_name(self) -> str:
-        """Return the cBioPortal study identifier."""
+        """Return the study identifier."""
         return "all_stjude_2016"
 
     def get_mut_headers(self) -> list[str]:
-        """Return mutation data column headers."""
+        """Return the list of mutation/variant column headers to keep."""
         return MUT_HEADERS
 
     def get_patient_headers(self) -> list[str]:
-        """Return patient data column headers."""
+        """Return the list of patient column headers to keep."""
         return PATIENT_HEADERS
 
     def get_sample_headers(self) -> list[str]:
-        """Return sample data column headers."""
+        """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
-        """Return variant column transformation mappings."""
+        """Return study-specific variant transformations."""
         return {"center_value": "St. Jude Children's Research Hospital"}
 
     def get_sample_transformations(self) -> dict:
-        """Return sample column transformation mappings."""
+        """Return study-specific sample transformations."""
         return {"sequence_source": "PLATFORM"}

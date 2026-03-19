@@ -80,7 +80,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         return {"center_value": "Weill Cornell Medical College"}
 
     def transform(self, harvested_data: CBioPortalHarvestedData) -> pd.DataFrame:
-        """Override transform to handle hardcoded study ID.
+        """Transform study data using a hardcoded study ID.
 
         This study doesn't have a proper metadata field with study identifier,
         so we need to override the combine step.
