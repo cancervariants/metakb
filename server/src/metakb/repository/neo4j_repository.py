@@ -828,7 +828,7 @@ class Neo4jRepository(AbstractRepository):
     def update_assertion_properties(
         self,
         assertion_id: str,
-        direction: Direction,
+        direction: Direction | str,
         extensions: list[Extension] | None = None,
     ) -> None:
         """Update mutable properties for a higher-order assertion
@@ -841,7 +841,9 @@ class Neo4jRepository(AbstractRepository):
             tx.run(
                 queries_catalog.update_assertion_properties(),
                 statement_id=assertion_id,
-                direction=direction.value,
+                direction=direction.value
+                if isinstance(direction, Direction)
+                else direction,
                 extensions=json.dumps(
                     _Extensions(extensions or []).model_dump(mode="json")
                 ),

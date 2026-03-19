@@ -127,7 +127,7 @@ class AbstractRepository(abc.ABC):
     def update_assertion_properties(
         self,
         assertion_id: str,
-        direction: Direction,
+        direction: Direction | str,
         extensions: list[Extension] | None = None,
     ) -> None:
         """Update mutable properties for a higher-order assertion
