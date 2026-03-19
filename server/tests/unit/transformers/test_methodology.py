@@ -1,447 +1,460 @@
+"""A module to convert MOA resources to common data model"""
+
+import logging
 import re
 
-import pytest
-from ga4gh.core.models import Coding, ConceptMapping, Extension, MappableConcept, code
-from ga4gh.core.models import Relation as CoreRelation
-from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
-from ga4gh.va_spec.base import (
-    DiagnosticPredicate,
-    Direction,
-    EvidenceLine,
-    Statement,
-    System,
-    VariantDiagnosticProposition,
+from ga4gh.cat_vrs.models import CategoricalVariant
+from ga4gh.core.models import (
+    Coding,
+    ConceptMapping,
+    Extension,
+    MappableConcept,
+    Relation,
+    code,
 )
-from ga4gh.vrs.models import iriReference
+from ga4gh.va_spec.base import (
+    Condition,
+    Direction,
+    Document,
+    MembershipOperator,
+    Method,
+    PrognosticPredicate,
+    Statement,
+    Therapeutic,
+    TherapeuticResponsePredicate,
+    TherapyGroup,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
+)
+from ga4gh.vrs.models import Allele
+from tqdm import tqdm
 
+from metakb.harvesters.moa import MoaHarvestedData
+from metakb.transformers import catvars as build_catvars
+from metakb.transformers.base import (
+    TransformedData,
+    Transformer,
+)
+from metakb.transformers.identifiers import compute_combo_id
 from metakb.transformers.methodology import (
-    AAC_STRENGTH_INDEX,
-    CivicEvidenceLevel,
     MoaEvidenceLevel,
-    StarRatingReason,
-    calculate_aggregate_values,
-    calculate_star_rating,
     get_evidence_level_coding,
     merge_assertions,
     src_strength_to_vicc_code,
+    vicc_code_to_aac,
 )
 
-
-def _make_source_strength(evidence_level: MoaEvidenceLevel) -> MappableConcept:
-    return MappableConcept(primaryCoding=get_evidence_level_coding(evidence_level))
+_logger = logging.getLogger(__name__)
 
 
-def _make_source_evidence_line(
-    statement_id: str,
-    direction: Direction,
-    evidence_level: MoaEvidenceLevel,
-) -> EvidenceLine:
-    source_strength = _make_source_strength(evidence_level)
-    statement = _make_statement(statement_id, direction, source_strength)
-    return _make_evidence_line(statement, src_strength_to_vicc_code(source_strength))
+class MoaTransformer(Transformer):
+    """A class for transforming MOA resources to common data model."""
 
+    def _create_method(self) -> Method:
+        """Get MOA classification method object for use in study statements
 
-@pytest.fixture
-def supporting_line_level_a() -> EvidenceLine:
-    return _make_source_evidence_line(
-        "stmt:supporting_level_a_moa",
-        Direction.SUPPORTS,
-        MoaEvidenceLevel.FDA_APPROVED,
-    )
-
-
-@pytest.fixture
-def disputing_line_level_a() -> EvidenceLine:
-    return _make_source_evidence_line(
-        "stmt:disputing_level_a_moa",
-        Direction.DISPUTES,
-        MoaEvidenceLevel.FDA_APPROVED,
-    )
-
-
-@pytest.fixture
-def supporting_line_level_c() -> EvidenceLine:
-    return _make_source_evidence_line(
-        "stmt:supporting_level_c_moa",
-        Direction.SUPPORTS,
-        MoaEvidenceLevel.CLINICAL_EVIDENCE,
-    )
-
-
-@pytest.fixture
-def disputing_line_level_c() -> EvidenceLine:
-    return _make_source_evidence_line(
-        "stmt:disputing_level_c_moa",
-        Direction.DISPUTES,
-        MoaEvidenceLevel.CLINICAL_EVIDENCE,
-    )
-
-
-def _make_statement(
-    statement_id: str,
-    direction: Direction,
-    strength: MappableConcept,
-) -> Statement:
-    return Statement(
-        id=statement_id,
-        direction=direction,
-        strength=strength,
-        proposition=VariantDiagnosticProposition(
-            subjectVariant=iriReference("metakb.cv:abcdef"),
-            predicate=DiagnosticPredicate.INCLUSIVE,
-            objectCondition=iriReference("metakb.disease:abcdef"),
-        ),
-    )
-
-
-def _make_evidence_line(
-    statement: Statement, strength: MappableConcept
-) -> EvidenceLine:
-    return EvidenceLine(
-        hasEvidenceItems=[statement],
-        directionOfEvidenceProvided=statement.direction,
-        strengthOfEvidenceProvided=strength,
-    )
-
-
-def _make_vicc_strength_with_mapping(mapped_code: str) -> MappableConcept:
-    return MappableConcept(
-        id=f"vicc:{mapped_code}",
-        primaryCoding=Coding(
-            system="https://go.osu.edu/evidence-codes",
-            code=code(mapped_code),
-        ),
-        mappings=[
-            ConceptMapping(
-                relation=CoreRelation.EXACT_MATCH,
-                coding=Coding(system=System.AMP_ASCO_CAP, code=code(mapped_code)),
-            )
-        ],
-    )
-
-
-@pytest.mark.ci_ok
-@pytest.mark.parametrize(
-    (
-        "line_fixtures",
-        "expected",
-    ),
-    [
-        (
-            ["supporting_line_level_a"],
-            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
-        ),
-        (
-            ["supporting_line_level_a", "supporting_line_level_c"],
-            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A], Direction.SUPPORTS),
-        ),
-        (
-            ["supporting_line_level_c", "disputing_line_level_c"],
-            (AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C], Direction.NEUTRAL),
-        ),
-    ],
-)
-def test_calculate_aggregate_values(line_fixtures, expected, request):
-    lines = [request.getfixturevalue(name) for name in line_fixtures]
-    assert calculate_aggregate_values(lines) == expected
-
-
-def test_calculate_aggregate_values_empty():
-    with pytest.raises(ValueError, match=re.escape("evidence_lines must not be empty")):
-        calculate_aggregate_values([])
-
-
-@pytest.mark.ci_ok
-@pytest.mark.parametrize(
-    ("lines", "expected_rating", "expected_reason"),
-    [
-        (
-            ["supporting_line_level_c"],
-            1,
-            StarRatingReason.SINGLE_SUBMISSION,
-        ),
-        (
-            ["supporting_line_level_c", "supporting_line_level_c"],
-            2,
-            StarRatingReason.CONCORDANT_SUBMISSIONS,
-        ),
-        (
-            ["supporting_line_level_c", "disputing_line_level_c"],
-            1,
-            StarRatingReason.DISCORDANT_EVIDENCE,
-        ),
-    ],
-)
-def test_calculate_star_rating(lines, expected_rating, expected_reason, request):
-    evidence_lines = [request.getfixturevalue(name) for name in lines]
-
-    result = calculate_star_rating(evidence_lines)
-
-    assert result.star_rating == expected_rating
-    assert result.reason == expected_reason
-
-
-@pytest.mark.ci_ok
-def test_calculate_star_rating_authoritative_evidence():
-    """Test that authoritative evidence returns 4 stars"""
-    strength = _make_vicc_strength_with_mapping("e000002")
-    statement = _make_statement(
-        "stmt:authoritative",
-        Direction.SUPPORTS,
-        strength,
-    )
-    evidence_line = _make_evidence_line(statement, strength)
-
-    result = calculate_star_rating([evidence_line])
-
-    assert result.star_rating == 4
-    assert result.reason == StarRatingReason.AUTHORITATIVE_EVIDENCE
-
-
-@pytest.mark.ci_ok
-def test_calculate_star_rating_civic_assertion_defaults_to_two_star():
-    """Test that an assertion containing a CIViC aid will return 2 stars"""
-    source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.A)
-    )
-    vicc_strength = src_strength_to_vicc_code(source_strength)
-    statement = _make_statement(
-        "civic.aid:123",
-        Direction.SUPPORTS,
-        vicc_strength,
-    )
-    evidence_line = _make_evidence_line(statement, vicc_strength)
-
-    result = calculate_star_rating([evidence_line])
-
-    assert result.star_rating == 2
-    assert result.reason == StarRatingReason.CONCORDANT_SUBMISSIONS
-
-
-@pytest.mark.ci_ok
-def test_calculate_star_rating_concordant_evidence():
-    """Test that multiple concordant pieces of evidence returns 2 stars (outside of a civic assertion)"""
-    moa_source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
-    )
-    moa_vicc_strength = src_strength_to_vicc_code(moa_source_strength)
-    moa_statement = _make_statement(
-        "moa.aid:123",
-        Direction.SUPPORTS,
-        moa_vicc_strength,
-    )
-    moa_evidence_line = _make_evidence_line(moa_statement, moa_vicc_strength)
-
-    civic_source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
-    )
-    civic_vicc_strength = src_strength_to_vicc_code(civic_source_strength)
-    civic_statement = _make_statement(
-        "civic.eid:123",
-        Direction.SUPPORTS,
-        civic_vicc_strength,
-    )
-    civic_evidence_line = _make_evidence_line(civic_statement, civic_vicc_strength)
-
-    result = calculate_star_rating([moa_evidence_line, civic_evidence_line])
-
-    assert result.star_rating == 2
-    assert result.reason == StarRatingReason.CONCORDANT_SUBMISSIONS
-
-
-@pytest.mark.ci_ok
-def test_calculate_star_rating_discordant_evidence():
-    """Test that multiple discordant pieces of evidence returns 1 star"""
-    moa_source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
-    )
-    moa_vicc_strength = src_strength_to_vicc_code(moa_source_strength)
-    moa_statement = _make_statement(
-        "moa.aid:123",
-        Direction.DISPUTES,
-        moa_vicc_strength,
-    )
-    moa_evidence_line = _make_evidence_line(moa_statement, moa_vicc_strength)
-
-    civic_source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
-    )
-    civic_vicc_strength = src_strength_to_vicc_code(civic_source_strength)
-    civic_statement = _make_statement(
-        "civic.eid:123",
-        Direction.SUPPORTS,
-        civic_vicc_strength,
-    )
-    civic_evidence_line = _make_evidence_line(civic_statement, civic_vicc_strength)
-
-    result = calculate_star_rating([moa_evidence_line, civic_evidence_line])
-
-    assert result.star_rating == 1
-    assert result.reason == StarRatingReason.DISCORDANT_EVIDENCE
-
-
-def test_merge_assertions_lines(supporting_line_level_a: EvidenceLine):
-    """Test merging assertions where items join existing evidence lines, aggregate values unchanged"""
-    existing_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_a.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_a.directionOfEvidenceProvided,
-        strength=supporting_line_level_a.strengthOfEvidenceProvided,
-        hasEvidenceLines=[supporting_line_level_a],
-    )
-    line_copy = supporting_line_level_a.model_copy(deep=True)
-    new_assertion = Statement(
-        id="asdf",
-        proposition=line_copy.hasEvidenceItems[0].proposition,
-        direction=line_copy.directionOfEvidenceProvided,
-        strength=line_copy.strengthOfEvidenceProvided,
-        hasEvidenceLines=[line_copy],
-    )
-    existing_assertion_copy, new_assertion_copy = (
-        existing_assertion.model_copy(deep=True),
-        new_assertion.model_copy(deep=True),
-    )  # preserve input state to check later
-
-    merge_assertions(existing_assertion, new_assertion)
-    assert existing_assertion != existing_assertion_copy, "First arg modified in-place"
-    assert new_assertion == new_assertion_copy, "Second arg not modified"
-    assert len(existing_assertion.hasEvidenceLines[0].hasEvidenceItems) == 2
-    assert (
-        existing_assertion.hasEvidenceLines[0].hasEvidenceItems[0].id
-        == "stmt:supporting_level_a_moa"
-    )
-    assert (
-        existing_assertion.hasEvidenceLines[0].hasEvidenceItems[1].id
-        == "stmt:supporting_level_a_moa"
-    )
-
-
-@pytest.mark.ci_ok
-def test_merge_assertions_recalc_strength(
-    supporting_line_level_c: EvidenceLine, supporting_line_level_a: EvidenceLine
-):
-    existing_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
-        hasEvidenceLines=[supporting_line_level_c],
-    )
-    existing_assertion_copy = existing_assertion.model_copy(deep=True)
-    new_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_a.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_a.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A],
-        hasEvidenceLines=[supporting_line_level_a],
-    )
-    merge_assertions(existing_assertion, new_assertion)
-
-    assert len(existing_assertion.hasEvidenceLines) == 2
-    assert existing_assertion.strength != existing_assertion_copy.strength
-    assert existing_assertion.strength == new_assertion.strength
-    assert existing_assertion.direction == existing_assertion_copy.direction
-
-
-@pytest.mark.ci_ok
-def test_merge_assertions_updates_star_rating_extensions(
-    supporting_line_level_c: EvidenceLine, disputing_line_level_c: EvidenceLine
-):
-    existing_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
-        extensions=[
-            Extension(name="foo", value="bar"),
-            Extension(name="star_rating", value=2),
-            Extension(name="star_rating_reason", value="stale"),
-        ],
-        hasEvidenceLines=[supporting_line_level_c],
-    )
-    new_assertion = Statement(
-        id="asdf",
-        proposition=disputing_line_level_c.hasEvidenceItems[0].proposition,
-        direction=disputing_line_level_c.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
-        hasEvidenceLines=[disputing_line_level_c],
-    )
-
-    merge_assertions(existing_assertion, new_assertion)
-
-    assert existing_assertion.extensions is not None
-    star_extensions = {
-        ext.name: ext.value
-        for ext in existing_assertion.extensions
-        if ext.name in {"star_rating", "star_rating_reason"}
-    }
-    assert star_extensions == {
-        "star_rating": 1,
-        "star_rating_reason": StarRatingReason.DISCORDANT_EVIDENCE.value,
-    }
-    assert len([ext for ext in existing_assertion.extensions if ext.name == "foo"]) == 1
-    assert (
-        len([ext for ext in existing_assertion.extensions if ext.name == "star_rating"])
-        == 1
-    )
-    assert (
-        len(
-            [
-                ext
-                for ext in existing_assertion.extensions
-                if ext.name == "star_rating_reason"
-            ]
+        :return: MOA method
+        """
+        return Method(
+            id="moa.method:2021",
+            name="MOAlmanac (2021)",
+            reportedIn=Document(
+                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                doi="10.1038/s43018-021-00243-3",
+                pmid="35121878",
+            ),
         )
-        == 1
-    )
 
+    async def transform(self, harvested_data: MoaHarvestedData) -> None:
+        """Transform MOA harvested JSON to common data model.
 
-@pytest.mark.ci_ok
-def test_merge_assertions_recalc_strength_and_direction(
-    supporting_line_level_c: EvidenceLine, disputing_line_level_a: EvidenceLine
-):
-    existing_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_C],
-        hasEvidenceLines=[supporting_line_level_c],
-    )
-    existing_assertion_copy = existing_assertion.model_copy(deep=True)
-    new_assertion = Statement(
-        id="asdf",
-        proposition=disputing_line_level_a.hasEvidenceItems[0].proposition,
-        direction=disputing_line_level_a.directionOfEvidenceProvided,
-        strength=AAC_STRENGTH_INDEX[AmpAscoCapStrength.LEVEL_A],
-        hasEvidenceLines=[disputing_line_level_a],
-    )
-    merge_assertions(existing_assertion, new_assertion)
+        Will store transformed results in ``processed_data`` instance variable.
 
-    assert len(existing_assertion.hasEvidenceLines) == 2
-    assert existing_assertion.strength != existing_assertion_copy.strength
-    assert existing_assertion.strength == new_assertion.strength
-    assert existing_assertion.direction != existing_assertion_copy.direction
-    assert existing_assertion.direction == new_assertion.direction
+        For each statement:
+        * Build its base GKS equivalent
+        * Try to normalize variant, disease, gene(, drug)
+        * If they all normalize, also build the aggregate statement, supported by
+          an evidence line to the base statement
 
+        :param harvested_data: MOA harvested data
+        """
+        docs_map = {}
+        for source in harvested_data.sources:
+            source_doc = self._create_document(source)
+            docs_map[source["id"]] = source_doc
 
-@pytest.mark.ci_ok
-def test_merge_assertions_check_id(supporting_line_level_c: EvidenceLine):
-    existing_assertion = Statement(
-        id="asdf",
-        proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=supporting_line_level_c.strengthOfEvidenceProvided,
-        hasEvidenceLines=[supporting_line_level_c],
-    )
-    new_assertion = Statement(
-        id="zzzz-a-different-id",
-        proposition=supporting_line_level_c.hasEvidenceItems[0].proposition,
-        direction=supporting_line_level_c.directionOfEvidenceProvided,
-        strength=supporting_line_level_c.strengthOfEvidenceProvided,
-        hasEvidenceLines=[supporting_line_level_c],
-    )
-    with pytest.raises(
-        ValueError,
-        match=re.escape("Tried to merge assertions of distinct propositions"),
-    ):
-        merge_assertions(existing_assertion, new_assertion)
+        # Add variant therapeutic response study statement data. Will update `statements`
+        statements: list[Statement] = []
+        for assertion in tqdm(harvested_data.assertions):
+            source = docs_map[assertion["source_id"]]
+            if transformed_statement := self._create_statement(assertion, source):
+                statements.append(transformed_statement)
+
+                if aggregate_statement := await self._create_aggregate_statement(
+                    transformed_statement
+                ):
+                    for existing_statement in statements:
+                        if (
+                            existing_statement.proposition
+                            == aggregate_statement.proposition
+                        ):
+                            merge_assertions(existing_statement, aggregate_statement)
+                            break
+                    else:
+                        statements.append(aggregate_statement)
+        self.processed_data = TransformedData(statements=statements)
+
+    def _create_statement(self, assertion: dict, source: Document) -> Statement | None:
+        """Create a GKS statement from a MOA assertion
+
+        :param assertion:
+        :param source:
+        :return:
+        """
+        if moa_gene_value := assertion["variant"].get("gene"):
+            gene = MappableConcept(id=f"moa.gene:{moa_gene_value}", name=moa_gene_value)
+        else:
+            gene = None
+        disease = self._create_moa_disease(
+            assertion["disease"]["name"],
+            assertion["disease"]["oncotree_code"],
+            assertion["disease"]["oncotree_term"],
+        )
+        variant = self._create_moa_variant(assertion["variant"])
+        strength = self._create_study_strength(assertion)
+
+        if assertion["variant"]["feature_type"] == "somatic_variant":
+            allele_origin_qualifier = MappableConcept(name="somatic")
+        elif assertion["variant"]["feature_type"] == "germline_variant":
+            allele_origin_qualifier = MappableConcept(name="germline")
+        else:
+            allele_origin_qualifier = None
+
+        if assertion["favorable_prognosis"] == "":
+            if (
+                assertion["therapy"]["resistance"] == ""
+                and assertion["therapy"]["sensitivity"] == ""
+            ):
+                # handle cases like assertion ID 849
+                _logger.error(
+                    "No prognostic or sensitity/resistance response available for assertion: %s",
+                    assertion,
+                )
+                return None
+            assertion_therapy = assertion["therapy"]
+            therapy = self._create_moa_therapy(
+                assertion_therapy["name"], assertion_therapy["type"]
+            )
+            resistance, sensitivity = (
+                assertion_therapy["resistance"],
+                assertion_therapy["sensitivity"],
+            )
+            if resistance != "":  # can be either 0, 1, or ""
+                predicate = TherapeuticResponsePredicate.RESISTANCE
+                direction = Direction.SUPPORTS if resistance else Direction.DISPUTES
+            else:
+                predicate = TherapeuticResponsePredicate.SENSITIVITY
+                direction = Direction.SUPPORTS if sensitivity else Direction.DISPUTES
+            proposition = VariantTherapeuticResponseProposition(
+                geneContextQualifier=gene,
+                subjectVariant=variant,
+                conditionQualifier=disease,
+                objectTherapeutic=therapy,
+                predicate=predicate,
+                alleleOriginQualifier=allele_origin_qualifier,
+            )
+        else:
+            if assertion["favorable_prognosis"]:
+                predicate = PrognosticPredicate.BETTER_OUTCOME
+                direction = Direction.SUPPORTS
+            else:
+                predicate = PrognosticPredicate.WORSE_OUTCOME
+                direction = Direction.DISPUTES
+
+            proposition = VariantPrognosticProposition(
+                geneContextQualifier=gene,
+                subjectVariant=variant,
+                objectCondition=disease,
+                predicate=predicate,
+                alleleOriginQualifier=allele_origin_qualifier,
+            )
+        return Statement(
+            id=f"moa.assertion:{assertion['id']}",
+            description=assertion["description"],
+            proposition=proposition,
+            direction=direction,
+            reportedIn=[source],
+            specifiedBy=self._create_method(),
+            strength=strength,
+        )
+
+    def _create_study_strength(self, assertion: dict) -> MappableConcept:
+        """Get Strength classification for a MOA study
+
+        :param assertion: original MOA assertion object
+        :return:
+        """
+        predictive_implication = (
+            assertion["predictive_implication"]
+            .strip()
+            .replace(" ", "_")
+            .replace("-", "_")
+            .upper()
+        )
+        evidence_level = MoaEvidenceLevel[predictive_implication]
+        strength = MappableConcept(
+            primaryCoding=get_evidence_level_coding(evidence_level)
+        )
+        vicc_ev_code = src_strength_to_vicc_code(strength)
+        if vicc_ev_code is not None:
+            aac_strength = vicc_code_to_aac(vicc_ev_code)
+            strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value=aac_strength.primaryCoding.code.root,
+                )
+            ]
+        return strength
+
+    def _create_moa_disease(
+        self, name: str, oncotree_code: str | None, oncotree_term: str | None
+    ) -> Condition:
+        disease_id = f"moa.disease:{name}"
+        if oncotree_code:
+            mappings = [
+                (
+                    ConceptMapping(
+                        coding=Coding(
+                            id=f"oncotree:{oncotree_code}",
+                            code=code(oncotree_code),
+                            system="https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                            name=oncotree_term,
+                        ),
+                        relation=Relation.EXACT_MATCH,
+                    )
+                )
+            ]
+        else:
+            mappings = None
+        if oncotree_term and name != oncotree_term:
+            extensions = [Extension(name="aliases", value=[oncotree_term])]
+        else:
+            extensions = None
+        return Condition(
+            MappableConcept(
+                id=disease_id,
+                conceptType="Disease",
+                name=name,
+                mappings=mappings,
+                extensions=extensions,
+            )
+        )
+
+    def _create_moa_variant(self, variant: dict) -> CategoricalVariant:
+        """Transform MOA variant to CatVar
+
+        TODO: some open questions here about how much to build out --
+        * should we make a basic gene mappableconcept as the constraint for the feature catvar?
+        * use extensions to bring in more info on a per-variant-type basis (e.g. for tougher constraints)
+
+        :param variant: entire MOA variant object. The object keys are sort of unreliable
+            so we just pass through the whole thing and work it out within the method
+        :return: original MOA variant as a text catvar
+        """
+        variant_id = f"moa.variant:{variant['id']}"
+        moa_feature_name = variant["feature"]
+        moa_primary_gene = variant.get("gene") or variant.get("gene1")
+        protein_change = variant.get("protein_change")
+
+        if variant.get("gene2"):
+            # it's a fusion!
+            # once we know how to normalize them, we may want to bring in some
+            # fusion-specific variant attributes as Extensions to help inform
+            # reconstruction of the adjacency constraint(s)
+            _logger.debug(
+                "Unsupported MOA fusion variant ID %s: %s",
+                variant_id,
+                variant,
+            )
+            name = moa_feature_name
+        elif (
+            variant["feature_type"] == "somatic_variant"
+            and variant["alternate_allele"] is None
+            and moa_feature_name == moa_primary_gene
+            and protein_change is None
+            # no slam-dunk catvar solution exists for defining specific exons as features --
+            # see https://github.com/ga4gh/cat-vrs/discussions/161
+            and variant["exon"] is None
+        ):
+            # it's a feature context constraint-based catvar!
+            # for now, just use the "<gene name> Mutation" pattern
+            name = f"{moa_feature_name} Mutation"
+        elif (
+            "rearrangement_type" not in variant and protein_change and moa_primary_gene
+        ):
+            # it's a defining allele constraint-based catvar!
+            name = f"{moa_primary_gene} {protein_change[2:]}"
+        else:
+            # it's some other unsupported stuff. Log it and circle back later
+            name = moa_feature_name
+            _logger.debug(
+                "Unsupported MOA variant ID %s: %s",
+                variant_id,
+                moa_feature_name,
+            )
+
+        extensions, mappings = self._get_variant_extras(variant)
+        return CategoricalVariant(
+            id=variant_id,
+            name=name,
+            extensions=extensions,
+            mappings=mappings or None,
+        )
+
+    def _get_variant_extras(
+        self, variant: dict
+    ) -> tuple[list[Extension], list[ConceptMapping]]:
+        """Add extensions/mappings to MOA CatVar
+
+        :param variant: original MOA variant object
+        :return: tuple with constructed Extensions, catvar members, and mappings
+        """
+        extensions = []
+        coordinates_keys = [
+            "chromosome",
+            "start_position",
+            "end_position",
+            "reference_allele",
+            "alternate_allele",
+            "cdna_change",
+            "protein_change",
+            "exon",
+        ]
+        moa_rep_coord = {k: variant.get(k) for k in coordinates_keys}
+        if any(moa_rep_coord.values()):
+            extensions.append(
+                Extension(name="moa_representative_coordinate", value=moa_rep_coord)
+            )
+        if locus := variant.get("locus"):
+            extensions.append(Extension(name="moa_locus", value=locus))
+        mappings = []
+        if rsid := variant.get("rsid"):
+            mappings.append(
+                ConceptMapping(
+                    coding=Coding(
+                        code=code(rsid),
+                        system="https://www.ncbi.nlm.nih.gov/snp/",
+                    ),
+                    relation=Relation.RELATED_MATCH,
+                )
+            )
+        if feature_type := variant.get("feature_type"):
+            extensions.append(Extension(name="moa_feature_type", value=feature_type))
+        if annotation := variant.get("variant_annotation"):
+            extensions.append(
+                Extension(name="moa_variant_annotation", value=annotation)
+            )
+        return extensions, mappings
+
+    def _create_moa_combo_therapy(self, name: str, therapy_type: str) -> Therapeutic:
+        """Convert MOA combo therapy into GKS Therapeutic
+
+        :param name: name of therapy (should include a " + " in the middle)
+        :param therapy_type: MOA therapy type value (probably reflective of combo therapy)
+        :return: original MOA concept as GKS therapeutic
+        """
+        moa_drugs = [
+            MappableConcept(
+                id=f"moa.drug:{member.strip()}",
+                conceptType="Drug",
+                name=member.strip(),
+            )
+            for member in name.split("+")
+        ]
+        operator = MembershipOperator.AND
+        return Therapeutic(
+            root=TherapyGroup(
+                id=compute_combo_id(
+                    self.name, TherapyGroup, operator, [d.id for d in moa_drugs]
+                ),
+                membershipOperator=operator,
+                therapies=moa_drugs,
+                extensions=[Extension(name="moa_therapy_type", value=therapy_type)],
+            )
+        )
+
+    def _create_moa_therapy(self, name: str, therapy_type: str) -> Therapeutic:
+        """Convert MOA Therapy into GKS Therapeutic
+
+        :param name: name of therapy (might be a combo of names)
+        :param therapy_type: MOA therapy type (currently just used to check if combination)
+        :return: original MOA concept as GKS therapeutic
+        :raise ValueError: if therapy name is empty (probably indicates misclassification
+            of the MOA assertion)
+        """
+        if not name:
+            _logger.error(
+                "Attempted to normalize empty therapeutic; wrong kind of assertion?"
+            )
+            raise ValueError
+
+        # check for supported combo types. Skipping HORMONE and CHEMOTHERAPY for now
+        if "+" in name and therapy_type.upper() in {
+            "COMBINATION THERAPY",
+            "IMMUNOTHERAPY",
+            "RADIATION THERAPY",
+            "TARGETED THERAPY",
+        }:
+            return self._create_moa_combo_therapy(name, therapy_type)
+
+        extensions = None
+        if therapy_type:
+            extensions = [Extension(name="moa_therapy_type", value=therapy_type)]
+        return Therapeutic(
+            root=MappableConcept(
+                id=f"moa.drug:{name}",
+                conceptType="Drug",
+                name=name,
+                extensions=extensions,
+            )
+        )
+
+    def _create_document(self, source: dict) -> Document:
+        """Create document object for MOA source
+
+        Mutates instance variable ``processed_data.documents``
+
+        :param sources: All sources in MOA
+        """
+        return Document(
+            id=f"moa.source:{source['id']}",
+            title=source["citation"],
+            urls=[source["url"]] if source["url"] else None,
+            pmid=str(source["pmid"]) if source["pmid"] else None,
+            doi=source["doi"] or None,
+            extensions=[Extension(name="source_type", value=source["type"])],
+        )
+
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        queries = [variant.name]
+        result = None
+        for query in queries:
+            if match := re.match(r"(.*) (Mutation|MUTATION)", query):
+                gene_name = match.groups()[0]
+                normalized_gene = self._normalize_gene(MappableConcept(name=gene_name))
+                if normalized_gene:
+                    return build_catvars.build_featurecontext_catvar(normalized_gene)
+            result = await self.vicc_normalizers.normalize_variation(query)
+            if result and isinstance(result, Allele):
+                return build_catvars.build_proteinsequenceconsequence_catvar(
+                    self.vicc_normalizers.seqrepo_access,
+                    self.vicc_normalizers.transcript_mappings,
+                    result,
+                )
+        _logger.debug(
+            "Failed to normalize variant: %s", variant.model_dump(exclude_none=True)
+        )
+        return None
