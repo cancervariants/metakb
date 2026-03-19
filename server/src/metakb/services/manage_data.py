@@ -9,6 +9,7 @@ from ga4gh.va_spec.base import Statement
 from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
+from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 
@@ -85,6 +86,18 @@ def add_statement(statement: Statement, repository: AbstractRepository) -> None:
     repository.load_statement(statement)
 
 
+def _check_for_assertion_updates(
+    assertion: Statement, repository: AbstractRepository
+) -> None:
+    db_assertion = repository.get_statement(assertion.id)
+    if not db_assertion:
+        return
+    if db_assertion.strength != assertion.strength:
+        # update assertion in place with new strength value
+        merge_assertions(assertion, db_assertion)
+        repository.update_assertion_strength(assertion.id, assertion.strength)
+
+
 def load_from_json(
     src_transformed_cdm: Path, repository: AbstractRepository, silent: bool = True
 ) -> None:
@@ -112,6 +125,7 @@ def load_from_json(
         for statement in tqdm(statements, disable=silent):
             if not is_loadable_assertion(statement):
                 continue
+            _check_for_assertion_updates(statement, repository)
             add_statement(statement, repository)
             loaded_stmt_count += 1
 

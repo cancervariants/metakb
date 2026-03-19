@@ -13,8 +13,7 @@
  *
  */
 
-import { Statement } from '../models/domain'
-import { normalizeEvidenceLevelFromStrength } from './normalization'
+import { MappableConcept, Statement } from '../models/domain'
 import {
   getDiseaseFromProposition,
   getTherapyFromProposition,
@@ -161,7 +160,7 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
     return [
       {
         variant_name: getVariantNameFromProposition(assertion?.proposition),
-        evidence_level: normalizeEvidenceLevelFromStrength(assertion?.strength),
+        evidence_level: getEvidenceGrade(assertion?.strength),
         disease: getDiseaseFromProposition(assertion?.proposition),
         therapy: getTherapyFromProposition(assertion?.proposition),
         significance: assertion?.proposition?.predicate
@@ -328,4 +327,32 @@ export function buildVariantDiseaseMatrix(
   }))
 
   return { columns, variants, diseases }
+}
+
+/**
+ * Transform an evidence strength concept to a simple A–D grade for display.
+ *
+ * @param strength - Evidence strength concept object or null/undefined.
+ * @returns Evidence grade (`"A"`, `"B"`, `"C"`, `"D"`) or an empty string if
+ * the grade cannot be determined.
+ */
+export function getEvidenceGrade(strength?: MappableConcept | null): string {
+  if (!strength?.primaryCoding) return ''
+
+  const { system, code } = strength.primaryCoding
+
+  const stripLevel = (v: string) => v.replace(/^Level\s+/i, '')
+
+  // AMP / ASCO / CAP evidence
+  if (system?.includes('AMP/ASCO/CAP') && typeof code === 'string') {
+    return stripLevel(code)
+  }
+
+  // VICC evidence code
+  const displayExtension = strength.extensions?.find((ext) => ext.name === 'metakb_display_value')
+
+  if (typeof displayExtension?.value === 'string') {
+    return stripLevel(displayExtension.value)
+  }
+  return ''
 }

@@ -4,22 +4,12 @@ import datetime
 import json
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum
 from pathlib import Path
-from typing import ClassVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
-    MappableConcept,
-    Relation,
-    code,
-    iriReference,
-)
+from ga4gh.core.models import Coding, MappableConcept, code, iriReference
 from ga4gh.va_spec.aac_2017 import Classification as AacClassification
-from ga4gh.va_spec.aac_2017 import Strength as AacStrength
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -41,67 +31,20 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from ga4gh.vrs.models import Allele
-from pydantic import BaseModel, StrictStr
+from pydantic import BaseModel
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
-
-logger = logging.getLogger(__name__)
-
-# TODO figure out method, etc for MetaKB assertions
-# https://github.com/cancervariants/metakb/issues/739
-METAKB_METHOD = Method(
-    id="metakb.method:2026",
-    name="MetaKB (2026)",
-    reportedIn=Document(
-        name="Wagnerds et al",
-        title="MetaKB v2",
-        doi="10.1038/1111-1-1111-111-1111",
-        pmid="9999999",
-    ),
+from metakb.transformers.methodology import (
+    AMP_ASCO_CAP_METHOD,
+    calculate_aggregate_values,
+    src_strength_to_vicc_code,
 )
 
-
-class EcoLevel(str, Enum):
-    """Define constraints for Evidence Ontology levels"""
-
-    EVIDENCE = "ECO:0000000"
-    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
-
-
-class CivicEvidenceLevel(str, Enum):
-    """Define constraints for CIViC evidence levels"""
-
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-
-
-class MoaEvidenceLevel(str, Enum):
-    """Define constraints MOAlmanac evidence levels"""
-
-    FDA_APPROVED = "FDA-Approved"
-    GUIDELINE = "Guideline"
-    CLINICAL_TRIAL = "Clinical trial"
-    CLINICAL_EVIDENCE = "Clinical evidence"
-    PRECLINICAL = "Preclinical evidence"
-    INFERENTIAL = "Inferential evidence"
-
-
-class ViccConceptVocab(BaseModel):
-    """Define VICC Concept Vocab model"""
-
-    id: StrictStr
-    domain: StrictStr
-    term: StrictStr
-    parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    definition: StrictStr
+_logger = logging.getLogger(__name__)
 
 
 class TransformedData(BaseModel):
@@ -121,97 +64,6 @@ class TransformedData(BaseModel):
 
 class Transformer(ABC):
     """A base class for transforming harvester data."""
-
-    _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
-        ViccConceptVocab(
-            id="vicc:e000000",
-            domain="EvidenceStrength",
-            term="evidence",
-            parents=[],
-            exact_mappings={EcoLevel.EVIDENCE},
-            definition="A type of information that is used to support statements.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000001",
-            domain="EvidenceStrength",
-            term="authoritative evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.A},
-            definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000002",
-            domain="EvidenceStrength",
-            term="FDA recognized evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
-            definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000003",
-            domain="EvidenceStrength",
-            term="professional guideline evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.GUIDELINE},
-            definition="Evidence derived from statements by professional society guidelines",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000004",
-            domain="EvidenceStrength",
-            term="clinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-            definition="Evidence derived from clinical research studies",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000005",
-            domain="EvidenceStrength",
-            term="clinical cohort evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.B},
-            definition="Evidence derived from the clinical study of a participant cohort",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000006",
-            domain="EvidenceStrength",
-            term="interventional study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000007",
-            domain="EvidenceStrength",
-            term="observational study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-            definition="Evidence derived from observational studies of clinical cohorts",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000008",
-            domain="EvidenceStrength",
-            term="case study evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.C},
-            definition="Evidence derived from clinical study of a single participant",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000009",
-            domain="EvidenceStrength",
-            term="preclinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-            definition="Evidence derived from the study of model organisms",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000010",
-            domain="EvidenceStrength",
-            term="inferential evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-            definition="Evidence derived by inference",
-        ),
-    ]
 
     def __init__(
         self,
@@ -236,9 +88,6 @@ class Transformer(ABC):
             ViccNormalizers() if normalizers is None else normalizers
         )
         self.processed_data = None
-        self.evidence_level_to_vicc_concept_mapping = (
-            self._evidence_level_to_vicc_concept_mapping()
-        )
 
     ### Basic/public behavior
 
@@ -506,6 +355,23 @@ class Transformer(ABC):
 
     ### statement construction
 
+    # TODO finish in #766
+
+    @staticmethod
+    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
+        """Get classification for the assertion supported by the provided evidence
+
+        TODO this is a placeholder! it is not final!
+
+        :param evidence: supporting evidence for the assertion
+        :return: classification concept
+        """
+        return MappableConcept(
+            primaryCoding=Coding(
+                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
+            )
+        )
+
     async def _create_aggregate_statement(
         self, statement: Statement
     ) -> (
@@ -531,38 +397,6 @@ class Transformer(ABC):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
 
-    # TODO these are placeholders -- calculate accurately in #639 and #739
-    @staticmethod
-    def _get_assertion_strength(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get strength for the assertion supported by provided evidence
-
-        I don't really know what I'm doing here. This should be figured out in #639 and #739,
-        hopefully I have the interface right. Maybe this should be moved to another module.
-
-        :param evidence: supporting evidence for the assertion
-        :return: strength concept
-        """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacStrength.LEVEL_D)
-            ),
-        )
-
-    @staticmethod
-    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get classification for the assertion supported by the provided evidence
-
-        See above re placeholder values
-
-        :param evidence: supporting evidence for the assertion
-        :return: classification concept
-        """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
-            )
-        )
-
     async def _build_aggregated_diag_statement(
         self, statement: Statement
     ) -> VariantDiagnosticStudyStatement | None:
@@ -576,13 +410,22 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all([normalized_disease, normalized_gene, normalized_variant]):
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
+            if not vicc_ev_code:
+                _logger.debug(
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
+                    statement.id,
+                )
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
-                    directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    directionOfEvidenceProvided=statement.direction,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
+            strength, direction = calculate_aggregate_values(evidence)
             statement = VariantDiagnosticStudyStatement(
                 proposition=VariantDiagnosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -591,10 +434,10 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
-                specifiedBy=METAKB_METHOD,
+                direction=direction,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -614,13 +457,22 @@ class Transformer(ABC):
         normalized_gene = self._normalize_gene(prop.geneContextQualifier)
         normalized_variant = await self._normalize_variant(prop.subjectVariant)
         if all((normalized_disease, normalized_gene, normalized_variant)):
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
+            if not vicc_ev_code:
+                _logger.debug(
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
+                    statement.id,
+                )
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
+            strength, direction = calculate_aggregate_values(evidence)
             statement = VariantPrognosticStudyStatement(
                 proposition=VariantPrognosticProposition(
                     geneContextQualifier=normalized_gene,
@@ -629,10 +481,10 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
-                specifiedBy=METAKB_METHOD,
+                direction=direction,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
@@ -660,13 +512,22 @@ class Transformer(ABC):
                 normalized_therapeutic,
             )
         ):
+            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
+            if not vicc_ev_code:
+                _logger.debug(
+                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
+                    statement.strength,
+                    statement.id,
+                )
+                return None
             evidence = [
                 EvidenceLine(
                     hasEvidenceItems=[statement],
                     directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=statement.strength,
+                    strengthOfEvidenceProvided=vicc_ev_code,
                 )
             ]
+            strength, direction = calculate_aggregate_values(evidence)
             aggr_statement = VariantTherapeuticResponseStudyStatement(
                 proposition=VariantTherapeuticResponseProposition(
                     geneContextQualifier=normalized_gene,
@@ -676,38 +537,12 @@ class Transformer(ABC):
                     predicate=statement.proposition.predicate,
                     alleleOriginQualifier=prop.alleleOriginQualifier,
                 ),
-                direction=statement.direction,
-                specifiedBy=METAKB_METHOD,
+                direction=direction,
+                specifiedBy=AMP_ASCO_CAP_METHOD,
                 hasEvidenceLines=evidence,
-                strength=self._get_assertion_strength(evidence),
+                strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
             return aggr_statement
         return None
-
-    ### Handle evidence
-
-    def _evidence_level_to_vicc_concept_mapping(
-        self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
-        """Get mapping of source evidence level to vicc concept vocab
-
-        :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as a list of
-            ConceptMapping
-        """
-        concept_mappings: dict[str, list[ConceptMapping]] = {}
-        for item in self._vicc_concept_vocabs:
-            for exact_mapping in item.exact_mappings:
-                concept_mappings[exact_mapping] = [
-                    ConceptMapping(
-                        coding=Coding(
-                            system="https://go.osu.edu/evidence-codes",
-                            code=code(item.id.split("vicc:")[-1]),
-                            name=item.term,
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-        return concept_mappings

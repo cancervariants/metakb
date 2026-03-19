@@ -34,14 +34,12 @@ def compute_aggr_statement_id(statement: Statement) -> str:
 
     * proposition entities (variant, gene, therapy(*), disease)
     * proposition predicate
-    * statement direction
 
     :param statement: incoming statement object
     :return: statement ID
     """
     member_ids: list[str] = [
         str(statement.proposition.predicate),
-        str(statement.direction),
         statement.proposition.subjectVariant.id,
         statement.proposition.geneContextQualifier.id,
     ]
