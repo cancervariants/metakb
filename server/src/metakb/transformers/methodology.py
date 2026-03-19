@@ -8,7 +8,7 @@
 
 import logging
 from collections.abc import Sequence
-from enum import StrEnum
+from enum import Enum, StrEnum
 
 from ga4gh.core.models import Coding, Extension, Relation, code
 from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
@@ -225,6 +225,38 @@ VICC_CODE_EXACT_MAPPING_INDEX = {
 # vicc concept ID -> vocab entry
 VICC_CODE_INDEX = {v.id: v for v in _vicc_concept_vocab}
 
+
+# --- Star rating classes
+class StarRatingReason(str, Enum):
+    """Explain why an aggregate statement received a star rating."""
+
+    # 1 star
+    SINGLE_SUBMISSION = "single submission from a clinical lab or online resource"
+    DISCORDANT_EVIDENCE = "multiple dissenting submissions"
+
+    # 2 star
+    CONCORDANT_SUBMISSIONS = (
+        "submissions from multiple evidence records that are concordant"
+    )
+
+    # 3 star
+    SC_VCEP_SUBMISSIONS = (
+        "submissions from ClinGen Somatic Cancer Variant Curation Expert Panels"
+    )
+
+    # 4 star
+    AUTHORITATIVE_EVIDENCE = (
+        "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+    )
+
+
+class StarRatingResult(BaseModel):
+    """Structured star rating result for an aggregate statement."""
+
+    star_rating: int
+    reason: StarRatingReason
+
+
 # --- Helper functions for converting/normalizing evidence and performing aggregation ---
 
 
@@ -302,6 +334,74 @@ def vicc_code_to_aac(
     if not aac_level:
         raise ValueError
     return AAC_STRENGTH_INDEX[aac_level]
+
+
+def calculate_star_rating(
+    evidence_lines: Sequence[EvidenceLine],
+) -> StarRatingResult:
+    """Calculate star rating for an aggregate statement.
+
+    The criteria at the time of writing is as follows:
+        - 1-star: single submission from a clinical lab or online resource OR multiple, dissenting submissions
+        - 2-star: submissions from multiple evidence records that are concordant (CIViC AIDs demonstrate concordance)
+        - 3-star: submissions from ClinGen Somatic Cancer Variant Curation Expert Panels (currently only applies to CIViC records)
+        - 4-star: knowledge from WHO / NCCN / FDA Pediatric Approvals / other regulatory or professional guidelines
+
+    :param evidence_lines: supporting evidence lines for the assertion
+    :return: Structured star rating result
+    """
+    star_rating = 1
+    reason = StarRatingReason.SINGLE_SUBMISSION
+    seen_directions: set[Direction] = set()
+    evidence_count = 0
+
+    for evidence_line in evidence_lines:
+        for evidence_item in evidence_line.hasEvidenceItems or []:
+            if not isinstance(evidence_item, Statement):
+                continue
+
+            evidence_count += 1
+            seen_directions.add(evidence_item.direction)
+
+            evidence_id = (evidence_item.id or "").lower()
+            evidence_strength = evidence_item.strength
+            strength_mappings = evidence_strength.mappings if evidence_strength else []
+
+            for mapping in strength_mappings or []:
+                mapped_code = mapping.coding.code
+                if getattr(mapped_code, "root", mapped_code) in {
+                    "e000001",
+                    "e000002",
+                    "e000003",
+                }:
+                    # any authoritative, professional guideline, or FDA-approved therapy evidence automatically makes the assertion 4 stars
+                    return StarRatingResult(
+                        star_rating=4,
+                        reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,
+                    )
+
+            if "civic.aid:" in evidence_id:
+                # TODO: check if assertion is approved by a SC-VCEP organization, if so, return 3 stars
+
+                # CIViC assertions are at least 2 stars by default
+                star_rating = 2
+                reason = StarRatingReason.CONCORDANT_SUBMISSIONS
+
+    # if multiple dissenting directions, downgrade to 1 star
+    if len(seen_directions) > 1:
+        return StarRatingResult(
+            star_rating=1,
+            reason=StarRatingReason.DISCORDANT_EVIDENCE,
+        )
+
+    # if multiple submissions that are concordant, return 2 stars
+    if evidence_count > 1:
+        return StarRatingResult(
+            star_rating=2,
+            reason=StarRatingReason.CONCORDANT_SUBMISSIONS,
+        )
+
+    return StarRatingResult(star_rating=star_rating, reason=reason)
 
 
 def calculate_aggregate_values(
@@ -387,3 +487,19 @@ def merge_assertions(existing_assertion: Statement, new_assertion: Statement) ->
     existing_assertion.strength, existing_assertion.direction = (
         calculate_aggregate_values(existing_assertion.hasEvidenceLines)
     )
+
+    # Recalculate and update star rating
+    star_rating = calculate_star_rating(existing_assertion.hasEvidenceLines)
+
+    new_star_exts = [
+        Extension(name="star_rating", value=star_rating.star_rating),
+        Extension(name="star_rating_reason", value=star_rating.reason.value),
+    ]
+
+    existing_exts = existing_assertion.extensions or []
+    existing_exts = [
+        ext
+        for ext in existing_exts
+        if ext.name not in {"star_rating", "star_rating_reason"}
+    ]
+    existing_assertion.extensions = [*existing_exts, *new_star_exts]

@@ -5,6 +5,7 @@ MERGE (statement:Statement {id: $statement.id})
       {
         url: $statement.url,
         description: $statement.description,
+        extensions: $statement.extensions,
         predicate: $statement.predicate,
         proposition_type: $statement.proposition_type,
         allele_origin_qualifier: $statement.allele_origin_qualifier,

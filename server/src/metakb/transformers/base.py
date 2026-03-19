@@ -4,7 +4,6 @@ import datetime
 import json
 import logging
 from abc import ABC, abstractmethod
-from enum import Enum
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
@@ -46,36 +45,6 @@ from metakb.transformers.methodology import (
 )
 
 _logger = logging.getLogger(__name__)
-
-
-class StarRatingReason(str, Enum):
-    """Explain why an aggregate statement received a star rating."""
-
-    # 1 star
-    SINGLE_SUBMISSION = "single submission from a clinical lab or online resource"
-    DISCORDANT_EVIDENCE = "multiple dissenting submissions"
-
-    # 2 star
-    CONCORDANT_SUBMISSIONS = (
-        "submissions from multiple evidence records that are concordant"
-    )
-
-    # 3 star
-    SC_VCEP_SUBMISSIONS = (
-        "submissions from ClinGen Somatic Cancer Variant Curation Expert Panels"
-    )
-
-    # 4 star
-    AUTHORITATIVE_EVIDENCE = (
-        "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
-    )
-
-
-class StarRatingResult(BaseModel):
-    """Structured star rating result for an aggregate statement."""
-
-    star_rating: int
-    reason: StarRatingReason
 
 
 class TransformedData(BaseModel):
@@ -427,80 +396,6 @@ class Transformer(ABC):
         if isinstance(statement.proposition, VariantPrognosticProposition):
             return await self._build_aggregated_prog_statement(statement)
         raise ValueError
-
-    @staticmethod
-    def calculate_star_rating(
-        aggregate_statement: (
-            VariantDiagnosticStudyStatement
-            | VariantPrognosticStudyStatement
-            | VariantTherapeuticResponseStudyStatement
-        ),
-    ) -> StarRatingResult:
-        """Calculate star rating for an aggregate statement.
-
-        The criteria at the time of writing is as follows:
-            - 1-star: single submission from a clinical lab or online resource OR multiple, dissenting submissions
-            - 2-star: submissions from multiple evidence records that are concordant (CIViC AIDs demonstrate concordance)
-            - 3-star: submissions from ClinGen Somatic Cancer Variant Curation Expert Panels (currently only applies to CIViC records)
-            - 4-star: knowledge from WHO / NCCN / FDA Pediatric Approvals / other regulatory or professional guidelines
-
-        :param aggregate_statement: The MetaKB assertion
-        :return: Structured star rating result
-        """
-        star_rating = 1
-        reason = StarRatingReason.SINGLE_SUBMISSION
-        seen_directions: set[Direction] = set()
-        evidence_count = 0
-
-        for evidence_line in aggregate_statement.hasEvidenceLines or []:
-            for evidence_item in evidence_line.hasEvidenceItems or []:
-                if not isinstance(evidence_item, Statement):
-                    continue
-
-                evidence_count += 1
-                seen_directions.add(evidence_item.direction)
-
-                evidence_id = (evidence_item.id or "").lower()
-                evidence_strength = evidence_item.strength
-                strength_mappings = (
-                    evidence_strength.mappings if evidence_strength else []
-                )
-
-                for mapping in strength_mappings or []:
-                    mapped_code = mapping.coding.code
-                    if getattr(mapped_code, "root", mapped_code) in {
-                        "e000001",
-                        "e000002",
-                        "e000003",
-                    }:
-                        # any authoritative, professional guideline, or FDA-approved therapy evidence automatically makes the assertion 4 stars
-                        return StarRatingResult(
-                            star_rating=4,
-                            reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,
-                        )
-
-                if "civic.aid:" in evidence_id:
-                    # TODO: check if assertion is approved by a SC-VCEP organization, if so, return 3 stars
-
-                    # CIViC assertions are at least 2 stars by default
-                    star_rating = 2
-                    reason = StarRatingReason.CONCORDANT_SUBMISSIONS
-
-        # if multiple dissenting directions, downgrade to 1 star
-        if len(seen_directions) > 1:
-            return StarRatingResult(
-                star_rating=1,
-                reason=StarRatingReason.DISCORDANT_EVIDENCE,
-            )
-
-        # if multiple submissions that are concordant, return 2 stars
-        if evidence_count > 1:
-            return StarRatingResult(
-                star_rating=2,
-                reason=StarRatingReason.CONCORDANT_SUBMISSIONS,
-            )
-
-        return StarRatingResult(star_rating=star_rating, reason=reason)
 
     async def _build_aggregated_diag_statement(
         self, statement: Statement
