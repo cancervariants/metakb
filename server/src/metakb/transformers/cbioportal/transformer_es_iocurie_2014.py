@@ -1,15 +1,6 @@
-from os import environ
+"""Transformer for the es_iocurie_2014 cBioPortal study."""
 
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
-environ["AWS_SESSION_TOKEN"] = "dummy"
-
-import logging
-
-from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
-
-_logger = logging.getLogger(__name__)
-
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 MUT_HEADERS = [
     "Hugo_Symbol",
@@ -53,22 +44,25 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for es_iocurie_2014 study."""
 
     def get_study_name(self) -> str:
+        """Return the study identifier."""
         return "es_iocurie_2014"
 
     def get_mut_headers(self) -> list[str]:
+        """Return the list of mutation/variant column headers to keep."""
         return MUT_HEADERS
 
     def get_patient_headers(self) -> list[str]:
+        """Return the list of patient column headers to keep."""
         return PATIENT_HEADERS
 
     def get_sample_headers(self) -> list[str]:
+        """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
-        return {
-            "amino_acid_change_source": "AAChange"
-        }
+        """Return sample column transformation mappings."""
+        return {"amino_acid_change_source": "AAChange"}
