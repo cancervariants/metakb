@@ -62,13 +62,9 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {
-            "amino_acid_change_source": "Protein_Change"
-        }
+        return {"amino_acid_change_source": "Protein_Change"}
 
     def get_patient_transformations(self) -> dict:
         """Return study-specific patient transformations."""
         # This study already has ETHNICITY, not RACE
-        return {
-            "ethnicity_source": "ETHNICITY"
-        }
+        return {"ethnicity_source": "ETHNICITY"}
