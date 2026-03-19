@@ -370,21 +370,19 @@ def calculate_star_rating(
 
             evidence_id = (evidence_item.id or "").lower()
             evidence_strength = evidence_item.strength
-            strength_mappings = evidence_strength.mappings if evidence_strength else []
-
-            for mapping in strength_mappings or []:
-                mapped_code = mapping.coding.code
-                if getattr(mapped_code, "root", mapped_code) in {
-                    "e000001",
-                    "e000002",
-                    "e000003",
-                }:
-                    # any authoritative, professional guideline, or FDA-approved therapy evidence automatically makes the assertion 4 stars
-                    return StarRatingResult(
-                        star_rating=4,
-                        reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,
-                    )
-
+            vicc_strength = src_strength_to_vicc_code(
+                evidence_strength
+            ).primaryCoding.code.root
+            if vicc_strength in [
+                "e000001",
+                "e000002",
+                "e000003",
+            ]:
+                # any authoritative, professional guideline, or FDA-approved therapy evidence automatically makes the assertion 4 stars
+                return StarRatingResult(
+                    star_rating=4,
+                    reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,
+                )
             if "civic.aid:" in evidence_id:
                 # TODO: check if assertion is approved by a SC-VCEP organization, if so, return 3 stars
 
