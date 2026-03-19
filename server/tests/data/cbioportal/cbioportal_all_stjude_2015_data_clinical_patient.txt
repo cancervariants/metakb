@@ -1,8 +1,0 @@
-#Patient Identifier	Cohort	Diagnosis Age	Sex
-#Identifier to uniquely specify a patient.	Cohort.	Age at which a condition or disease was first diagnosed.	Sex
-#STRING	STRING	NUMBER	STRING
-#1	1	1	1
-PATIENT_ID	COHORT	AGE	SEX
-SJINF001	INF_MLLr_Discovery	0.17	Female
-SJINF002	INF_MLLr_Discovery	0.58	Male
-SJINF003	INF_MLLr_Discovery	0.58	Male
