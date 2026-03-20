@@ -514,7 +514,7 @@ class CBioPortalTransformerBase(Transformer):
                             }
                         )
 
-        df["vrs_id"] = df["Gnomad_Notation"].map(vrs_map)
+        df["vrs_id"] = df["Gnomad_Notation"].map(vrs_map).fillna("No_Data")
 
         total = len(unique_variants)
         normalized = sum(1 for v in vrs_map.values() if v is not None)
