@@ -694,9 +694,9 @@ class CBioPortalTransformerBase(Transformer):
                 result["studyId"] = study_id
 
             if group_by_cancer and "ONCOTREE_CODE" in df.columns:
-                cancer_type = first_row.get("ONCOTREE_CODE")
-                if cancer_type and cancer_type != "No_Data":
-                    result["cancerType"] = cancer_type
+                oncotree_code = first_row.get("ONCOTREE_CODE")
+                if oncotree_code and oncotree_code != "No_Data":
+                    result["oncotreeCode"] = oncotree_code
 
             results.append(result)
 
