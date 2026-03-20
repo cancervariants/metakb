@@ -674,7 +674,7 @@ class CBioPortalTransformerBase(Transformer):
         for _keys, group in df.groupby(group_cols):
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
-            if pd.isna(vrs_id) or not vrs_id:
+            if pd.isna(vrs_id) or not vrs_id or vrs_id == "No_Data":
                 continue
 
             freq_value = first_row.get(freq_col)
