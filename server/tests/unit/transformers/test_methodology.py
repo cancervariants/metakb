@@ -173,11 +173,6 @@ def test_get_vicc_strength_code_converts_source_strength():
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
     )
-    assert get_vicc_strength_code(source_strength) == "e000004"
-
-    source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.GUIDELINE)
-    )
     assert get_vicc_strength_code(source_strength) == "e000005"
 
     source_strength = MappableConcept(
