@@ -45,7 +45,6 @@ export interface NormalizedTherapy {
 
 export interface StarRating {
   starRating: number
-  // TODO: enum
   ratingReason: string
 }
 
