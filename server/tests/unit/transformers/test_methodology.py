@@ -22,6 +22,7 @@ from metakb.transformers.methodology import (
     calculate_aggregate_values,
     calculate_star_rating,
     get_evidence_level_coding,
+    get_vicc_strength_code,
     merge_assertions,
     src_strength_to_vicc_code,
 )
@@ -152,6 +153,70 @@ def test_calculate_aggregate_values_empty():
 
 
 @pytest.mark.ci_ok
+def test_get_vicc_strength_code_converts_source_strength():
+    """Test that source-native strength concepts are converted to VICC codes."""
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.A)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000001"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.FDA_APPROVED)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000002"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.GUIDELINE)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000003"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000004"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.GUIDELINE)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000005"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_TRIAL)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000006"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_TRIAL)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000007"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.C)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000008"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.PRECLINICAL)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000009"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.D)
+    )
+    assert get_vicc_strength_code(source_strength) == "e000009"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.E)
+    )
+    assert get_vicc_strength_code(source_strength) == "e0000010"
+
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.INFERENTIAL)
+    )
+    assert get_vicc_strength_code(source_strength) == "e0000010"
+
+
+@pytest.mark.ci_ok
 @pytest.mark.parametrize(
     ("lines", "expected_rating", "expected_reason"),
     [
@@ -199,8 +264,8 @@ def test_calculate_star_rating_authoritative_evidence():
 
 
 @pytest.mark.ci_ok
-def test_calculate_star_rating_civic_assertion_defaults_to_two_star():
-    """Test that an assertion containing a CIViC aid will return 2 stars"""
+def test_calculate_star_rating_authoritative_civic_assertion_returns_four_star():
+    """Test that authoritative evidence takes precedence for a CIViC assertion"""
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.A)
     )
@@ -214,8 +279,8 @@ def test_calculate_star_rating_civic_assertion_defaults_to_two_star():
 
     result = calculate_star_rating([evidence_line])
 
-    assert result.star_rating == 2
-    assert result.reason == StarRatingReason.CONCORDANT_SUBMISSIONS
+    assert result.star_rating == 4
+    assert result.reason == StarRatingReason.AUTHORITATIVE_EVIDENCE
 
 
 @pytest.mark.ci_ok
