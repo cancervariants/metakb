@@ -213,6 +213,7 @@ _vicc_concept_vocab = [
         term="inferential evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
+        aac_mapping=AmpAscoCapStrength.LEVEL_D,
         definition="Evidence derived by inference",
     ),
 ]
@@ -341,6 +342,27 @@ def vicc_code_to_aac(
     return AAC_STRENGTH_INDEX[aac_level]
 
 
+def get_vicc_strength_code(strength: MappableConcept) -> str:
+    """Return the VICC evidence code root for a strength concept.
+
+    Evidence items usually carry source-native strength codings, while some may already provide
+    a VICC-normalized strength. This helper accepts either shape and will return the VICC strength
+    if it is already provided or return the converted VICC strength based on the source strength.
+
+    :param strength: source or VICC-normalized strength concept
+    :return: VICC evidence code root
+    :raise ValueError: if the strength cannot be resolved to a VICC evidence code
+    """
+    if strength.primaryCoding.system == VICC_EVIDENCE_CODE_SYSTEM:
+        return strength.primaryCoding.code.root
+
+    vicc_strength = src_strength_to_vicc_code(strength)
+    if not vicc_strength:
+        msg = f"Unable to resolve VICC evidence code for strength: {strength}"
+        raise ValueError(msg)
+    return vicc_strength.primaryCoding.code.root
+
+
 def calculate_star_rating(
     evidence_lines: Sequence[EvidenceLine],
 ) -> StarRatingResult:
@@ -370,15 +392,15 @@ def calculate_star_rating(
 
             evidence_id = (evidence_item.id or "").lower()
             evidence_strength = evidence_item.strength
-            vicc_strength = src_strength_to_vicc_code(
-                evidence_strength
-            ).primaryCoding.code.root
+            vicc_strength = get_vicc_strength_code(evidence_strength)
             if vicc_strength in [
                 "e000001",
                 "e000002",
                 "e000003",
             ]:
-                # any authoritative, professional guideline, or FDA-approved therapy evidence automatically makes the assertion 4 stars
+                # Authoritative, FDA-recognized, and professional-guideline
+                # evidence automatically make the assertion 4 stars, regardless of
+                # source record type.
                 return StarRatingResult(
                     star_rating=4,
                     reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,

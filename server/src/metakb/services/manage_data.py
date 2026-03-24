@@ -92,15 +92,14 @@ def _check_for_assertion_updates(
     db_assertion = repository.get_statement(assertion.id)
     if not db_assertion:
         return
-    if db_assertion.hasEvidenceLines != assertion.hasEvidenceLines:
-        # update assertion in place with newly-aggregated evidence and derived fields
-        merge_assertions(assertion, db_assertion)
-        repository.update_assertion_strength(assertion.id, assertion.strength)
-        repository.update_assertion_properties(
-            assertion.id,
-            assertion.direction,
-            assertion.extensions,
-        )
+    # update assertion in place with newly-aggregated evidence and derived fields
+    merge_assertions(assertion, db_assertion)
+    repository.update_assertion_strength(assertion.id, assertion.strength)
+    repository.update_assertion_properties(
+        assertion.id,
+        assertion.direction,
+        assertion.extensions,
+    )
 
 
 def load_from_json(
