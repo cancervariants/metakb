@@ -133,7 +133,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
             </Stack>
           </Tooltip>
         )
-      }
+      },
     },
     {
       field: 'variant_name',
