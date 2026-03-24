@@ -796,6 +796,7 @@ class StatementNodeBase(BaseNode):
     id: str
     url: str
     description: str
+    extensions: str
     direction: Direction
     has_method: MethodNode
     has_documents: list[DocumentNode]
@@ -885,6 +886,7 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
+            extensions=_Extensions(statement.extensions or []).model_dump_json(),
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
@@ -923,9 +925,11 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
         classification = (
             self.has_classification.to_gks() if self.has_classification else None
         )
+        extensions = _Extensions(json.loads(self.extensions)).root
         return Statement(
             id=self.id,
             description=self.description if self.description else None,
+            extensions=extensions or None,
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
@@ -971,6 +975,7 @@ class DiagnosticStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
+            extensions=_Extensions(statement.extensions or []).model_dump_json(),
             direction=statement.direction,
             has_method=method,
             has_documents=document_nodes,
@@ -1011,9 +1016,11 @@ class DiagnosticStatementNode(StatementNodeBase):
         classification = (
             self.has_classification.to_gks() if self.has_classification else None
         )
+        extensions = _Extensions(json.loads(self.extensions)).root
         return Statement(
             id=self.id,
             description=self.description if self.description else None,
+            extensions=extensions or None,
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),
@@ -1059,6 +1066,7 @@ class PrognosticStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
+            extensions=_Extensions(statement.extensions or []).model_dump_json(),
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
@@ -1099,9 +1107,11 @@ class PrognosticStatementNode(StatementNodeBase):
         classification = (
             self.has_classification.to_gks() if self.has_classification else None
         )
+        extensions = _Extensions(json.loads(self.extensions)).root
         return Statement(
             id=self.id,
             description=self.description if self.description else None,
+            extensions=extensions or None,
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
             strength=self.has_strength.to_gks(),

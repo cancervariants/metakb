@@ -1,11 +1,12 @@
 """Neo4j implementation of the repository abstraction."""
 
+import json
 import logging
 from typing import NamedTuple
 from urllib.parse import urlparse, urlunparse
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import MappableConcept
+from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -57,6 +58,7 @@ from metakb.repository.neo4j_models import (
     StrengthNode,
     TherapeuticResponseStatementNode,
     TherapyGroupNode,
+    _Extensions,
 )
 from metakb.repository.queries import catalog as queries_catalog
 from metakb.schemas.api import ServiceEnvironment
@@ -824,16 +826,25 @@ class Neo4jRepository(AbstractRepository):
             )
 
     def update_assertion_properties(
-        self, assertion_id: str, direction: Direction
+        self,
+        assertion_id: str,
+        direction: Direction | str,
+        extensions: list[Extension] | None = None,
     ) -> None:
         """Update mutable properties for a higher-order assertion
 
         :param assertion_id: ID of the assertion node
         :param direction: new direction property
+        :param extensions: new extensions for the assertion
         """
         with self.session.begin_transaction() as tx:
             tx.run(
                 queries_catalog.update_assertion_properties(),
                 statement_id=assertion_id,
-                direction=direction.value,
+                direction=direction.value
+                if isinstance(direction, Direction)
+                else direction,
+                extensions=json.dumps(
+                    _Extensions(extensions or []).model_dump(mode="json")
+                ),
             )

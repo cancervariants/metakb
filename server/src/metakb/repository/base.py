@@ -2,7 +2,7 @@
 
 import abc
 
-from ga4gh.core.models import MappableConcept
+from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -125,10 +125,14 @@ class AbstractRepository(abc.ABC):
 
     @abc.abstractmethod
     def update_assertion_properties(
-        self, assertion_id: str, direction: Direction
+        self,
+        assertion_id: str,
+        direction: Direction | str,
+        extensions: list[Extension] | None = None,
     ) -> None:
         """Update mutable properties for a higher-order assertion
 
         :param assertion_id: ID of the assertion node
         :param direction: new direction property
+        :param extensions: new extensions for the assertion
         """

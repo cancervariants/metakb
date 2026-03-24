@@ -494,7 +494,7 @@ class Transformer(ABC):
     async def _build_aggregated_tr_statement(
         self, statement: Statement
     ) -> VariantTherapeuticResponseStudyStatement | None:
-        """Attempt construction of an aggregate therapeutic reseponse study statement given a source statement
+        """Attempt construction of an aggregate therapeutic response study statement given a source statement
 
         :param statement: source TR assertion
         :return: aggregate statement if all terms normalize
