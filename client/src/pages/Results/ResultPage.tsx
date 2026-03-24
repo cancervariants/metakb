@@ -95,6 +95,13 @@ const ResultPage = () => {
     const variantCounts = buildCountMap(filteredResults, 'variant_name')
 
     return [...filteredResults].sort((a, b) => {
+      // star rating (desc)
+      const starA = a.star_rating.starRating
+      const starB = b.star_rating.starRating
+      if (starA !== starB) {
+        return starB - starA
+      }
+
       // variant cluster by total count (desc)
       const countA = variantCounts[a.variant_name] ?? 0
       const countB = variantCounts[b.variant_name] ?? 0
