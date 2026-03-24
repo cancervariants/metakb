@@ -181,7 +181,7 @@ def test_get_vicc_strength_code_converts_source_strength():
     assert get_vicc_strength_code(source_strength) == "e000006"
 
     source_strength = MappableConcept(
-        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_TRIAL)
+        primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
     )
     assert get_vicc_strength_code(source_strength) == "e000007"
 
