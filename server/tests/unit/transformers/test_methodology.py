@@ -203,12 +203,12 @@ def test_get_vicc_strength_code_converts_source_strength():
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.E)
     )
-    assert get_vicc_strength_code(source_strength) == "e0000010"
+    assert get_vicc_strength_code(source_strength) == "e000010"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.INFERENTIAL)
     )
-    assert get_vicc_strength_code(source_strength) == "e0000010"
+    assert get_vicc_strength_code(source_strength) == "e000010"
 
 
 @pytest.mark.ci_ok

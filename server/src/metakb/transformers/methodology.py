@@ -213,6 +213,7 @@ _vicc_concept_vocab = [
         term="inferential evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
+        aac_mapping=AmpAscoCapStrength.LEVEL_D,
         definition="Evidence derived by inference",
     ),
 ]
