@@ -64,5 +64,5 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
-        """Return sample column transformation mappings."""
+        """Return study-specific variant transformations."""
         return {"amino_acid_change_source": "AAChange"}

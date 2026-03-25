@@ -1,4 +1,4 @@
-"""Transformer for the all_stjude_2016 cBioPortal study."""
+"""Transformer for the mbl_pcgp cBioPortal study."""
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
@@ -16,6 +16,7 @@ MUT_HEADERS = [
     "Reference_Allele",
     "Tumor_Seq_Allele2",
     "Tumor_Sample_Barcode",
+    "Sequence_Source",
     "HGVSc",
     "HGVSp",
     "HGVSp_Short",
@@ -23,15 +24,16 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
+    "Protein_Change",
+    "AAChange",
     "Amino_Acid_Change",
 ]
 
-PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE"]
+PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "ETHNICITY"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
     "SAMPLE_ID",
-    "PLATFORM",
     "ONCOTREE_CODE",
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
@@ -40,11 +42,11 @@ SAMPLE_HEADERS = [
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for all_stjude_2016 study."""
+    """Transformer for mbl_pcgp study."""
 
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        return "all_stjude_2016"
+        return "mbl_pcgp"
 
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
@@ -60,8 +62,9 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {"center_value": "St. Jude Children's Research Hospital"}
+        return {"amino_acid_change_source": "Protein_Change"}
 
-    def get_sample_transformations(self) -> dict:
-        """Return study-specific sample transformations."""
-        return {"sequence_source": "PLATFORM"}
+    def get_patient_transformations(self) -> dict:
+        """Return study-specific patient transformations."""
+        # This study already has ETHNICITY, not RACE
+        return {"ethnicity_source": "ETHNICITY"}

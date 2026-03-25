@@ -88,7 +88,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         return SAMPLE_HEADERS
 
     def get_patient_transformations(self) -> dict:
-        """Return sample column transformation mappings."""
+        """Return study-specific patient transformations."""
         # This study already has ETHNICITY, not RACE
         return {"ethnicity_source": "ETHNICITY"}
 
@@ -236,7 +236,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         return df
 
     def _chr23_male(self, df: pd.DataFrame, variant: str) -> pd.DataFrame:
-        """Driver function for _check_for_x_variant and _check_for_y_variant."""
+        """Run _check_for_x_variant and _check_for_y_variant for a given variant."""
         if "Chr23_X" not in df.columns:
             df["Chr23_X"] = False
         if "Chr23_Y" not in df.columns:
