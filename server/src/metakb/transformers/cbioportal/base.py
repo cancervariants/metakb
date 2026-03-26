@@ -54,13 +54,8 @@ STUDY_TO_MODULE = {
     "chl_sccc_2023": "metakb.transformers.cbioportal.transformer_chl_sccc_2023",
 }
 
-# -----------------------------
-# Map study → genome build
-# Default is GRCh37, only specify exceptions
-# -----------------------------
-STUDY_GENOME_BUILD = {
-    "pancan_mappyacts_2022": "GRCh38",
-}
+# Genome build is defined per-study via get_genome_build() in each study transformer.
+# Default is GRCh37. Override get_genome_build() in a study transformer for GRCh38.
 
 DEFAULT_GENOME_BUILD = "GRCh37"
 
@@ -77,20 +72,17 @@ class CBioPortalTransformerBase(Transformer):
         study_to_module: dict[str, str] | None = None,
         transformer_class_name: str = TRANSFORMER_CLASS_NAME,
         rate_limit_delay: float = 0.1,  # 100ms between API calls
-        study_genome_build: dict[str, str] | None = None,
     ) -> None:
         """Initialize cBioPortal transformer base orchestrator.
 
         :param study_to_module: Mapping of study names to transformer module paths
         :param transformer_class_name: Name of the transformer class to load from each module
         :param rate_limit_delay: Delay in seconds between API calls
-        :param study_genome_build: Mapping of study names to genome build identifiers
         """
         super().__init__()  # initialize Transformer's internals
         self.study_to_module = study_to_module or STUDY_TO_MODULE
         self.transformer_class_name = transformer_class_name
         self.rate_limit_delay = rate_limit_delay
-        self.study_genome_build = study_genome_build or STUDY_GENOME_BUILD
 
         # Collect mappable genes + QC per study so we can write combined outputs at the end
         self.mappable_genes_by_study: dict[str, list[MappableConcept]] = {}
@@ -114,8 +106,7 @@ class CBioPortalTransformerBase(Transformer):
         ] = {}  # symbol -> (response, normalized_id)
         self.variant_cache: dict[str, str | None] = {}  # variant_notation -> vrs_id
 
-        # Track current study being processed (for genome build lookup)
-        self.current_study: str | None = None
+        self.current_genome_build: str = DEFAULT_GENOME_BUILD
 
     # ======================================================
     #  Required abstract methods from Transformer
@@ -425,9 +416,7 @@ class CBioPortalTransformerBase(Transformer):
 
         """
         # Determine genome build for current study
-        genome_build = self.study_genome_build.get(
-            self.current_study, DEFAULT_GENOME_BUILD
-        )
+        genome_build = self.current_genome_build
 
         # Create cache key that includes genome build
         cache_key = f"{variant_notation}|{genome_build}"
@@ -847,13 +836,11 @@ class CBioPortalTransformerBase(Transformer):
     def _transform_one(
         self, study: str, harvested: CBioPortalHarvestedData
     ) -> pd.DataFrame:
-        # Set current study for genome build lookup
-        self.current_study = study
-        genome_build = self.study_genome_build.get(study, DEFAULT_GENOME_BUILD)
-        logger.info("Processing study %s with genome build: %s", study, genome_build)
-
         transformer_cls = self._load_transformer(study)
         transformer = transformer_cls()
+
+        self.current_genome_build = transformer.get_genome_build()
+        logger.info("Processing study %s with genome build: %s", study, self.current_genome_build)
 
         df = transformer.transform(harvested)
 
@@ -1488,6 +1475,10 @@ class CBioPortalStudyTransformer(Transformer):
     def get_sample_transformations(self) -> dict[str, Any]:
         """Return study-specific sample transformations."""
         return {}
+    
+    def get_genome_build(self) -> str:
+        """Return the genome build for this study. Override for non-default builds."""
+        return DEFAULT_GENOME_BUILD  # "GRCh37"
 
     def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply any custom variant transformations."""
