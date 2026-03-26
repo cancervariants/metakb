@@ -840,7 +840,11 @@ class CBioPortalTransformerBase(Transformer):
         transformer = transformer_cls()
 
         self.current_genome_build = transformer.get_genome_build()
-        logger.info("Processing study %s with genome build: %s", study, self.current_genome_build)
+        logger.info(
+            "Processing study %s with genome build: %s",
+            study,
+            self.current_genome_build,
+        )
 
         df = transformer.transform(harvested)
 
@@ -1475,7 +1479,7 @@ class CBioPortalStudyTransformer(Transformer):
     def get_sample_transformations(self) -> dict[str, Any]:
         """Return study-specific sample transformations."""
         return {}
-    
+
     def get_genome_build(self) -> str:
         """Return the genome build for this study. Override for non-default builds."""
         return DEFAULT_GENOME_BUILD  # "GRCh37"
