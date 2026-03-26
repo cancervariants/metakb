@@ -555,7 +555,7 @@ class CBioPortalTransformerBase(Transformer):
         are set to ``"uncalculated"``.
 
         :param combined: Combined DataFrame with Gnomad_Notation, STUDY_ID,
-            CANCER_TYPE, and SAMPLE_ID columns
+            ONCOTREE_CODE, and SAMPLE_ID columns
         :param multi_study: True when more than one study was transformed
         :return: DataFrame with the four new frequency columns added
         """
@@ -572,7 +572,7 @@ class CBioPortalTransformerBase(Transformer):
         sample_col = "SAMPLE_ID" if "SAMPLE_ID" in combined.columns else None
         variant_col = "Gnomad_Notation"
         study_col = "STUDY_ID"
-        cancer_col = "CANCER_TYPE"
+        cancer_col = "ONCOTREE_CODE"
 
         # -- freq_variant_intra_study --
         # variant count within study / total unique samples in study
@@ -668,13 +668,13 @@ class CBioPortalTransformerBase(Transformer):
 
         results = []
         group_cols = ["Gnomad_Notation"]
-        if group_by_cancer and "CANCER_TYPE" in df.columns:
-            group_cols.append("CANCER_TYPE")
+        if group_by_cancer and "ONCOTREE_CODE" in df.columns:
+            group_cols.append("ONCOTREE_CODE")
 
         for _keys, group in df.groupby(group_cols):
             first_row = group.iloc[0]
             vrs_id = first_row.get("vrs_id")
-            if pd.isna(vrs_id) or not vrs_id:
+            if pd.isna(vrs_id) or not vrs_id or vrs_id == "No_Data":
                 continue
 
             freq_value = first_row.get(freq_col)
@@ -693,10 +693,10 @@ class CBioPortalTransformerBase(Transformer):
             if study_id:
                 result["studyId"] = study_id
 
-            if group_by_cancer and "CANCER_TYPE" in df.columns:
-                cancer_type = first_row.get("CANCER_TYPE")
-                if cancer_type and cancer_type != "No_Data":
-                    result["cancerType"] = cancer_type
+            if group_by_cancer and "ONCOTREE_CODE" in df.columns:
+                oncotree_code = first_row.get("ONCOTREE_CODE")
+                if oncotree_code and oncotree_code != "No_Data":
+                    result["oncotreeCode"] = oncotree_code
 
             results.append(result)
 
