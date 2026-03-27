@@ -1,17 +1,8 @@
-from os import environ
-
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
-environ["AWS_SESSION_TOKEN"] = "dummy"
-
-import logging
+"""Transformer for the pediatric_dkfz_2017 cBioPortal study."""
 
 import pandas as pd
 
-from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
-
-_logger = logging.getLogger(__name__)
-
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 MUT_HEADERS = [
     "Hugo_Symbol",
@@ -51,32 +42,32 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for pediatric_dkfz_2017 study."""
 
     def get_study_name(self) -> str:
+        """Return the study identifier."""
         return "pediatric_dkfz_2017"
 
     def get_mut_headers(self) -> list[str]:
+        """Return the list of mutation/variant column headers to keep."""
         return MUT_HEADERS
 
     def get_patient_headers(self) -> list[str]:
+        """Return the list of patient column headers to keep."""
         return PATIENT_HEADERS
 
     def get_sample_headers(self) -> list[str]:
+        """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
-        return {
-            "additional_columns": {
-                "Sequence_Source": "No_data"
-            }
-        }
+        """Return study-specific variant transformations."""
+        return {"additional_columns": {"Sequence_Source": "No_data"}}
 
     def get_sample_transformations(self) -> dict:
-        return {
-            "sequence_source": "SEQUENCING_TYPE"
-        }
+        """Return study-specific sample transformations."""
+        return {"sequence_source": "SEQUENCING_TYPE"}
 
     def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Apply DKFZ-specific variant transformations."""
