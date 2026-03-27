@@ -382,6 +382,12 @@ def calculate_star_rating(
     seen_directions: set[Direction] = set()
     evidence_count = 0
 
+    def _has_true_extension(statement: Statement, name: str) -> bool:
+        return any(
+            ext.name == name and ext.value is True
+            for ext in (statement.extensions or [])
+        )
+
     for evidence_line in evidence_lines:
         for evidence_item in evidence_line.hasEvidenceItems or []:
             if not isinstance(evidence_item, Statement):
@@ -406,11 +412,13 @@ def calculate_star_rating(
                     reason=StarRatingReason.AUTHORITATIVE_EVIDENCE,
                 )
             if "civic.aid:" in evidence_id:
-                # TODO: check if assertion is approved by a SC-VCEP organization, if so, return 3 stars
-
-                # CIViC assertions are at least 2 stars by default
-                star_rating = 2
-                reason = StarRatingReason.CONCORDANT_SUBMISSIONS
+                if _has_true_extension(evidence_item, "has_vcep_approval"):
+                    star_rating = 3
+                    reason = StarRatingReason.SC_VCEP_SUBMISSIONS
+                else:
+                    # CIViC assertions are at least 2 stars by default
+                    star_rating = 2
+                    reason = StarRatingReason.CONCORDANT_SUBMISSIONS
 
     # if multiple dissenting directions, downgrade to 1 star
     if len(seen_directions) > 1:
