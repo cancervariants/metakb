@@ -62,6 +62,7 @@ const ResultPage = () => {
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
+  const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
@@ -79,6 +80,7 @@ const ResultPage = () => {
     diseases: selectedDiseases,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
+    starRatings: selectedStarRatings,
     significance: selectedSignificance,
     sources: selectedSources,
   }
@@ -206,6 +208,9 @@ const ResultPage = () => {
   const significanceOptions = Array.from(
     new Set(results[activeTab].map((r) => r.significance).filter(Boolean)),
   )
+  const starRatingOptions = Array.from(
+    new Set(results[activeTab].map((r) => String(r.star_rating.starRating)).filter(Boolean)),
+  ).sort((a, b) => Number(b) - Number(a))
 
   const sourceOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.sources).filter(Boolean)),
@@ -216,6 +221,7 @@ const ResultPage = () => {
     setSelectedDiseases([])
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
+    setSelectedStarRatings([])
     setSelectedSignificance([])
     setSelectedSources([])
   }
@@ -225,6 +231,7 @@ const ResultPage = () => {
     ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
+    ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
     ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
     ...selectedSources.map((src) => ({ type: 'source', value: src })),
   ]
@@ -242,6 +249,9 @@ const ResultPage = () => {
         break
       case 'evidence_level':
         setSelectedEvidenceLevels((prev) => prev.filter((e) => e !== filter.value))
+        break
+      case 'star_rating':
+        setSelectedStarRatings((prev) => prev.filter((s) => s !== filter.value))
         break
       case 'significance':
         setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
@@ -359,6 +369,13 @@ const ResultPage = () => {
                         options={evidenceLevelOptions}
                         selected={selectedEvidenceLevels}
                         setSelected={setSelectedEvidenceLevels}
+                      />
+                      <hr></hr>
+                      <FilterSection
+                        title="Star Rating"
+                        options={starRatingOptions}
+                        selected={selectedStarRatings}
+                        setSelected={setSelectedStarRatings}
                       />
                       <hr></hr>
                       <FilterSection
