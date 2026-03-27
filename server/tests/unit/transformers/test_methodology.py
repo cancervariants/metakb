@@ -279,6 +279,48 @@ def test_calculate_star_rating_authoritative_civic_assertion_returns_four_star()
 
 
 @pytest.mark.ci_ok
+def test_calculate_star_rating_sc_vcep_civic_assertion_returns_three_star():
+    """Test that a CIViC assertion with SC-VCEP approval returns 3 stars."""
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
+    )
+    vicc_strength = src_strength_to_vicc_code(source_strength)
+    statement = _make_statement(
+        "civic.aid:123",
+        Direction.SUPPORTS,
+        vicc_strength,
+    )
+    statement.extensions = [Extension(name="has_vcep_approval", value=True)]
+    evidence_line = _make_evidence_line(statement, vicc_strength)
+
+    result = calculate_star_rating([evidence_line])
+
+    assert result.star_rating == 3
+    assert result.reason == StarRatingReason.SC_VCEP_SUBMISSIONS
+
+
+@pytest.mark.ci_ok
+def test_calculate_star_rating_authoritative_civic_assertion_overrides_sc_vcep():
+    """Test that authoritative CIViC evidence still takes precedence over SC-VCEP."""
+    source_strength = MappableConcept(
+        primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.A)
+    )
+    vicc_strength = src_strength_to_vicc_code(source_strength)
+    statement = _make_statement(
+        "civic.aid:123",
+        Direction.SUPPORTS,
+        vicc_strength,
+    )
+    statement.extensions = [Extension(name="has_vcep_approval", value=True)]
+    evidence_line = _make_evidence_line(statement, vicc_strength)
+
+    result = calculate_star_rating([evidence_line])
+
+    assert result.star_rating == 4
+    assert result.reason == StarRatingReason.AUTHORITATIVE_EVIDENCE
+
+
+@pytest.mark.ci_ok
 def test_calculate_star_rating_concordant_evidence():
     """Test that multiple concordant pieces of evidence returns 2 stars (outside of a civic assertion)"""
     moa_source_strength = MappableConcept(
