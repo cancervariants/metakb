@@ -41,7 +41,6 @@ from metakb.transformers.methodology import (
     get_evidence_level_coding,
     merge_assertions,
     src_strength_to_vicc_code,
-    vicc_code_to_aac,
 )
 
 _logger = logging.getLogger(__name__)

@@ -5,6 +5,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
@@ -22,6 +23,7 @@ from ga4gh.va_spec.base import (
     Document,
     EvidenceLine,
     Method,
+    Proposition,
     Statement,
     System,
     Therapeutic,
@@ -37,9 +39,12 @@ from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
+from metakb.transformers.identifiers import (
+    compute_assertion_id,
+    compute_combo_id,
+)
 from metakb.transformers.methodology import (
-    AMP_ASCO_CAP_METHOD,
+    METAKB_METHOD,
     calculate_aggregate_values,
     src_strength_to_vicc_code,
 )
@@ -50,16 +55,20 @@ _logger = logging.getLogger(__name__)
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements: list[Statement] = []
-    categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
-    variations: list[Allele] = []
-    genes: list[MappableConcept] = []
-    therapies: list[MappableConcept] = []
-    therapy_groups: list[TherapyGroup] = []
-    conditions: list[MappableConcept] = []
-    condition_sets: list[ConditionSet] = []
-    methods: list[Method] = []
-    documents: list[Document | iriReference] = []
+    evidence: list[Statement] = []
+    assertions: list[Statement] = []
+
+
+# TypeVar constrained to the specific Proposition subclasses.
+# This is used to indicate that a function operates on a single concrete
+# proposition type and returns the *same* type, rather than a generic union.
+# It preserves the relationship between input and output types for static typing.
+PropositionType = TypeVar(
+    "PropositionType",
+    VariantTherapeuticResponseProposition,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+)
 
 
 class Transformer(ABC):
@@ -355,21 +364,35 @@ class Transformer(ABC):
 
     ### statement construction
 
-    # TODO finish in #766
-
-    @staticmethod
-    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get classification for the assertion supported by the provided evidence
-
-        TODO this is a placeholder! it is not final!
-
-        :param evidence: supporting evidence for the assertion
-        :return: classification concept
-        """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
-            )
+    async def _get_normalized_proposition(
+        self, proposition: PropositionType
+    ) -> PropositionType | None:
+        """Attempt to construct normalized equivalent of evidence item proposition"""
+        normalized_gene = self._normalize_gene(proposition.geneContextQualifier)
+        normalized_variation = await self._normalize_variant(proposition.subjectVariant)
+        if isinstance(proposition, VariantTherapeuticResponseProposition):
+            prop_kwargs = {
+                "objectTherapeutic": self._normalize_therapeutic(
+                    proposition.objectTherapeutic
+                ),
+                "conditionQualifier": self._normalize_disease(
+                    proposition.conditionQualifier
+                ),
+            }
+        else:
+            prop_kwargs = {
+                "objectCondition": self._normalize_disease(proposition.objectCondition)
+            }
+        if not all(
+            [normalized_gene, normalized_variation, *list(prop_kwargs.values())]
+        ):
+            return None
+        return type(proposition)(
+            geneContextQualifier=normalized_gene,
+            subjectVariant=normalized_variation,
+            predicate=proposition.predicate,
+            alleleOriginQualifier=proposition.alleleOriginQualifier,
+            **prop_kwargs,
         )
 
     async def _create_aggregate_statement(
@@ -440,7 +463,7 @@ class Transformer(ABC):
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
-            statement.id = compute_aggr_statement_id(statement)
+            statement.id = compute_assertion_id(statement)
             return statement
         return None
 
@@ -487,7 +510,7 @@ class Transformer(ABC):
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
-            statement.id = compute_aggr_statement_id(statement)
+            statement.id = compute_assertion_id(statement)
             return statement
         return None
 
@@ -543,6 +566,6 @@ class Transformer(ABC):
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
-            aggr_statement.id = compute_aggr_statement_id(aggr_statement)
+            aggr_statement.id = compute_assertion_id(aggr_statement)
             return aggr_statement
         return None

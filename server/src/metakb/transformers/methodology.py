@@ -8,10 +8,10 @@
 
 import logging
 from collections.abc import Sequence
-from enum import Enum, StrEnum
+from enum import StrEnum
 
 from ga4gh.core.models import Coding, Extension, Relation, code
-from ga4gh.va_spec.aac_2017.models import Strength as AmpAscoCapStrength
+from ga4gh.va_spec.aac_2017 import Strength as AmpAscoCapStrength
 from ga4gh.va_spec.base import (
     Direction,
     Document,
@@ -19,6 +19,9 @@ from ga4gh.va_spec.base import (
     Method,
     Statement,
     System,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
@@ -28,13 +31,13 @@ _logger = logging.getLogger(__name__)
 
 # --- Global assertion method ---
 
-AMP_ASCO_CAP_METHOD = Method(
-    id="amp_asco_cap.method:2017",
-    name="AMP/ASCO/CAP Interpretation Guidelines",
+METAKB_METHOD = Method(
+    id="genomicmedlab:metakb",
+    name="MetaKB Computational Assertion Protocol",
     reportedIn=Document(
-        title=" Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
-        doi="10.1016/j.jmoldx.2016.10.002 ",
-        pmid="27993330",
+        name="cancervariants/metakb",
+        doi="10.5281/zenodo.15675452",
+        urls=["https://github.com/cancervariants/metakb"],
     ),
 )
 
@@ -228,7 +231,26 @@ VICC_CODE_INDEX = {v.id: v for v in _vicc_concept_vocab}
 
 
 # --- Star rating classes
-class StarRatingReason(str, Enum):
+
+
+class StarRating(StrEnum):
+    """Constrain values for assertion star rating
+
+    Enum values are defined so that inequality checks are intuitive:
+
+        >>> from metakb.transformers.methodology import StarRating
+        >>> StarRating.FOUR_STAR > StarRating.TWO_STAR
+        True
+
+    """
+
+    ONE_STAR = "1_star"
+    TWO_STAR = "2_star"
+    THREE_STAR = "3_star"
+    FOUR_STAR = "4_star"
+
+
+class StarRatingReason(StrEnum):
     """Explain why an aggregate statement received a star rating."""
 
     # 1 star
@@ -254,7 +276,7 @@ class StarRatingReason(str, Enum):
 class StarRatingResult(BaseModel):
     """Structured star rating result for an aggregate statement."""
 
-    star_rating: int
+    star_rating: StarRating
     reason: StarRatingReason
 
 
@@ -315,31 +337,6 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             )
         ],
     )
-
-
-AAC_STRENGTH_INDEX = {
-    s: MappableConcept(
-        primaryCoding=Coding(system=System.AMP_ASCO_CAP, code=code(s.value))
-    )
-    for s in AmpAscoCapStrength
-}
-
-
-def vicc_code_to_aac(
-    strength: MappableConcept,
-) -> MappableConcept | None:
-    """Get AMP/ASCO/CAP strength from a VICC evidence code
-
-    :param strength: VICC evidence code
-    :return: the corresponding AMP/ASCO/CAP strength concept, if available
-    :raise ValueError: if given ``strength`` value isn't a VICC evidence concept
-    """
-    if strength.primaryCoding.system != VICC_EVIDENCE_CODE_SYSTEM or not strength.id:
-        raise ValueError
-    aac_level = VICC_CODE_INDEX[strength.id].aac_mapping
-    if not aac_level:
-        raise ValueError
-    return AAC_STRENGTH_INDEX[aac_level]
 
 
 def get_vicc_strength_code(strength: MappableConcept) -> str:
@@ -528,3 +525,80 @@ def merge_assertions(existing_assertion: Statement, new_assertion: Statement) ->
         if ext.name not in {"star_rating", "star_rating_reason"}
     ]
     existing_assertion.extensions = [*existing_exts, *new_star_exts]
+
+
+def initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
+    """Create initial evidence line wrapped around new evidence item
+
+    :param ev_item: new evidence item
+    :return: complete evidence line containing provided statement
+    """
+    vicc_strength_code = get_vicc_strength_code(ev_item.strength)
+    if vicc_strength_code in {"e000001", "e000002", "e000003"}:
+        # Authoritative, FDA-recognized, and professional-guideline
+        # evidence automatically make the assertion 4 stars, regardless of
+        # source record type.
+        star_rating = StarRating.FOUR_STAR
+    elif ev_item.id.startswith("civic.aid:"):
+        # TODO: check if assertion is approved by a SC-VCEP organization,
+        # if so, immediately set to 3 stars
+        # Otherwise, CIViC assertions are at least 2 stars by default
+        star_rating = StarRating.TWO_STAR
+    else:
+        star_rating = StarRating.ONE_STAR
+
+    return EvidenceLine(
+        directionOfEvidenceProvided=ev_item.direction,
+        strengthOfEvidenceProvided=None,
+        evidenceOutcome=MappableConcept(
+            primaryCoding=Coding(code=code(str(star_rating)), system="metakb")
+        ),
+        hasEvidenceItems=[ev_item],
+    )
+
+
+def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> None:
+    """Fold new item into assertion
+
+    modifies in place
+
+    todo
+    """
+    item_ev_line = initialize_evidence_line(new_item)
+    item_star_rating = StarRating(item_ev_line.evidenceOutcome.primaryCoding.code.root)
+    is_definitive = item_star_rating in {StarRating.THREE_STAR, StarRating.FOUR_STAR}
+    for ev_line in assertion.hasEvidenceLines:
+        if (
+            is_definitive
+            and item_star_rating == ev_line.evidenceOutcome.primaryCoding.code.root
+        ):
+            pass
+        pass
+
+
+def build_new_assertion(
+    assertion_id: str,
+    proposition: VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantTherapeuticResponseProposition,
+    evidence_item: Statement,
+) -> Statement:
+    """Create a new metakb assertion given some previously-computed parameters
+
+    Implementation makes use of some stuff that the existing ingest/transform pipeline
+    will have already computed, but that makes it relatively brittle to new changes
+
+    :param assertion_id: expected ID for the assertion ("metakb.assertion:")
+    :param proposition: proposition using normalized biomedical entities
+    :param evidence_item: evidence item from source
+    :return: full metakb assertion containing a single evidence line
+    """
+    evidence_line = initialize_evidence_line(evidence_item)
+    return Statement(
+        id=assertion_id,
+        proposition=proposition,
+        direction=evidence_line.directionOfEvidenceProvided,
+        strength=evidence_line.strengthOfEvidenceProvided,
+        specifiedBy=METAKB_METHOD,
+        hasEvidenceLines=[evidence_line],
+    )

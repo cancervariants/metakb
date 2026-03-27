@@ -27,8 +27,12 @@ from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
 )
-from metakb.transformers.identifiers import compute_combo_id
-from metakb.transformers.methodology import merge_assertions
+from metakb.transformers.identifiers import compute_assertion_id, compute_combo_id
+from metakb.transformers.methodology import (
+    add_evidence_to_assertion,
+    build_new_assertion,
+    merge_assertions,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -101,6 +105,7 @@ class CivicTransformer(Transformer):
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
+        assertions = {}
         for item in tqdm([*accepted_evidence_items, *accepted_assertions]):
             transformed_statement = self._civic_claim_to_statement(item)
             if not transformed_statement:
@@ -111,19 +116,23 @@ class CivicTransformer(Transformer):
                 )
                 continue
             statements.append(transformed_statement)
-            if aggregate_statement := await self._create_aggregate_statement(
-                transformed_statement
-            ):
-                for existing_statement in statements:
-                    if (
-                        existing_statement.proposition
-                        == aggregate_statement.proposition
-                    ):
-                        merge_assertions(existing_statement, aggregate_statement)
-                        break
-                else:
-                    statements.append(aggregate_statement)
-        self.processed_data = TransformedData(statements=statements)
+
+            normalized_proposition = await self._get_normalized_proposition(
+                transformed_statement.proposition
+            )
+            if not normalized_proposition:
+                continue
+            assertion_id = compute_assertion_id(normalized_proposition)
+            if assertion := assertions.get(assertion_id):
+                assertion = add_evidence_to_assertion(assertion, transformed_statement)
+            else:
+                build_new_assertion(
+                    assertion_id, normalized_proposition, transformed_statement
+                )
+            assertions[assertion_id] = assertion
+        self.processed_data = TransformedData(
+            evidence=statements, assertions=list(assertions.values())
+        )
 
     def _ensure_therapygroup_id(self, therapy_group: TherapyGroup) -> None:
         """Ensure that a therapy group has an ID

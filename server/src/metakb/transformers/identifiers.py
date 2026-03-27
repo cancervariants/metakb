@@ -6,8 +6,9 @@ from ga4gh.core import sha512t24u
 from ga4gh.va_spec.base import (
     ConditionSet,
     MembershipOperator,
-    Statement,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
 
@@ -27,29 +28,33 @@ def _hash_array(str_array: list[str]) -> str:
     return sha512t24u(blob)
 
 
-def compute_aggr_statement_id(statement: Statement) -> str:
-    """Create ID for MetaKB aggregated statement
+def compute_assertion_id(
+    proposition: VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition,
+) -> str:
+    """Create ID for MetaKB assertion from proposition
 
     ID hash parts:
 
     * proposition entities (variant, gene, therapy(*), disease)
     * proposition predicate
 
-    :param statement: incoming statement object
-    :return: statement ID
+    :param proposition: proposed proposition object
+    :return: assertion ID
     """
     member_ids: list[str] = [
-        str(statement.proposition.predicate),
-        statement.proposition.subjectVariant.id,
-        statement.proposition.geneContextQualifier.id,
+        str(proposition.predicate),
+        proposition.subjectVariant.id,
+        proposition.geneContextQualifier.id,
     ]
-    if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
+    if isinstance(proposition, VariantTherapeuticResponseProposition):
         member_ids += [
-            statement.proposition.conditionQualifier.root.id,
-            statement.proposition.objectTherapeutic.root.id,
+            proposition.conditionQualifier.root.id,
+            proposition.objectTherapeutic.root.id,
         ]
     else:
-        member_ids += [statement.proposition.objectCondition.root.id]
+        member_ids += [proposition.objectCondition.root.id]
 
     digest = _hash_array(member_ids)
 
