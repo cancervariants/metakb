@@ -1,15 +1,6 @@
-from os import environ
+"""Transformer for the pptc_2019 cBioPortal study."""
 
-environ["AWS_ACCESS_KEY_ID"] = "dummy"
-environ["AWS_SECRET_ACCESS_KEY"] = "dummy"
-environ["AWS_SESSION_TOKEN"] = "dummy"
-
-import logging
-
-from metakb.transformers.cbioportal.base import cBioportalStudyTransformer
-
-_logger = logging.getLogger(__name__)
-
+from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
 MUT_HEADERS = [
     "Hugo_Symbol",
@@ -49,30 +40,32 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for pptc_2019 study."""
 
     def get_study_name(self) -> str:
+        """Return the study identifier."""
         return "pptc_2019"
 
     def get_mut_headers(self) -> list[str]:
+        """Return the list of mutation/variant column headers to keep."""
         return MUT_HEADERS
 
     def get_patient_headers(self) -> list[str]:
+        """Return the list of patient column headers to keep."""
         return PATIENT_HEADERS
 
     def get_sample_headers(self) -> list[str]:
+        """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
 
     def get_variant_transformations(self) -> dict:
+        """Return study-specific variant transformations."""
         return {
             "amino_acid_change_source": "User_Amino_Acid_Change",
-            "additional_columns": {
-                "Sequence_Source": "No_data"
-            }
+            "additional_columns": {"Sequence_Source": "No_data"},
         }
 
     def get_patient_transformations(self) -> dict:
-        return {
-            "ethnicity_source": "INFERRED_ETHNICITY"
-        }
+        """Return study-specific patient transformations."""
+        return {"ethnicity_source": "INFERRED_ETHNICITY"}
