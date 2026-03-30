@@ -37,6 +37,8 @@ class CBioPortalStudyName(StrEnum):
     MBL_PCGP = "mbl_pcgp"
     PANCAN_MAPPYACTS_2022 = "pancan_mappyacts_2022"
     CHL_SCCC_2023 = "chl_sccc_2023"
+    PANCAN_PDX_UTHSA_2023 = "pancan_pdx_uthsa_2023"
+    LGG_CTF_SYNODOS_2025 = "lgg_ctf_synodos_2025"
 
 
 class CBioPortalStudyDataPaths(NamedTuple):
