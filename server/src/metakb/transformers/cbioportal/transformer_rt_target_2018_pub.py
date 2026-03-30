@@ -40,7 +40,7 @@ SAMPLE_HEADERS = [
 ]
 
 
-class cBioportalTransformer(cBioportalStudyTransformer):
+class CBioPortalTransformer(CBioPortalStudyTransformer):
     """Transformer for rt_target_2018_pub study."""
 
     def get_study_name(self) -> str:
