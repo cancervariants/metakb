@@ -1,4 +1,6 @@
-"""Transformer for the all_stjude_2016 cBioPortal study."""
+"""Transformer for the mixed_pipseq_2017 cBioPortal study."""
+
+import pandas as pd
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
@@ -16,6 +18,7 @@ MUT_HEADERS = [
     "Reference_Allele",
     "Tumor_Seq_Allele2",
     "Tumor_Sample_Barcode",
+    "Sequence_Source",
     "HGVSc",
     "HGVSp",
     "HGVSp_Short",
@@ -26,12 +29,11 @@ MUT_HEADERS = [
     "Amino_Acid_Change",
 ]
 
-PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE"]
+PATIENT_HEADERS = ["PATIENT_ID", "AGE_TESTING_YEARS", "SEX", "RACE"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
     "SAMPLE_ID",
-    "PLATFORM",
     "ONCOTREE_CODE",
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
@@ -40,11 +42,11 @@ SAMPLE_HEADERS = [
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for all_stjude_2016 study."""
+    """Transformer for mixed_pipseq_2017 study."""
 
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        return "all_stjude_2016"
+        return "mixed_pipseq_2017"
 
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
@@ -60,8 +62,17 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {"center_value": "St. Jude Children's Research Hospital"}
+        return {"additional_columns": {"Sequence_Source": "No_data"}}
+
+    def get_patient_transformations(self) -> dict:
+        """Return study-specific patient transformations."""
+        return {"ethnicity_source": "RACE", "age_source": "AGE_TESTING_YEARS"}
 
     def get_sample_transformations(self) -> dict:
         """Return study-specific sample transformations."""
-        return {"sequence_source": "PLATFORM"}
+        return {"sequence_source": "NGS_TEST"}
+
+    def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Replace empty/whitespace Center values with 'Columbia'."""
+        df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "Columbia", regex=True)
+        return df
