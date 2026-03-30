@@ -8,7 +8,7 @@ from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core.models import Coding, MappableConcept, code, iriReference
+from ga4gh.core.models import Coding, Extension, MappableConcept, code, iriReference
 from ga4gh.va_spec.aac_2017 import Classification as AacClassification
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
@@ -41,6 +41,7 @@ from metakb.transformers.identifiers import compute_aggr_statement_id, compute_c
 from metakb.transformers.methodology import (
     AMP_ASCO_CAP_METHOD,
     calculate_aggregate_values,
+    calculate_star_rating,
     src_strength_to_vicc_code,
 )
 
@@ -146,6 +147,25 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
+    @staticmethod
+    def _set_star_rating_extensions(statement: Statement) -> None:
+        """Attach or refresh star-rating extensions for an aggregate statement."""
+        if not statement.hasEvidenceLines:
+            return
+
+        star_rating = calculate_star_rating(statement.hasEvidenceLines)
+        existing_exts = statement.extensions or []
+        existing_exts = [
+            ext
+            for ext in existing_exts
+            if ext.name not in {"star_rating", "star_rating_reason"}
+        ]
+        statement.extensions = [
+            *existing_exts,
+            Extension(name="star_rating", value=star_rating.star_rating),
+            Extension(name="star_rating_reason", value=star_rating.reason.value),
+        ]
 
     ### Entity normalization
 
@@ -441,6 +461,7 @@ class Transformer(ABC):
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
+            self._set_star_rating_extensions(statement)
             return statement
         return None
 
@@ -488,6 +509,7 @@ class Transformer(ABC):
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_aggr_statement_id(statement)
+            self._set_star_rating_extensions(statement)
             return statement
         return None
 
@@ -544,5 +566,6 @@ class Transformer(ABC):
                 classification=self._get_assertion_classification(evidence),
             )
             aggr_statement.id = compute_aggr_statement_id(aggr_statement)
+            self._set_star_rating_extensions(aggr_statement)
             return aggr_statement
         return None

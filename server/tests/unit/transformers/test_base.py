@@ -154,6 +154,13 @@ async def test_build_aggregate_statement(
     result = await transformer._create_aggregate_statement(statement)
     assert result is not None
     assert result.id == "metakb.assertion:nHR-z_2yza1WDI4CaDT974TSGkLeXCDd"
+    assert result.extensions is not None
+    result_exts = {ext.name: ext.value for ext in result.extensions}
+    assert result_exts["star_rating"] == 1
+    assert (
+        result_exts["star_rating_reason"]
+        == "single submission from a clinical lab or online resource"
+    )
 
     statement = statements["civic.eid:6034"]
     result = await transformer._create_aggregate_statement(statement)
