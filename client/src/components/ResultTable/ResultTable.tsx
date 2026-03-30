@@ -2,6 +2,8 @@ import { useState, MouseEvent, FC } from 'react'
 import {
   Box,
   IconButton,
+  Rating,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -107,6 +109,32 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
   }
 
   let columns: ResultColumn[] = [
+    {
+      field: 'star_rating',
+      headerName: 'Star Rating',
+      width: 100,
+      render: (value: NormalizedResult) => {
+        const rating = value.star_rating.starRating
+        const reason = value.star_rating.ratingReason
+        return (
+          <Tooltip
+            arrow
+            title={reason || 'No rating explanation available'}
+            slotProps={{
+              tooltip: {
+                sx: {
+                  fontSize: theme.typography.pxToRem(14),
+                },
+              },
+            }}
+          >
+            <Stack component="span" sx={{ display: 'inline-flex' }}>
+              <Rating name="half-rating" value={rating} precision={1} readOnly max={4} />
+            </Stack>
+          </Tooltip>
+        )
+      },
+    },
     {
       field: 'variant_name',
       headerName: 'Variant',

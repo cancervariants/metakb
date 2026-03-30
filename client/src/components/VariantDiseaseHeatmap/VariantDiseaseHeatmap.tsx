@@ -1,3 +1,4 @@
+import { Typography, useTheme } from '@mui/material'
 import { scaleLinear, scaleBand } from '@visx/scale'
 import { HeatmapRect } from '@visx/heatmap'
 import { Group } from '@visx/group'
@@ -20,6 +21,7 @@ export function VariantDiseaseHeatmap({
   limitRows,
   limitCols,
 }: Props) {
+  const theme = useTheme()
   const { columns, variants, diseases } = buildVariantDiseaseMatrix(data, limitRows, limitCols)
 
   const margin = { top: 20, bottom: 120, left: 165, right: 20 }
@@ -67,78 +69,95 @@ export function VariantDiseaseHeatmap({
   const y = (i: number) => yScale(i)!
 
   return (
-    <div style={{ position: 'relative' }}>
-      <svg width={width} height={height}>
-        <Group top={margin.top} left={margin.left}>
-          <HeatmapRect
-            data={columns}
-            xScale={x}
-            yScale={y}
-            colorScale={colorScale}
-            binWidth={xScale.bandwidth()}
-            binHeight={yScale.bandwidth()}
-            gap={2}
+    <div style={{ position: 'relative', width: '100%' }}>
+      <div style={{ width: '100%', maxWidth: width, marginInline: 'auto' }}>
+        <Typography
+          variant="subtitle2"
+          fontWeight="bold"
+          align="center"
+          sx={{ mb: 1, color: theme.palette.text.primary }}
+        >
+          Evidence by Variant and Disease
+        </Typography>
+        <div style={{ width: '100%', height }}>
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="xMidYMid meet"
           >
-            {(heatmapData) =>
-              heatmapData.map((columnCells, columnIndex) =>
-                columnCells.map((cell, rowIndex) => {
-                  const cellBin = cell.bin as { count: number }
-                  const value = cellBin.count
-                  if (value === 0) return null
+            <Group top={margin.top} left={margin.left}>
+              <HeatmapRect
+                data={columns}
+                xScale={x}
+                yScale={y}
+                colorScale={colorScale}
+                binWidth={xScale.bandwidth()}
+                binHeight={yScale.bandwidth()}
+                gap={2}
+              >
+                {(heatmapData) =>
+                  heatmapData.map((columnCells, columnIndex) =>
+                    columnCells.map((cell, rowIndex) => {
+                      const cellBin = cell.bin as { count: number }
+                      const value = cellBin.count
+                      if (value === 0) return null
 
-                  return (
-                    <rect
-                      key={`${columnIndex}-${rowIndex}`}
-                      x={cell.x}
-                      y={cell.y}
-                      width={cell.width}
-                      height={cell.height}
-                      fill={colorScale(value)}
-                      onMouseEnter={() =>
-                        showTooltip({
-                          tooltipLeft: cell.x + margin.left,
-                          tooltipTop: cell.y + margin.top,
-                          tooltipData: {
-                            value,
-                            variant: variants[rowIndex],
-                            disease: diseases[columnIndex],
-                          },
-                        })
-                      }
-                      onMouseLeave={hideTooltip}
-                    />
+                      return (
+                        <rect
+                          key={`${columnIndex}-${rowIndex}`}
+                          x={cell.x}
+                          y={cell.y}
+                          width={cell.width}
+                          height={cell.height}
+                          fill={colorScale(value)}
+                          onMouseEnter={() =>
+                            showTooltip({
+                              tooltipLeft: cell.x + margin.left,
+                              tooltipTop: cell.y + margin.top,
+                              tooltipData: {
+                                value,
+                                variant: variants[rowIndex],
+                                disease: diseases[columnIndex],
+                              },
+                            })
+                          }
+                          onMouseLeave={hideTooltip}
+                        />
+                      )
+                    }),
                   )
-                }),
-              )
-            }
-          </HeatmapRect>
+                }
+              </HeatmapRect>
 
-          {/* Y axis: variants (rows) */}
-          <AxisLeft
-            scale={yScale}
-            tickFormat={(i) => truncateLabel(variants[i])}
-            tickValues={variants.map((_, i) => i)}
-            tickLabelProps={() => ({
-              fontSize: 11,
-              textAnchor: 'end',
-              dy: '0.33em',
-            })}
-          />
+              {/* Y axis: variants (rows) */}
+              <AxisLeft
+                scale={yScale}
+                tickFormat={(i) => truncateLabel(variants[i])}
+                tickValues={variants.map((_, i) => i)}
+                tickLabelProps={() => ({
+                  fontSize: 11,
+                  textAnchor: 'end',
+                  dy: '0.33em',
+                })}
+              />
 
-          {/* X axis: diseases (columns) */}
-          <AxisBottom
-            scale={xScale}
-            top={yMax}
-            tickFormat={(i) => truncateLabel(diseases[i])}
-            tickValues={diseases.map((_, i) => i)}
-            tickLabelProps={() => ({
-              fontSize: 11,
-              angle: -45,
-              textAnchor: 'end',
-            })}
-          />
-        </Group>
-      </svg>
+              {/* X axis: diseases (columns) */}
+              <AxisBottom
+                scale={xScale}
+                top={yMax}
+                tickFormat={(i) => truncateLabel(diseases[i])}
+                tickValues={diseases.map((_, i) => i)}
+                tickLabelProps={() => ({
+                  fontSize: 11,
+                  angle: -45,
+                  textAnchor: 'end',
+                })}
+              />
+            </Group>
+          </svg>
+        </div>
+      </div>
 
       {tooltipData ? (
         <Tooltip top={tooltipTop} left={tooltipLeft} style={tooltipStyles}>

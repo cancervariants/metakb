@@ -8,9 +8,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core.models import Coding, MappableConcept, code, iriReference
-from ga4gh.va_spec.aac_2017 import Classification as AacClassification
+from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
@@ -20,19 +18,14 @@ from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
     Direction,
-    Document,
     EvidenceLine,
-    Method,
-    Proposition,
     Statement,
-    System,
     Therapeutic,
     TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele
 from pydantic import BaseModel
 
 from metakb import DATE_FMT
@@ -44,8 +37,8 @@ from metakb.transformers.identifiers import (
     compute_combo_id,
 )
 from metakb.transformers.methodology import (
-    METAKB_METHOD,
     calculate_aggregate_values,
+    calculate_star_rating,
     src_strength_to_vicc_code,
 )
 
@@ -155,6 +148,25 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
+    @staticmethod
+    def _set_star_rating_extensions(statement: Statement) -> None:
+        """Attach or refresh star-rating extensions for an aggregate statement."""
+        if not statement.hasEvidenceLines:
+            return
+
+        star_rating = calculate_star_rating(statement.hasEvidenceLines)
+        existing_exts = statement.extensions or []
+        existing_exts = [
+            ext
+            for ext in existing_exts
+            if ext.name not in {"star_rating", "star_rating_reason"}
+        ]
+        statement.extensions = [
+            *existing_exts,
+            Extension(name="star_rating", value=star_rating.star_rating),
+            Extension(name="star_rating_reason", value=star_rating.reason.value),
+        ]
 
     ### Entity normalization
 
@@ -464,6 +476,7 @@ class Transformer(ABC):
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_assertion_id(statement)
+            # TODO make sure star rating initializes properly
             return statement
         return None
 
@@ -511,6 +524,7 @@ class Transformer(ABC):
                 classification=self._get_assertion_classification(evidence),
             )
             statement.id = compute_assertion_id(statement)
+            # TODO make sure star rating initializes properly
             return statement
         return None
 
@@ -566,6 +580,7 @@ class Transformer(ABC):
                 strength=strength,
                 classification=self._get_assertion_classification(evidence),
             )
-            aggr_statement.id = compute_assertion_id(aggr_statement)
+            statement.id = compute_assertion_id(statement)
+            # TODO make sure star rating initializes properly
             return aggr_statement
         return None

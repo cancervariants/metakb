@@ -13,7 +13,7 @@ def get_repository(
 ) -> Generator[AbstractRepository, None, None]:
     """Provide repository factory for REST API route dependency injection
 
-    :param driver: Neo4j driver from fastapi app state
+    :param request: HTTP request instance provided by FastAPI
     :return: generator yielding a repository instance. Performs cleanup when route
         invocation concludes.
     """

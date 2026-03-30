@@ -43,6 +43,11 @@ export interface NormalizedTherapy {
   therapyInteractionType: TherapyInteractionType
 }
 
+export interface StarRating {
+  starRating: number
+  ratingReason: string
+}
+
 /**
  * Represents a single normalized row of evidence results, aggregating evidence
  * from one or more `Statement` objects into a single table row.
@@ -62,6 +67,7 @@ export interface NormalizedResult {
   grouped_evidence: Statement[]
   /** Sources (databases) that contributed evidence to this row */
   sources: string[]
+  star_rating: StarRating
 }
 
 /**
@@ -156,6 +162,19 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
       .filter(isStatement)
 
     const assertion = arr[0]
+    const extensions = assertion.extensions
+    let starRating: StarRating = {
+      starRating: 1,
+      ratingReason: 'Does not meet other criteria',
+    }
+    if (extensions) {
+      const rating = extensions.find((ext) => ext.name === 'star_rating')?.value
+      const reason = extensions.find((ext) => ext.name === 'star_rating_reason')?.value
+      starRating = {
+        starRating: typeof rating === 'number' ? rating : 1,
+        ratingReason: typeof reason === 'string' ? reason : starRating.ratingReason,
+      }
+    }
 
     return [
       {
@@ -168,6 +187,7 @@ export const normalizeResults = (data: Record<string, Statement[]>): NormalizedR
           : 'N/A',
         sources: getSources(groupedEvidence),
         grouped_evidence: groupedEvidence,
+        star_rating: starRating,
       },
     ]
   })

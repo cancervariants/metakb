@@ -12,7 +12,7 @@ The intent of the project is to leverage the collective knowledge of the dispara
 
 - Docker and Docker Compose v2 (required)
 - A newer version of Python 3 (preferably 3.11+)
-- [Node.js](https://nodejs.org/en) (v18 or later)
+- [Node.js](https://nodejs.org/en) (version 22.12+)
 - [pnpm](https://pnpm.io/) package manager
 - Optional (but useful): [Neo4j Desktop](https://neo4j.com/developer/neo4j-desktop) and Java (for local databases)
 

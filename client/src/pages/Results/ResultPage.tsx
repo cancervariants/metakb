@@ -25,6 +25,7 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
+import { StarRatingHistogram } from '../../components/StarRatingHistogram/StarRatingHistogram'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -34,6 +35,8 @@ type EvidenceBuckets = {
   diagnostic: NormalizedResult[]
   therapeutic: NormalizedResult[]
 }
+
+const CHART_MIN_WIDTH = 420
 
 const ResultPage = () => {
   const [params] = useSearchParams()
@@ -95,6 +98,13 @@ const ResultPage = () => {
     const variantCounts = buildCountMap(filteredResults, 'variant_name')
 
     return [...filteredResults].sort((a, b) => {
+      // star rating (desc)
+      const starA = a.star_rating.starRating
+      const starB = b.star_rating.starRating
+      if (starA !== starB) {
+        return starB - starA
+      }
+
       // variant cluster by total count (desc)
       const countA = variantCounts[a.variant_name] ?? 0
       const countB = variantCounts[b.variant_name] ?? 0
@@ -372,11 +382,26 @@ const ResultPage = () => {
                   <Box id="results" width="100%" p={2}>
                     {hasFilteredResults ? (
                       <>
-                        <VariantDiseaseHeatmap
-                          data={filteredResults}
-                          limitCols={10}
-                          limitRows={10}
-                        />
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(auto-fit, minmax(${CHART_MIN_WIDTH}px, 1fr))`,
+                            gap: 2,
+                            alignItems: 'start',
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                            <VariantDiseaseHeatmap
+                              data={filteredResults}
+                              limitCols={10}
+                              limitRows={10}
+                            />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <StarRatingHistogram data={filteredResults} />
+                          </Box>
+                        </Box>
                         <ResultTable results={sortedResults} resultType={activeTab} />
                       </>
                     ) : (

@@ -31,7 +31,6 @@ from metakb.transformers.identifiers import compute_assertion_id, compute_combo_
 from metakb.transformers.methodology import (
     add_evidence_to_assertion,
     build_new_assertion,
-    merge_assertions,
 )
 
 _logger = logging.getLogger(__name__)
@@ -90,6 +89,17 @@ class MolecularProfileNameComponents:
 
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
+
+    @staticmethod
+    def _assertion_has_vcep_approval(item: civicpy.Assertion) -> bool:
+        """Check if any of the assertion's approvals is from a VCEP-approved org.
+        :param item: The civicpy Assertion to check
+        :return: True if an approval was found where the organization that approved it is an SC-VCEP
+        """
+        return any(
+            getattr(getattr(approval, "organization", None), "is_approved_vcep", False)
+            for approval in (getattr(item, "approvals", None) or [])
+        )
 
     async def transform(self) -> None:
         """Transform CIViC evidence and assertions to common data model.
@@ -214,6 +224,16 @@ class CivicTransformer(Transformer):
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
+                # TODO: Put this in civicpy instead.
+                # Added here for now to get the functionality in
+                statement_exts = statement.extensions or []
+                statement_exts.append(
+                    Extension(
+                        name="has_vcep_approval",
+                        value=self._assertion_has_vcep_approval(item),
+                    )
+                )
+                statement.extensions = statement_exts
             except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",
