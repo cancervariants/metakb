@@ -266,6 +266,6 @@ def stjude_all_2015_fixture():
 def test_cbioportal_harvester(
     test_data_dir: Path, stjude_all_2015_fixture: CBioPortalHarvestedData, monkeypatch
 ):
-    monkeypatch.setenv("WAGS_TAILS_DIR", test_data_dir.absolute().as_uri())
+    monkeypatch.setenv("WAGS_TAILS_DIR", str(test_data_dir.absolute()))
     harvested_data = CBioPortalHarvester().harvest(CBioPortalStudyName.ALL_STJUDE_2015)
     assert harvested_data == [stjude_all_2015_fixture]
