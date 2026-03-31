@@ -52,6 +52,7 @@ STUDY_TO_MODULE = {
     "mbl_pcgp": "metakb.transformers.cbioportal.transformer_mbl_pcgp",
     "pancan_mappyacts_2022": "metakb.transformers.cbioportal.transformer_pancan_mappyacts_2022",
     "chl_sccc_2023": "metakb.transformers.cbioportal.transformer_chl_sccc_2023",
+    "pancan_pdx_uthsa_2023": "metakb.transformers.cbioportal.transformer_pancan_pdx_uthsa_2023",
 }
 
 # Genome build is defined per-study via get_genome_build() in each study transformer.
