@@ -340,7 +340,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     )
 
 
-def _get_vicc_strength_code(strength: MappableConcept) -> str:
+def _get_vicc_strength(strength: MappableConcept) -> MappableConcept:
     """Return the VICC evidence code root for a strength concept.
 
     Evidence items usually carry source-native strength codings, while some may already provide
@@ -352,13 +352,13 @@ def _get_vicc_strength_code(strength: MappableConcept) -> str:
     :raise ValueError: if the strength cannot be resolved to a VICC evidence code
     """
     if strength.primaryCoding.system == VICC_EVIDENCE_CODE_SYSTEM:
-        return strength.primaryCoding.code.root
+        return strength
 
     vicc_strength = src_strength_to_vicc_code(strength)
     if not vicc_strength:
         msg = f"Unable to resolve VICC evidence code for strength: {strength}"
         raise ValueError(msg)
-    return vicc_strength.primaryCoding.code.root
+    return vicc_strength
 
 
 def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
@@ -374,8 +374,8 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     :param ev_item: new evidence item
     :return: complete evidence line containing provided statement
     """
-    vicc_strength_code = _get_vicc_strength_code(ev_item.strength)
-    if vicc_strength_code in {"e000001", "e000002", "e000003"}:
+    vicc_strength_code = _get_vicc_strength(ev_item.strength)
+    if vicc_strength_code.primaryCoding.code.root in {"e000001", "e000002", "e000003"}:
         # Authoritative, FDA-recognized, and professional-guideline
         # evidence automatically make the assertion 4 stars, regardless of
         # source record type.
@@ -394,11 +394,7 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     return EvidenceLine(
         id=generate_ev_line_id(),
         directionOfEvidenceProvided=ev_item.direction,
-        strengthOfEvidenceProvided=MappableConcept(
-            primaryCoding=Coding(
-                system=VICC_EVIDENCE_CODE_SYSTEM, code=code(vicc_strength_code)
-            )
-        ),
+        strengthOfEvidenceProvided=vicc_strength_code,
         evidenceOutcome=MappableConcept(
             primaryCoding=Coding(code=code(str(star_rating)), system="metakb")
         ),
