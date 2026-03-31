@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -26,10 +26,12 @@ from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
 from metakb.transformers.identifiers import (
+    compute_assertion_id,
     compute_combo_id,
 )
 from metakb.transformers.methodology import (
-    calculate_star_rating,
+    add_evidence_to_assertion,
+    initialize_assertion,
 )
 
 _logger = logging.getLogger(__name__)
@@ -138,25 +140,6 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
-
-    @staticmethod
-    def _set_star_rating_extensions(statement: Statement) -> None:
-        """Attach or refresh star-rating extensions for an aggregate statement."""
-        if not statement.hasEvidenceLines:
-            return
-
-        star_rating = calculate_star_rating(statement.hasEvidenceLines)
-        existing_exts = statement.extensions or []
-        existing_exts = [
-            ext
-            for ext in existing_exts
-            if ext.name not in {"star_rating", "star_rating_reason"}
-        ]
-        statement.extensions = [
-            *existing_exts,
-            Extension(name="star_rating", value=star_rating.star_rating),
-            Extension(name="star_rating_reason", value=star_rating.reason.value),
-        ]
 
     ### Entity normalization
 
@@ -364,37 +347,84 @@ class Transformer(ABC):
         :return: either a normalized CatVar, or None
         """
 
-    ### statement construction
+    ### evidence/assertion construction
 
     async def _get_normalized_proposition(
         self, proposition: PropositionType
     ) -> PropositionType | None:
-        """Attempt to construct normalized equivalent of evidence item proposition"""
-        normalized_gene = self._normalize_gene(proposition.geneContextQualifier)
-        normalized_variation = await self._normalize_variant(proposition.subjectVariant)
+        """Attempt to construct normalized equivalent of evidence item proposition.
+
+        :param proposition: original evidence item proposition
+        """
+        prop_kwargs = {
+            "geneContextQualifier": self._normalize_gene(
+                proposition.geneContextQualifier
+            ),
+            "subjectVariant": await self._normalize_variant(proposition.subjectVariant),
+        }
+
         if isinstance(proposition, VariantTherapeuticResponseProposition):
-            prop_kwargs = {
-                "objectTherapeutic": self._normalize_therapeutic(
-                    proposition.objectTherapeutic
-                ),
-                "conditionQualifier": self._normalize_condition(
-                    proposition.conditionQualifier
-                ),
-            }
+            normalized_therapeutic = self._normalize_therapeutic(
+                proposition.objectTherapeutic
+            )
+            normalized_condition = self._normalize_condition(
+                proposition.conditionQualifier
+            )
+            prop_kwargs["objectTherapeutic"] = normalized_therapeutic
+            prop_kwargs["conditionQualifier"] = normalized_condition
         else:
-            prop_kwargs = {
-                "objectCondition": self._normalize_condition(
-                    proposition.objectCondition
-                )
-            }
-        if not all(
-            [normalized_gene, normalized_variation, *list(prop_kwargs.values())]
-        ):
+            normalized_condition = self._normalize_condition(
+                proposition.objectCondition
+            )
+            prop_kwargs["objectCondition"] = normalized_condition
+
+        # Collect failures for logging
+        failures = []
+        for key, value in prop_kwargs.items():
+            if not value:
+                original = getattr(proposition, key)
+                failures.append((key, original))
+
+        if failures:
+            _logger.debug(
+                "Failed to normalize proposition components: %s | predicate=%s",
+                ", ".join(f"{k}={v}" for k, v in failures),
+                proposition.predicate,
+            )
             return None
+
         return type(proposition)(
-            geneContextQualifier=normalized_gene,
-            subjectVariant=normalized_variation,
             predicate=proposition.predicate,
             alleleOriginQualifier=proposition.alleleOriginQualifier,
             **prop_kwargs,
         )
+
+    async def _upsert_assertion_from_evidence(
+        self, evidence_item: Statement, assertions_map: dict[str, Statement]
+    ) -> None:
+        """Create or update an assertion from a single evidence item.
+
+        The transformer workflow's assertions tracker is borrowed and updated in-place.
+
+        If the proposition cannot be normalized, no assertion is created.
+
+        :param evidence_item: source statement to incorporate as evidence
+        :param assertions_map: mapping of assertion_id -> Statement, updated in place
+        """
+        normalized_proposition = await self._get_normalized_proposition(
+            evidence_item.proposition
+        )
+        if not normalized_proposition:
+            _logger.debug(
+                "Unable to normalize all proposition terms for ev item %s",
+                evidence_item.id,
+            )
+            return
+        assertion_id = compute_assertion_id(normalized_proposition)
+        if assertion := assertions_map.get(assertion_id):
+            assertion = add_evidence_to_assertion(assertion, evidence_item)
+        else:
+            assertion = initialize_assertion(
+                assertion_id, normalized_proposition, evidence_item
+            )
+        assertions_map[assertion_id] = assertion

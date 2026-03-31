@@ -127,20 +127,9 @@ class CivicTransformer(Transformer):
                 continue
             statements.append(transformed_statement)
 
-            normalized_proposition = await self._get_normalized_proposition(
-                transformed_statement.proposition
+            await self._upsert_assertion_from_evidence(
+                transformed_statement, assertions
             )
-            if not normalized_proposition:
-                continue
-            assertion_id = compute_assertion_id(normalized_proposition)
-            if assertion := assertions.get(assertion_id):
-                assertion = add_evidence_to_assertion(assertion, transformed_statement)
-            else:
-                initialize_assertion(
-                    assertion_id, normalized_proposition, transformed_statement
-                )
-            assertions[assertion_id] = assertion
-
         self.processed_data = TransformedData(
             evidence=statements, assertions=list(assertions.values())
         )

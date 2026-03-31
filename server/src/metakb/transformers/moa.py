@@ -35,11 +35,12 @@ from metakb.transformers.base import (
     TransformedData,
     Transformer,
 )
-from metakb.transformers.identifiers import compute_combo_id
+from metakb.transformers.identifiers import compute_assertion_id, compute_combo_id
 from metakb.transformers.methodology import (
     MoaEvidenceLevel,
+    add_evidence_to_assertion,
     get_evidence_level_coding,
-    merge_assertions,
+    initialize_assertion,
     src_strength_to_vicc_code,
 )
 
@@ -83,26 +84,25 @@ class MoaTransformer(Transformer):
             source_doc = self._create_document(source)
             docs_map[source["id"]] = source_doc
 
-        # Add variant therapeutic response study statement data. Will update `statements`
         statements: list[Statement] = []
-        for assertion in tqdm(harvested_data.assertions):
-            source = docs_map[assertion["source_id"]]
-            if transformed_statement := self._create_statement(assertion, source):
-                statements.append(transformed_statement)
+        assertions: dict[str, Statement] = {}
+        for ev_item in tqdm(harvested_data.assertions):
+            source = docs_map[ev_item["source_id"]]
+            transformed_statement = self._create_statement(ev_item, source)
+            if not transformed_statement:
+                _logger.warning(
+                    "Unable to model MOA assertion %s as a GKS statement",
+                    ev_item["id"],
+                )
+                continue
+            statements.append(transformed_statement)
 
-                if aggregate_statement := await self._create_aggregate_statement(
-                    transformed_statement
-                ):
-                    for existing_statement in statements:
-                        if (
-                            existing_statement.proposition
-                            == aggregate_statement.proposition
-                        ):
-                            merge_assertions(existing_statement, aggregate_statement)
-                            break
-                    else:
-                        statements.append(aggregate_statement)
-        self.processed_data = TransformedData(statements=statements)
+            await self._upsert_assertion_from_evidence(
+                transformed_statement, assertions
+            )
+        self.processed_data = TransformedData(
+            evidence=statements, assertions=list(assertions.values())
+        )
 
     def _create_statement(self, assertion: dict, source: Document) -> Statement | None:
         """Create a GKS statement from a MOA assertion

@@ -340,7 +340,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     )
 
 
-def get_vicc_strength_code(strength: MappableConcept) -> str:
+def _get_vicc_strength_code(strength: MappableConcept) -> str:
     """Return the VICC evidence code root for a strength concept.
 
     Evidence items usually carry source-native strength codings, while some may already provide
@@ -361,7 +361,7 @@ def get_vicc_strength_code(strength: MappableConcept) -> str:
     return vicc_strength.primaryCoding.code.root
 
 
-def initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
+def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     """Create initial evidence line wrapped around new evidence item
 
     This function MUST define
@@ -374,7 +374,7 @@ def initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     :param ev_item: new evidence item
     :return: complete evidence line containing provided statement
     """
-    vicc_strength_code = get_vicc_strength_code(ev_item.strength)
+    vicc_strength_code = _get_vicc_strength_code(ev_item.strength)
     if vicc_strength_code in {"e000001", "e000002", "e000003"}:
         # Authoritative, FDA-recognized, and professional-guideline
         # evidence automatically make the assertion 4 stars, regardless of
@@ -519,7 +519,7 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
     :param new_item: incoming source statement that needs to be added
     :return: existing assertion, modified to accommodate new evidence
     """
-    item_ev_line = initialize_evidence_line(new_item)
+    item_ev_line = _initialize_evidence_line(new_item)
     item_star_rating = StarRating(item_ev_line.evidenceOutcome.primaryCoding.code.root)
     if item_star_rating in {StarRating.THREE_STAR, StarRating.FOUR_STAR}:
         # definitive -- just add at the top
@@ -600,7 +600,7 @@ def initialize_assertion(
     :param evidence_item: evidence item from source
     :return: full metakb assertion containing a single evidence line
     """
-    evidence_line = initialize_evidence_line(evidence_item)
+    evidence_line = _initialize_evidence_line(evidence_item)
     return Statement(
         id=assertion_id,
         proposition=proposition,

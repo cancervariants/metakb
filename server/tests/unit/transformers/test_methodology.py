@@ -22,7 +22,7 @@ from metakb.transformers.methodology import (
     calculate_aggregate_values,
     calculate_star_rating,
     get_evidence_level_coding,
-    get_vicc_strength_code,
+    _get_vicc_strength_code,
     merge_assertions,
     src_strength_to_vicc_code,
 )
@@ -158,57 +158,57 @@ def test_get_vicc_strength_code_converts_source_strength():
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.A)
     )
-    assert get_vicc_strength_code(source_strength) == "e000001"
+    assert _get_vicc_strength_code(source_strength) == "e000001"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.FDA_APPROVED)
     )
-    assert get_vicc_strength_code(source_strength) == "e000002"
+    assert _get_vicc_strength_code(source_strength) == "e000002"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.GUIDELINE)
     )
-    assert get_vicc_strength_code(source_strength) == "e000003"
+    assert _get_vicc_strength_code(source_strength) == "e000003"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.B)
     )
-    assert get_vicc_strength_code(source_strength) == "e000005"
+    assert _get_vicc_strength_code(source_strength) == "e000005"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_TRIAL)
     )
-    assert get_vicc_strength_code(source_strength) == "e000006"
+    assert _get_vicc_strength_code(source_strength) == "e000006"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.CLINICAL_EVIDENCE)
     )
-    assert get_vicc_strength_code(source_strength) == "e000007"
+    assert _get_vicc_strength_code(source_strength) == "e000007"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.C)
     )
-    assert get_vicc_strength_code(source_strength) == "e000008"
+    assert _get_vicc_strength_code(source_strength) == "e000008"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.PRECLINICAL)
     )
-    assert get_vicc_strength_code(source_strength) == "e000009"
+    assert _get_vicc_strength_code(source_strength) == "e000009"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.D)
     )
-    assert get_vicc_strength_code(source_strength) == "e000009"
+    assert _get_vicc_strength_code(source_strength) == "e000009"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(CivicEvidenceLevel.E)
     )
-    assert get_vicc_strength_code(source_strength) == "e000010"
+    assert _get_vicc_strength_code(source_strength) == "e000010"
 
     source_strength = MappableConcept(
         primaryCoding=get_evidence_level_coding(MoaEvidenceLevel.INFERENTIAL)
     )
-    assert get_vicc_strength_code(source_strength) == "e000010"
+    assert _get_vicc_strength_code(source_strength) == "e000010"
 
 
 @pytest.mark.ci_ok
