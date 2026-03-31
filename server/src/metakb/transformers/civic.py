@@ -30,7 +30,7 @@ from metakb.transformers.catvars import (
 from metakb.transformers.identifiers import compute_assertion_id, compute_combo_id
 from metakb.transformers.methodology import (
     add_evidence_to_assertion,
-    build_new_assertion,
+    initialize_assertion,
 )
 
 _logger = logging.getLogger(__name__)
@@ -136,10 +136,11 @@ class CivicTransformer(Transformer):
             if assertion := assertions.get(assertion_id):
                 assertion = add_evidence_to_assertion(assertion, transformed_statement)
             else:
-                build_new_assertion(
+                initialize_assertion(
                     assertion_id, normalized_proposition, transformed_statement
                 )
             assertions[assertion_id] = assertion
+
         self.processed_data = TransformedData(
             evidence=statements, assertions=list(assertions.values())
         )

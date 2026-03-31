@@ -1,6 +1,7 @@
 """Utilities related to ID minting for newly-constructed objects"""
 
 import json
+from uuid import uuid4
 
 from ga4gh.core import sha512t24u
 from ga4gh.va_spec.base import (
@@ -104,3 +105,17 @@ def compute_combo_id(
     else:
         raise ValueError
     return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
+
+
+def generate_ev_line_id() -> str:
+    """Create a UUID for an evidence line object
+
+    These are supposed to behave like UUIDs rather than hashes, because they might move
+    around. We could potentially calculate them based off something like proposition +
+    strength + outcome, but we don't add propositions to evidence lines right now. They
+    should probably get removed before an end user sees them, but they can be helpful
+    for internal CRUD operations
+
+    :return: identifier with a UUID
+    """
+    return f"metakb.evline:{uuid4()}"
