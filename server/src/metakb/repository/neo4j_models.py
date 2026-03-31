@@ -204,8 +204,10 @@ class AlleleNode(BaseNode):
 
         return cls(
             id=allele.id,
-            name=allele.name if allele.name else "",
-            expressions=_Expressions(allele.expressions or []).model_dump_json(),
+            name=allele.name or "",
+            expressions=_Expressions(allele.expressions or []).model_dump_json(
+                exclude_none=True
+            ),
             has_location=SequenceLocationNode.from_gks(allele.location),
             has_state=state,
         )
@@ -241,7 +243,9 @@ class DefiningAlleleConstraintNode(BaseNode):
         """
         return cls(
             id=constraint_id,
-            relations=_MappableConcepts(constraint.relations or []).model_dump_json(),
+            relations=_MappableConcepts(constraint.relations or []).model_dump_json(
+                exclude_none=True
+            ),
             has_defining_allele=AlleleNode.from_gks(constraint.allele),
         )
 
@@ -249,7 +253,7 @@ class DefiningAlleleConstraintNode(BaseNode):
         """Create cat-vrs-python defining allele constraint class instance"""
         relations = _MappableConcepts(json.loads(self.relations)).root
         return DefiningAlleleConstraint(
-            relations=relations if relations else None,
+            relations=relations or None,
             allele=self.has_defining_allele.to_gks(),
         )
 
@@ -332,8 +336,12 @@ class CategoricalVariantNode(BaseNode):
             name=catvar.name or "",
             description=catvar.description or "",
             aliases=catvar.aliases or [],
-            extensions=_Extensions(catvar.extensions or []).model_dump_json(),
-            mappings=_Mappings(catvar.mappings or []).model_dump_json(),
+            extensions=_Extensions(catvar.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
+            mappings=_Mappings(catvar.mappings or []).model_dump_json(
+                exclude_none=True
+            ),
             has_constraint=constraint_node,
             has_members=members,
         )
@@ -360,6 +368,7 @@ class GeneNode(BaseNode):
     name: str
     mappings: str
     extensions: str
+    description: str
 
     @classmethod
     def from_gks(cls, gene: MappableConcept) -> Self:
@@ -373,8 +382,10 @@ class GeneNode(BaseNode):
             id=gene.id,
             description=description,
             name=gene.name,
-            mappings=_Mappings(gene.mappings or []).model_dump_json(),
-            extensions=_Extensions(gene.extensions or []).model_dump_json(),
+            mappings=_Mappings(gene.mappings or []).model_dump_json(exclude_none=True),
+            extensions=_Extensions(gene.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -401,7 +412,9 @@ class DiseaseNode(BaseNode):
         return cls(
             id=disease.id,
             name=disease.name or "",
-            mappings=_Mappings(disease.mappings or []).model_dump_json(),
+            mappings=_Mappings(disease.mappings or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -409,7 +422,7 @@ class DiseaseNode(BaseNode):
         return MappableConcept(
             id=self.id,
             conceptType="Disease",
-            name=self.name if self.name else None,
+            name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root,
         )
 
@@ -427,7 +440,9 @@ class PhenotypeNode(BaseNode):
         return cls(
             id=phenotype.id,
             name=phenotype.name or "",
-            mappings=_Mappings(phenotype.mappings or []).model_dump_json(),
+            mappings=_Mappings(phenotype.mappings or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -459,7 +474,9 @@ class ConditionSetNode(BaseNode):
 
         return cls(
             id=condition_set.id,
-            extensions=_Extensions(condition_set.extensions or []).model_dump_json(),
+            extensions=_Extensions(condition_set.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
             membership_operator=MembershipOperator(condition_set.membershipOperator),
             conditions=conditions,
         )
@@ -514,8 +531,12 @@ class DrugNode(BaseNode):
         return cls(
             id=therapy.id,
             name=therapy.name or "",
-            mappings=_Mappings(therapy.mappings or []).model_dump_json(),
-            extensions=_Extensions(therapy.extensions or []).model_dump_json(),
+            mappings=_Mappings(therapy.mappings or []).model_dump_json(
+                exclude_none=True
+            ),
+            extensions=_Extensions(therapy.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -523,7 +544,7 @@ class DrugNode(BaseNode):
         return MappableConcept(
             id=self.id,
             conceptType="Therapy",
-            name=self.name if self.name else None,
+            name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root,
             extensions=_Extensions(json.loads(self.extensions)).root,
         )
@@ -542,7 +563,9 @@ class TherapyGroupNode(BaseNode):
         """Create Node instance from GKS class."""
         return cls(
             id=therapy_group.id,
-            extensions=_Extensions(therapy_group.extensions or []).model_dump_json(),
+            extensions=_Extensions(therapy_group.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
             membership_operator=MembershipOperator(therapy_group.membershipOperator),
             has_therapies=[
                 DrugNode.from_gks(therapy) for therapy in therapy_group.therapies
@@ -556,7 +579,7 @@ class TherapyGroupNode(BaseNode):
             id=self.id,
             membershipOperator=self.membership_operator,
             therapies=[d.to_gks() for d in self.has_therapies],
-            extensions=extensions if extensions else None,
+            extensions=extensions or None,
         )
 
 
@@ -606,14 +629,16 @@ class DocumentNode(BaseNode):
 
         return cls(
             id=doc_id,
-            title=document.title if document.title else "",
-            urls=document.urls if document.urls else [],
+            title=document.title or "",
+            urls=document.urls or [],
             aliases=document.aliases or [],
             pmid=str(document.pmid) if document.pmid else "",
-            name=document.name if document.name else "",
-            doi=document.doi if document.doi else "",
+            name=document.name or "",
+            doi=document.doi or "",
             source_type=src_type,
-            extensions=_Extensions(document.extensions or []).model_dump_json(),
+            extensions=_Extensions(document.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> Document:
@@ -621,13 +646,13 @@ class DocumentNode(BaseNode):
         extensions = _Extensions(json.loads(self.extensions)).root
         return Document(
             id=self.id,
-            title=self.title if self.title else None,
-            name=self.name if self.name else None,
-            pmid=self.pmid if self.pmid else None,
-            doi=self.doi if self.doi else None,
-            urls=self.urls if self.urls else None,
+            title=self.title or None,
+            name=self.name or None,
+            pmid=self.pmid or None,
+            doi=self.doi or None,
+            urls=self.urls or None,
             aliases=self.aliases or None,
-            extensions=extensions if extensions else None,
+            extensions=extensions or None,
         )
 
 
@@ -646,7 +671,7 @@ class MethodNode(BaseNode):
         return cls(
             id=method.id,
             name=method.name,
-            method_type=method.methodType if method.methodType else "",
+            method_type=method.methodType or "",
             has_document=document_node,
         )
 
@@ -654,8 +679,8 @@ class MethodNode(BaseNode):
         """Create VA-Spec Method instance."""
         return Method(
             id=self.id,
-            name=self.name if self.name else None,
-            methodType=self.method_type if self.method_type else None,
+            name=self.name or None,
+            methodType=self.method_type or None,
             reportedIn=self.has_document.to_gks(),
         )
 
@@ -685,9 +710,13 @@ class StrengthNode(BaseNode):
         return cls(
             id=node_id,
             name=strength.name or "",
-            mappings=_Mappings(strength.mappings or []).model_dump_json(),
-            primary_coding=strength.primaryCoding.model_dump_json(),
-            extensions=_Extensions(strength.extensions or []).model_dump_json(),
+            mappings=_Mappings(strength.mappings or []).model_dump_json(
+                exclude_none=True
+            ),
+            primary_coding=strength.primaryCoding.model_dump_json(exclude_none=True),
+            extensions=_Extensions(strength.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -719,8 +748,9 @@ class EvidenceLineNode(BaseNode):
     @classmethod
     def from_gks(cls, evidence_line: EvidenceLine, statement_id: str) -> Self:
         """Construct node representation of Evidence Line object"""
-        strength_serialized = evidence_line.strengthOfEvidenceProvided.model_dump_json()
-        evidence_line_id = f"evidence_line:{statement_id}_{strength_serialized}"
+        strength_serialized = evidence_line.strengthOfEvidenceProvided.model_dump_json(
+            exclude_none=True
+        )
         evidence_items = []
         for item in evidence_line.hasEvidenceItems:
             proposition_type = item.proposition.type
@@ -736,7 +766,7 @@ class EvidenceLineNode(BaseNode):
                 case _:
                     raise NotImplementedError
         return cls(
-            id=evidence_line_id,
+            id=evidence_line.id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
             strength_of_evidence_provided=strength_serialized,
@@ -745,6 +775,7 @@ class EvidenceLineNode(BaseNode):
     def to_gks(self) -> EvidenceLine:
         """Create EvidenceLine instance."""
         return EvidenceLine(
+            id=self.id,
             directionOfEvidenceProvided=self.direction,
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
             strengthOfEvidenceProvided=MappableConcept(
@@ -776,7 +807,9 @@ class ClassificationNode(BaseNode):
                 raise ValueError(msg)
         return cls(
             id=node_id,
-            primary_coding=classification.primaryCoding.model_dump_json(),
+            primary_coding=classification.primaryCoding.model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -886,7 +919,9 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
-            extensions=_Extensions(statement.extensions or []).model_dump_json(),
+            extensions=_Extensions(statement.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
@@ -928,7 +963,7 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
         extensions = _Extensions(json.loads(self.extensions)).root
         return Statement(
             id=self.id,
-            description=self.description if self.description else None,
+            description=self.description or None,
             extensions=extensions or None,
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
@@ -975,7 +1010,9 @@ class DiagnosticStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
-            extensions=_Extensions(statement.extensions or []).model_dump_json(),
+            extensions=_Extensions(statement.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
             direction=statement.direction,
             has_method=method,
             has_documents=document_nodes,
@@ -1019,7 +1056,7 @@ class DiagnosticStatementNode(StatementNodeBase):
         extensions = _Extensions(json.loads(self.extensions)).root
         return Statement(
             id=self.id,
-            description=self.description if self.description else None,
+            description=self.description or None,
             extensions=extensions or None,
             specifiedBy=self.has_method.to_gks(),
             direction=self.direction,
@@ -1066,7 +1103,9 @@ class PrognosticStatementNode(StatementNodeBase):
             id=statement.id,
             url=url,
             description=statement.description or "",
-            extensions=_Extensions(statement.extensions or []).model_dump_json(),
+            extensions=_Extensions(statement.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
             direction=statement.direction,
             has_method=method_node,
             has_documents=document_nodes,
