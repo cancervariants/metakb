@@ -9,7 +9,7 @@ from ga4gh.va_spec.base import Statement
 from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
-from metakb.transformers.methodology import merge_assertions
+# from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 

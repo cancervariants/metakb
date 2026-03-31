@@ -27,11 +27,7 @@ from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
 )
-from metakb.transformers.identifiers import compute_assertion_id, compute_combo_id
-from metakb.transformers.methodology import (
-    add_evidence_to_assertion,
-    initialize_assertion,
-)
+from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
 

@@ -415,7 +415,7 @@ def _update_grouped_low_star_line(ev_line: EvidenceLine) -> None:
     * If all child evidence lines are disputes, grouped line is disputes + 2 star
     * Otherwise, grouped line is neutral + 1 star
     """
-    child_lines = ev_line.hasEvidenceLines
+    child_lines = ev_line.hasEvidenceItems
     if len(child_lines) < 2:  # noqa: PLR2004
         raise ValueError
 
@@ -471,7 +471,7 @@ def _recompute_aggregate_assertion_values(assertion: Statement) -> None:
     assertion.direction = best_line.directionOfEvidenceProvided
     assertion.strength = best_line.strengthOfEvidenceProvided
 
-    star_rating_value = best_line.evidenceOutcome.model_dump()
+    star_rating_value = best_line.evidenceOutcome.model_dump(exclude_none=True)
 
     star_rating_reason = next(
         ext.value

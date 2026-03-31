@@ -19,10 +19,10 @@ from metakb.transformers.methodology import (
     CivicEvidenceLevel,
     MoaEvidenceLevel,
     StarRatingReason,
+    _get_vicc_strength_code,
     calculate_aggregate_values,
     calculate_star_rating,
     get_evidence_level_coding,
-    _get_vicc_strength_code,
     merge_assertions,
     src_strength_to_vicc_code,
 )
