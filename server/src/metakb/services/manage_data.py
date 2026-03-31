@@ -9,66 +9,11 @@ from ga4gh.va_spec.base import Statement
 from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
+from metakb.transformers.base import TransformedData
 
 # from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
-
-
-SUPPORTED_CATVAR_CONSTRAINTS = {"DefiningAlleleConstraint", "FeatureContextConstraint"}
-
-
-def is_loadable_assertion(statement: Statement) -> bool:
-    """Check whether an assertion can be loaded to DB
-
-    Requirements:
-
-    * Must be a higher-order (MetaKB) assertion
-    * Double-check that entity terms are of supported types/structures
-       * Categorical variant contains exactly 1 constraint
-
-    :param statement: incoming statement from CDM. All parameters must be fully materialized,
-        not simply referenced as IRIs
-    :return: whether statement can be loaded given current data support policy
-    :raise NotImplementedError: if unsupported proposition type is provided
-    :raise ValueError: if unrecognized type used for therapeutic (eg string IRI)
-    """
-    success = True
-
-    if not statement.id.startswith("metakb.assertion"):
-        _logger.debug(
-            "%s could not be loaded because it's not a MetaKB assertion", statement.id
-        )
-        success = False
-    proposition = statement.proposition
-    constraints = proposition.subjectVariant.constraints
-    if not constraints:
-        _logger.debug(
-            "%s could not be loaded because assertion subject variant lacks constraints: %s",
-            statement.id,
-            proposition.subjectVariant,
-        )
-        success = False
-    else:
-        if len(constraints) != 1:
-            _logger.debug(
-                "%s could not be loaded because it contains more than 1 constraint: %s",
-                statement.id,
-                constraints,
-            )
-            success = False
-        if constraints[0].root.type not in SUPPORTED_CATVAR_CONSTRAINTS:
-            _logger.debug(
-                "%s could not be loaded because it doesn't use a supported constraint type: %s",
-                statement.id,
-                constraints,
-            )
-            success = False
-    if success:
-        _logger.info("Success. %s can be loaded.", statement.id)
-    else:
-        _logger.info("Failure. %s cannot be loaded.", statement.id)
-    return success
 
 
 def add_statement(statement: Statement, repository: AbstractRepository) -> None:
@@ -125,12 +70,9 @@ def load_from_json(
         click.echo(f"Loading {src_transformed_cdm}")
     with src_transformed_cdm.open() as f:
         dumped_data = json.load(f)
-        statements = [Statement(**i) for i in dumped_data.get("statements", [])]
-        loaded_stmt_count = 0
-        for statement in tqdm(statements, disable=silent):
-            if not is_loadable_assertion(statement):
-                continue
-            _check_for_assertion_updates(statement, repository)
+        data = TransformedData(**dumped_data)
+        for assertion in tqdm(data.assertions, disable=silent):
+            _check_for_assertion_updates(assertion, repository)
             add_statement(statement, repository)
             loaded_stmt_count += 1
 

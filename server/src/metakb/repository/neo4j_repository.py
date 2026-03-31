@@ -7,11 +7,6 @@ from urllib.parse import urlparse, urlunparse
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import Extension, MappableConcept
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -502,15 +497,7 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
+    def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
@@ -740,12 +727,7 @@ class Neo4jRepository(AbstractRepository):
         statement_ids: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
+    ) -> list[Statement]:
         """Perform entity-based search over all statements.
 
         Return all statements matching any item within a given list of entity IDs.

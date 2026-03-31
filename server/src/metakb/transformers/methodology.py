@@ -33,7 +33,7 @@ _logger = logging.getLogger(__name__)
 # --- Global assertion method ---
 
 METAKB_METHOD = Method(
-    id="genomicmedlab:metakb",
+    id="metakb.method:1",
     name="MetaKB Computational Assertion Protocol",
     reportedIn=Document(
         name="cancervariants/metakb",
