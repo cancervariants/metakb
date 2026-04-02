@@ -53,6 +53,7 @@ STUDY_TO_MODULE = {
     "pancan_mappyacts_2022": "metakb.transformers.cbioportal.transformer_pancan_mappyacts_2022",
     "chl_sccc_2023": "metakb.transformers.cbioportal.transformer_chl_sccc_2023",
     "pancan_pdx_uthsa_2023": "metakb.transformers.cbioportal.transformer_pancan_pdx_uthsa_2023",
+    "lgg_ctf_synodos_2025": "metakb.transformers.cbioportal.transformer_lgg_ctf_synodos_2025",
 }
 
 # Genome build is defined per-study via get_genome_build() in each study transformer.
@@ -910,6 +911,9 @@ class CBioPortalTransformerBase(Transformer):
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
+                "Other/Non-Hispanic or Latino": "Other or Mixed,"
+                "White/Hispanic or Latino": "Hispanic or Latino",
+                "White/Non-Hispanic or Latino": "White",
                 "Unknown": "No_Data",
                 "Not reported": "No_Data",
                 "Not Reported": "No_Data",
