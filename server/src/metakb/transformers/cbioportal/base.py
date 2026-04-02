@@ -52,6 +52,7 @@ STUDY_TO_MODULE = {
     "mbl_pcgp": "metakb.transformers.cbioportal.transformer_mbl_pcgp",
     "pancan_mappyacts_2022": "metakb.transformers.cbioportal.transformer_pancan_mappyacts_2022",
     "chl_sccc_2023": "metakb.transformers.cbioportal.transformer_chl_sccc_2023",
+    "pancan_pdx_uthsa_2023": "metakb.transformers.cbioportal.transformer_pancan_pdx_uthsa_2023",
 }
 
 # Genome build is defined per-study via get_genome_build() in each study transformer.
@@ -880,11 +881,11 @@ class CBioPortalTransformerBase(Transformer):
             )
             df["AGE_TERM"] = "Unknown"
 
-        # Harmonize ETHNICITY column
-        logger.info("Harmonizing ETHNICITY terms for study: %s", study)
-        if "ETHNICITY" in df.columns:
+        # Harmonize RACE column
+        logger.info("Harmonizing RACE terms for study: %s", study)
+        if "RACE" in df.columns:
             # Mapping dictionary for ethnicity harmonization
-            ethnicity_mapping = {
+            race_mapping = {
                 # White/European
                 "European": "White",
                 "White/Europe": "White",
@@ -894,6 +895,7 @@ class CBioPortalTransformerBase(Transformer):
                 "African": "Black or African American",
                 "Black": "Black or African American",
                 "Black/Sub-Saharan Africa": "Black or African American",
+                "African American": "Black or African American",
                 # Asian
                 "EastAsian": "Asian",
                 "Asian Indian": "Asian",
@@ -916,24 +918,24 @@ class CBioPortalTransformerBase(Transformer):
             }
 
             # Keep original ethnicity in a separate column
-            df["ETHNICITY_ORIGINAL"] = df["ETHNICITY"]
+            df["RACE_ORIGINAL"] = df["RACE"]
 
             # Apply mapping to create harmonized column
-            df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ethnicity_mapping)
+            df["RACE_HARMONIZED"] = df["RACE"].replace(race_mapping)
 
             # Log the harmonized distribution
             logger.info(
-                "[%s] ETHNICITY_HARMONIZED distribution: %s",
+                "[%s] RACE_HARMONIZED distribution: %s",
                 study,
-                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
+                df["RACE_HARMONIZED"].value_counts().to_dict(),
             )
         else:
             logger.warning(
-                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
+                "[%s] No RACE column found; setting RACE_HARMONIZED to 'No_Data'",
                 study,
             )
-            df["ETHNICITY_ORIGINAL"] = "No_Data"
-            df["ETHNICITY_HARMONIZED"] = "No_Data"
+            df["RACE_ORIGINAL"] = "No_Data"
+            df["RACE_HARMONIZED"] = "No_Data"
 
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
@@ -1128,47 +1130,6 @@ class CBioPortalTransformerBase(Transformer):
         freq_qc_df.to_csv(freq_qc_out_path, index=False)
 
         # -----------------------------------------
-        # ETHNICITY counts: rows=ETHNICITY, cols=STUDY_ID
-        # -----------------------------------------
-        # TODO: why does chl_sccc_2023 study show up as "type_of_cancer: chl" in these age and ethnicity
-        eth_df = combined.copy()
-        eth_df["ETHNICITY"] = eth_df.get(
-            "ETHNICITY", pd.Series(pd.NA, index=eth_df.index)
-        )
-        eth_df["ETHNICITY"] = eth_df["ETHNICITY"].replace("", pd.NA).fillna("Unknown")
-
-        # -----------------------------------------
-        # AGE bucket counts: rows=STUDY_ID, cols=AGE_RANGE
-        # -----------------------------------------
-        age_col = "AGE"
-        age_bins = [-1, 0, 5, 10, 15, 18, 25, 40, 60, 120]
-        age_labels = [
-            "<1",
-            "1-5",
-            "6-10",
-            "11-15",
-            "16-18",
-            "19-25",
-            "26-40",
-            "41-60",
-            "61+",
-        ]
-
-        age_df = combined.copy()
-        age_df[age_col] = pd.to_numeric(
-            age_df.get(age_col, pd.Series(pd.NA, index=age_df.index)), errors="coerce"
-        )
-        age_df["AGE_RANGE"] = pd.cut(
-            age_df[age_col],
-            bins=age_bins,
-            labels=age_labels,
-            right=True,
-        )
-        age_df["AGE_RANGE"] = (
-            age_df["AGE_RANGE"].cat.add_categories(["Unknown"]).fillna("Unknown")
-        )
-
-        # -----------------------------------------
         # Failed normalizations CSVs
         # -----------------------------------------
         if self.failed_genes:
@@ -1272,20 +1233,31 @@ class CBioPortalTransformerBase(Transformer):
     def filter_and_rename_patients(
         patients_df: pd.DataFrame,
         patient_headers: list[str],
-        ethnicity_source: str = "RACE",
+        ethnicity_source: str | None = "ETHNICITY",
+        race_source: str | None = "RACE",
         age_source: str | None = None,
     ) -> pd.DataFrame:
         """Filter patient columns and perform common transformations."""
         df = patients_df.filter(patient_headers)
 
-        if ethnicity_source in df.columns and ethnicity_source != "ETHNICITY":
-            df = df.rename(columns={ethnicity_source: "ETHNICITY"})
-
         if age_source and age_source in df.columns:
             df = df.rename(columns={age_source: "AGE"})
 
+        # Handle RACE
+        if race_source and race_source in df.columns and race_source != "RACE":
+            df = df.rename(columns={race_source: "RACE"})
+        if "RACE" not in df.columns:
+            df["RACE"] = "No_Data"
+
+        # Handle ETHNICITY
+        if (
+            ethnicity_source
+            and ethnicity_source in df.columns
+            and ethnicity_source != "ETHNICITY"
+        ):
+            df = df.rename(columns={ethnicity_source: "ETHNICITY"})
         if "ETHNICITY" not in df.columns:
-            df["ETHNICITY"] = "No_data"
+            df["ETHNICITY"] = "No_Data"
 
         if "SEX" not in df.columns:
             df["SEX"] = "No_data"
@@ -1474,7 +1446,7 @@ class CBioPortalStudyTransformer(Transformer):
 
     def get_patient_transformations(self) -> dict[str, Any]:
         """Return study-specific patient transformations."""
-        return {"ethnicity_source": "RACE"}
+        return {}
 
     def get_sample_transformations(self) -> dict[str, Any]:
         """Return study-specific sample transformations."""
@@ -1532,7 +1504,8 @@ class CBioPortalStudyTransformer(Transformer):
         self.patients = CBioPortalTransformerBase.filter_and_rename_patients(
             self.patients,
             self.get_patient_headers(),
-            ethnicity_source=patient_transforms.get("ethnicity_source", "RACE"),
+            ethnicity_source=patient_transforms.get("ethnicity_source", "ETHNICITY"),
+            race_source=patient_transforms.get("race_source", "RACE"),
             age_source=patient_transforms.get("age_source"),
         )
 
