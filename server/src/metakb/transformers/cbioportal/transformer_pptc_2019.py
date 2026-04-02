@@ -63,7 +63,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         """Return study-specific variant transformations."""
         return {
             "amino_acid_change_source": "User_Amino_Acid_Change",
-            "additional_columns": {"Sequence_Source": "No_data"},
+            "additional_columns": {"Sequence_Source": "WES"},
         }
 
     def get_patient_transformations(self) -> dict:

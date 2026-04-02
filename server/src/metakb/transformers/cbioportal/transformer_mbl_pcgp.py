@@ -59,10 +59,13 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
     def get_sample_headers(self) -> list[str]:
         """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
-
+    
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {"amino_acid_change_source": "Protein_Change"}
+        return {
+            "amino_acid_change_source": "Protein_Change",
+            "additional_columns": {"Sequence_Source": "WGS"},
+        }
 
     def get_patient_transformations(self) -> dict:
         """Return study-specific patient transformations."""

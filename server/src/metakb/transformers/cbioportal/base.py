@@ -911,7 +911,7 @@ class CBioPortalTransformerBase(Transformer):
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
-                "Other/Non-Hispanic or Latino": "Other or Mixed,"
+                "Other/Non-Hispanic or Latino": "Other or Mixed",
                 "White/Hispanic or Latino": "Hispanic or Latino",
                 "White/Non-Hispanic or Latino": "White",
                 "Unknown": "No_Data",
@@ -1312,6 +1312,9 @@ class CBioPortalTransformerBase(Transformer):
             # Drop the original fallback column now that it's merged
             if fallback_column != "Sequence_Source":
                 df = df.drop(columns=[fallback_column])
+
+        # Normalise WXS → WES
+        df["Sequence_Source"] = df["Sequence_Source"].replace("WXS", "WES")
 
         df["Sequence_Source"] = df["Sequence_Source"].fillna("No_Data")
 
