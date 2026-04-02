@@ -26,7 +26,7 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
-    "Amino_acids"
+    "Amino_acids",
 ]
 
 PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE", "ETHNICITY"]
@@ -48,7 +48,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
     def get_study_name(self) -> str:
         """Return the study identifier."""
         return "pancan_pdx_uthsa_2023"
-    
+
     def get_genome_build(self) -> str:
         """Return GRCh38 as the genome build for this study."""
         return "GRCh38"
@@ -71,17 +71,21 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
             "amino_acid_change_source": "Amino_acids",
             "additional_columns": {"Sequence_Source": "WES"},
         }
-    
+
     def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Replace empty/whitespace Center values with 'UTHSA' and strip 'chr' prefix from Chromosome."""
         df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "UTHSA", regex=True)
         if "Chromosome" in df.columns:
-            df["Chromosome"] = df["Chromosome"].astype(str).str.replace("^chr", "", regex=True)
+            df["Chromosome"] = (
+                df["Chromosome"].astype(str).str.replace("^chr", "", regex=True)
+            )
         return df
-    
+
     def apply_custom_sample_logic(self, df: pd.DataFrame) -> pd.DataFrame:
         """Keep only Tumor samples and drop any variants from Xenograft samples."""
         tumor_df = df[df["SAMPLE_CLASS"] == "Tumor"].reset_index(drop=True)
         tumor_sample_ids = set(tumor_df["SAMPLE_ID"])
-        self.variants = self.variants[self.variants["SAMPLE_ID"].isin(tumor_sample_ids)].reset_index(drop=True)
+        self.variants = self.variants[
+            self.variants["SAMPLE_ID"].isin(tumor_sample_ids)
+        ].reset_index(drop=True)
         return tumor_df

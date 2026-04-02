@@ -1250,7 +1250,11 @@ class CBioPortalTransformerBase(Transformer):
             df["RACE"] = "No_Data"
 
         # Handle ETHNICITY
-        if ethnicity_source and ethnicity_source in df.columns and ethnicity_source != "ETHNICITY":
+        if (
+            ethnicity_source
+            and ethnicity_source in df.columns
+            and ethnicity_source != "ETHNICITY"
+        ):
             df = df.rename(columns={ethnicity_source: "ETHNICITY"})
         if "ETHNICITY" not in df.columns:
             df["ETHNICITY"] = "No_Data"
