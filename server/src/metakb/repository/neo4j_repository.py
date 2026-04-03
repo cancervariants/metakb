@@ -1,20 +1,19 @@
 """Neo4j implementation of the repository abstraction."""
 
-import json
 import logging
 from typing import NamedTuple
 from urllib.parse import urlparse, urlunparse
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
-    Direction,
     Document,
     EvidenceLine,
     Method,
     Statement,
+    Strength,
     Therapeutic,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -54,7 +53,6 @@ from metakb.repository.neo4j_models import (
     StrengthNode,
     TherapeuticResponseStatementNode,
     TherapyGroupNode,
-    _Extensions,
 )
 from metakb.repository.queries import catalog as queries_catalog
 from metakb.schemas.api import ServiceEnvironment
@@ -181,7 +179,7 @@ class Neo4jRepository(AbstractRepository):
             for query in queries_catalog.initialize():
                 tx.run(query)
 
-    def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
+    def _add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
         Currently validates that the constraint property, if it exists, has a length of
@@ -204,7 +202,7 @@ class Neo4jRepository(AbstractRepository):
             query = queries_catalog.load_text_catvar()
         tx.run(query, cv=catvar_node.model_dump(mode="json"))
 
-    def add_document(self, tx: Transaction, document: Document) -> None:
+    def _add_document(self, tx: Transaction, document: Document) -> None:
         """Add document to DB
 
         :param tx: Neo4j transaction
@@ -216,7 +214,7 @@ class Neo4jRepository(AbstractRepository):
             doc=document_node.model_dump(mode="json"),
         )
 
-    def add_gene(
+    def _add_gene(
         self,
         tx: Transaction,
         gene: MappableConcept,
@@ -229,7 +227,7 @@ class Neo4jRepository(AbstractRepository):
         gene_node = GeneNode.from_gks(gene)
         tx.run(queries_catalog.load_gene(), gene=gene_node.model_dump(mode="json"))
 
-    def add_condition(self, tx: Transaction, condition: Condition) -> None:
+    def _add_condition(self, tx: Transaction, condition: Condition) -> None:
         """Add condition to DB.
 
         :param tx: Neo4j transaction
@@ -245,7 +243,7 @@ class Neo4jRepository(AbstractRepository):
             )
 
             for child in cond.conditions:
-                self.add_condition(tx, child)
+                self._add_condition(tx, child)
             return
 
         if not isinstance(cond, MappableConcept):
@@ -268,7 +266,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized conceptType: {cond}"
             raise TypeError(msg)
 
-    def add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
+    def _add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
         """Add a therapeutic -- either an individual Drug or a group.
 
         :param tx: Neo4j transaction
@@ -288,7 +286,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized therapeutic type: {therapeutic}"
             raise TypeError(msg)
 
-    def add_method(self, tx: Transaction, method: Method) -> None:
+    def _add_method(self, tx: Transaction, method: Method) -> None:
         """Add a Method object.
 
         :param tx: Neo4j transaction
@@ -297,6 +295,17 @@ class Neo4jRepository(AbstractRepository):
         tx.run(
             queries_catalog.load_method(),
             method=MethodNode.from_gks(method).model_dump(mode="json"),
+        )
+
+    def _add_strength(self, tx: Transaction, strength: Strength) -> None:
+        """Load a strength object
+
+        :param tx: Neo4j transaction
+        :param strength: VA-Spec strength object
+        """
+        tx.run(
+            queries_catalog.load_strength(),
+            strength=strength.model_dump(mode="json"),
         )
 
     def _add_evidence_line(self, tx: Transaction, evidence_line: EvidenceLine) -> None:
@@ -316,11 +325,8 @@ class Neo4jRepository(AbstractRepository):
                 self._add_statement(tx, item)
             else:
                 raise TypeError
+        self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
         evline_node = EvidenceLineNode.from_gks(evidence_line)
-        tx.run(
-            queries_catalog.load_strength(),
-            strength=evline_node.has_strength.model_dump(mode="json"),
-        )
         tx.run(
             queries_catalog.load_evidence_line(),
             evidence_line=evline_node.model_dump(mode="json"),
@@ -341,28 +347,28 @@ class Neo4jRepository(AbstractRepository):
                 self._add_evidence_line(tx, ev_line)
 
         proposition = statement.proposition
-        self.add_catvar(tx, proposition.subjectVariant)
-        self.add_gene(tx, proposition.geneContextQualifier)
+        self._add_catvar(tx, proposition.subjectVariant)
+        self._add_gene(tx, proposition.geneContextQualifier)
         # handle proposition-specific properties
         if proposition.type == "VariantTherapeuticResponseProposition":
-            self.add_condition(tx, proposition.conditionQualifier)
-            self.add_therapeutic(tx, proposition.objectTherapeutic)
+            self._add_condition(tx, proposition.conditionQualifier)
+            self._add_therapeutic(tx, proposition.objectTherapeutic)
         elif proposition.type in {
             "VariantDiagnosticProposition",
             "VariantPrognosticProposition",
         }:
-            self.add_condition(tx, proposition.objectCondition)
+            self._add_condition(tx, proposition.objectCondition)
         else:
             raise NotImplementedError(proposition)
         if statement.reportedIn:
             for document in statement.reportedIn:
                 if isinstance(document, Document):
-                    self.add_document(tx, document)
+                    self._add_document(tx, document)
 
         if isinstance(statement.specifiedBy.reportedIn, Document):
-            self.add_document(tx, statement.specifiedBy.reportedIn)
-        # TODO merge into add statement? where is add strength?
-        self.add_method(tx, statement.specifiedBy)
+            self._add_document(tx, statement.specifiedBy.reportedIn)
+        self._add_strength(tx, statement.strength)
+        self._add_method(tx, statement.specifiedBy)
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
                 statement_node = TherapeuticResponseStatementNode.from_gks(statement)
@@ -843,51 +849,3 @@ class Neo4jRepository(AbstractRepository):
             lambda tx: list(tx.run(queries_catalog.get_all_assertion_ids()))
         )
         return [r["s.id"] for r in result]
-
-    # def update_assertion_strength(
-    #     self, assertion_id: str, strength: MappableConcept
-    # ) -> None:
-    #     """Update strength associated with an assertion
-    #
-    #     :param assertion_id: ID of assertion node
-    #     :param strength: object containing new strength node properties
-    #     """
-    #     strength_node = StrengthNode.from_gks(strength)
-    #     with self.session.begin_transaction() as tx:
-    #         tx.run(
-    #             queries_catalog.update_assertion_strength(),
-    #             statement_id=assertion_id,
-    #             strength=strength_node.model_dump(mode="json"),
-    #         )
-    #
-    # def update_assertion_properties(
-    #     self,
-    #     assertion_id: str,
-    #     direction: Direction | str,
-    #     extensions: list[Extension] | None = None,
-    # ) -> None:
-    #     """Update mutable properties for a higher-order assertion
-    #
-    #     :param assertion_id: ID of the assertion node
-    #     :param direction: new direction property
-    #     :param extensions: new extensions for the assertion
-    #     """
-    #     with self.session.begin_transaction() as tx:
-    #         tx.run(
-    #             queries_catalog.update_assertion_properties(),
-    #             statement_id=assertion_id,
-    #             direction=direction.value
-    #             if isinstance(direction, Direction)
-    #             else direction,
-    #             extensions=json.dumps(
-    #                 _Extensions(extensions or []).model_dump(mode="json")
-    #             ),
-    #         )
-    #
-    # def delete_evidence_line(self, evidence_line_id: str) -> None:
-    #     """Delete an evidence line so that assertion evidence can be restructured to accommodate new items
-    #
-    #     :param evidence_line_id: ID (incl. UUID) of evidence line to delete
-    #     """
-    #     with self.session.begin_transaction() as tx:
-    #         tx.run()

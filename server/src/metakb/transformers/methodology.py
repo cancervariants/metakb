@@ -498,6 +498,52 @@ def _recompute_aggregate_assertion_values(assertion: Statement) -> None:
         )
 
 
+def _get_evidence_from_assertion(assertion: Statement) -> list[Statement]:
+    """Get all evidence item Statements contained under a VA-Spec statement.
+
+    Won't traverse past intermediate evidence (ie wont return items under civic assertions as separate results)
+
+    :param statement: top-level assertion
+    :return: evidence item Statements
+    """
+    results: list[Statement] = []
+
+    def _walk_evidence_line(ev_line: EvidenceLine) -> None:
+        for item in getattr(ev_line, "hasEvidenceItems", []) or []:
+            if isinstance(item, Statement):
+                # stop here — do not recurse into this statement
+                results.append(item)
+            elif isinstance(item, EvidenceLine):
+                _walk_evidence_line(item)
+
+    for ev_line in assertion.hasEvidenceLines:
+        _walk_evidence_line(ev_line)
+    return results
+
+
+def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
+    """Combine two assertions with the same proposition
+
+    :param assertion: assertion #1
+    :param new_assertion: assertion #2
+    :return: assertion #1, now containing all evidence items from #2
+    :raise ValueError: if assertion IDs aren't matching
+    """
+    if assertion.id != new_assertion.id:
+        raise ValueError
+
+    assertion_item_ids = {s.id for s in _get_evidence_from_assertion(assertion)}
+    new_assertion_items = _get_evidence_from_assertion(new_assertion)
+
+    for item in new_assertion_items:
+        # skip redundant evidence
+        if item.id not in assertion_item_ids:
+            add_evidence_to_assertion(assertion, item)
+
+    _recompute_aggregate_assertion_values(assertion)
+    return assertion
+
+
 def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Statement:
     """Fold new evidence item into assertion
 

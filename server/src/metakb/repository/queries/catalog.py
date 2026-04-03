@@ -126,16 +126,6 @@ def get_all_assertion_ids() -> str:
 
 
 @cache
-def update_assertion_strength() -> str:
-    return _load("update_assertion_strength.cypher")
-
-
-@cache
-def update_assertion_properties() -> str:
-    return _load("update_assertion_properties.cypher")
-
-
-@cache
 def delete_evidence_line() -> str:
     return _load("delete_evidence_line.cypher")
 

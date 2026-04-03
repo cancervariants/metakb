@@ -1,27 +1,19 @@
-// create statement
+// create or update statement and its properties
 MERGE (statement:Statement {id: $statement.id})
-  ON CREATE SET
-    statement +=
-      {
-        url: $statement.url,
-        description: $statement.description,
-        extensions: $statement.extensions,
-        predicate: $statement.predicate,
-        proposition_type: $statement.proposition_type,
-        allele_origin_qualifier: $statement.allele_origin_qualifier,
-        direction: $statement.direction
-      }
+SET
+  statement +=
+    {
+      url: $statement.url,
+      description: $statement.description,
+      extensions: $statement.extensions,
+      predicate: $statement.predicate,
+      proposition_type: $statement.proposition_type,
+      allele_origin_qualifier: $statement.allele_origin_qualifier,
+      direction: $statement.direction
+    }
 
 // add strength node and connect it
 MERGE (strength:Strength {id: $statement.has_strength.id})
-  ON CREATE SET
-    strength +=
-      {
-        name: $statement.has_strength.name,
-        mappings: $statement.has_strength.mappings,
-        primary_coding: $statement.has_strength.primary_coding,
-        extensions: $statement.has_strength.extensions
-      }
 MERGE (statement)-[:HAS_STRENGTH]->(strength)
 
 // add classification node and connect it
@@ -139,25 +131,11 @@ CALL {
   RETURN count(*) AS _docs
 }
 
-// add evidence lines and edges to statements
+// add edges to contained evidence lines
 CALL {
   WITH statement
   WITH statement, coalesce($statement.has_evidence_lines, []) AS ev_lines
   UNWIND ev_lines AS ev_line
-  MERGE (el:EvidenceLine {id: ev_line.id})
-    ON CREATE SET
-      el +=
-        {
-          direction: ev_line.direction,
-          strength_of_evidence_provided: ev_line.strength_of_evidence_provided
-        }
+  MATCH (el:EvidenceLine {id: ev_line.id})
   MERGE (statement)-[:HAS_EVIDENCE_LINE]->(el)
-
-  WITH statement, el, ev_line
-  UNWIND coalesce(ev_line.has_evidence_items, []) AS ev_item
-  MERGE (item:Statement {id: ev_item.id})
-  MERGE (el)-[:HAS_EVIDENCE_ITEM]->(item)
-  RETURN count(*) AS _ev
 }
-
-RETURN 1
