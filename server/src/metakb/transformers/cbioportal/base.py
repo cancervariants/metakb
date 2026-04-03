@@ -1012,8 +1012,7 @@ class CBioPortalTransformerBase(Transformer):
         self.mappable_variants_by_study[study] = mappable_variants
         logger.info("[%s] mappable_variants count: %d", study, len(mappable_variants))
 
-        if "STUDY_ID" not in df.columns:
-            df = df.assign(STUDY_ID=study)
+        df["STUDY_ID"] = transformer.get_study_name()
 
         return CBioPortalTransformerBase.fill_missing_values(df)
 
