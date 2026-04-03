@@ -974,15 +974,15 @@ class CBioPortalTransformerBase(Transformer):
             logger.info(
                 "[%s] ETHNICITY_HARMONIZED distribution: %s",
                 study,
-                df["RACE_HARMONIZED"].value_counts().to_dict(),
+                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
             )
         else:
             logger.warning(
-                "[%s] No RACE column found; setting RACE_HARMONIZED to 'No_Data'",
+                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
                 study,
             )
-            df["RACE_ORIGINAL"] = "No_Data"
-            df["RACE_HARMONIZED"] = "No_Data"
+            df["ETHNICITY_ORIGINAL"] = "No_Data"
+            df["ETHNICITY_HARMONIZED"] = "No_Data"
 
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
@@ -1015,7 +1015,7 @@ class CBioPortalTransformerBase(Transformer):
         if "STUDY_ID" not in df.columns:
             df = df.assign(STUDY_ID=study)
 
-        return df
+        return CBioPortalTransformerBase.fill_missing_values(df)
 
     def run_transformers(self, harvested: dict[str, Any]) -> pd.DataFrame:
         """Run transformers for all harvested studies and combine results.
@@ -1059,6 +1059,7 @@ class CBioPortalTransformerBase(Transformer):
             raise ValueError(msg)
 
         combined = pd.concat(dfs, ignore_index=True, sort=False)
+        combined = CBioPortalTransformerBase.fill_missing_values(combined)
 
         # -----------------------------------------
         # Add variant frequency columns
