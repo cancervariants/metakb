@@ -188,7 +188,7 @@ class CBioPortalHarvester(Harvester):
         variants = pd.read_csv(
             files.data_mutations,
             sep="\t",
-            comment="#", 
+            comment="#",
             skiprows=variant_skiprows,
             dtype=str,
             keep_default_na=False,
@@ -199,7 +199,7 @@ class CBioPortalHarvester(Harvester):
             files.data_clinical_patient,
             sep="\t",
             # skiprows=4,
-            comment="#", 
+            comment="#",
             dtype=str,
             keep_default_na=False,
             low_memory=False,
@@ -208,7 +208,7 @@ class CBioPortalHarvester(Harvester):
         samples = pd.read_csv(
             files.data_clinical_sample,
             sep="\t",
-            comment="#", 
+            comment="#",
             # skiprows=4,
             dtype=str,
             keep_default_na=False,
