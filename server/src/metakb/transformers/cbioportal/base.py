@@ -941,6 +941,49 @@ class CBioPortalTransformerBase(Transformer):
             df["RACE_ORIGINAL"] = "No_Data"
             df["RACE_HARMONIZED"] = "No_Data"
 
+        # Harmonize ETHNICITY column
+        logger.info("Harmonizing ETHNICITY terms for study: %s", study)
+        if "ETHNICITY" in df.columns:
+            ethnicity_mapping = {
+                "No_Data": "No_Data",
+                "European": "European",
+                "White/Europe": "European",
+                "White": "European",
+                "White/North Africa": "White/North African",
+                "African": "African",
+                "Black": "African",
+                "Black/Sub-Saharan Africa": "African",
+                "EastAsian": "Asian",
+                "Asian": "Asian",
+                "Asian Indian": "South Asian",
+                "Hispanic": "Hispanic",
+                "White/Latin America": "Hispanic",
+                "Mixed_or_Unknown": "Mixed or Unknown",
+                "Non-Hispanic": "Non-Hispanic",
+                "SouthAsianOrHispanic": "South Asian or Hispanic",
+                # catch-alls
+                "Unknown": "No_Data",
+                "Not reported": "No_Data",
+                "Not Reported": "No_Data",
+                "No_data": "No_Data",
+            }
+
+            df["ETHNICITY_ORIGINAL"] = df["ETHNICITY"]
+            df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ethnicity_mapping)
+
+            logger.info(
+                "[%s] ETHNICITY_HARMONIZED distribution: %s",
+                study,
+                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
+            )
+        else:
+            logger.warning(
+                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
+                study,
+            )
+            df["ETHNICITY_ORIGINAL"] = "No_Data"
+            df["ETHNICITY_HARMONIZED"] = "No_Data"
+
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
 

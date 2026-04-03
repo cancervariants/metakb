@@ -59,7 +59,7 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
     def get_sample_headers(self) -> list[str]:
         """Return the list of sample column headers to keep."""
         return SAMPLE_HEADERS
-    
+
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
         return {
