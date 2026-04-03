@@ -12,6 +12,7 @@ from ga4gh.va_spec.base import (
     ConditionSet,
     Direction,
     Document,
+    EvidenceLine,
     Method,
     Statement,
     Therapeutic,
@@ -298,17 +299,70 @@ class Neo4jRepository(AbstractRepository):
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
-    def add_statement(self, tx: Transaction, statement: Statement) -> None:
-        """Add a Statement object.
+    def _add_evidence_line(self, tx: Transaction, evidence_line: EvidenceLine) -> None:
+        """Load an evidence line + everything that it contains
 
-        Currently supports statements based on
-        * VariantTherapeuticResponseProposition
-        * VariantPrognosticProposition
-        * VariantDiagnosticProposition
-
-        :param tx: Neo4j transaction
-        :param statement: VA-Spec Statement
+        :param tx: neo4j transaction
+        :param evidence_line: GKS evidence line
         """
+        if not evidence_line.hasEvidenceItems:
+            msg = f"Evidence line has no evidence ({evidence_line=})"
+            _logger.error(msg)
+            raise ValueError(msg)
+        for item in evidence_line.hasEvidenceItems:
+            if isinstance(item, EvidenceLine):
+                self._add_evidence_line(tx, item)
+            elif isinstance(item, Statement):
+                self._add_statement(tx, item)
+            else:
+                raise TypeError
+        evline_node = EvidenceLineNode.from_gks(evidence_line)
+        tx.run(
+            queries_catalog.load_strength(),
+            strength=evline_node.has_strength.model_dump(mode="json"),
+        )
+        tx.run(
+            queries_catalog.load_evidence_line(),
+            evidence_line=evline_node.model_dump(mode="json"),
+            item_ids=[i.id for i in evline_node.has_evidence_items],
+        )
+
+    def _add_statement(self, tx: Transaction, statement: Statement) -> None:
+        """TODO
+
+        Note that this function gets used BOTH for loading higher-order assertions
+        AND loading the statements they contain.
+
+        :param tx: neo4j transaction
+        :param assertion:
+        """
+        if statement.hasEvidenceLines:
+            for ev_line in statement.hasEvidenceLines:
+                self._add_evidence_line(tx, ev_line)
+
+        proposition = statement.proposition
+        self.add_catvar(tx, proposition.subjectVariant)
+        self.add_gene(tx, proposition.geneContextQualifier)
+        # handle proposition-specific properties
+        if proposition.type == "VariantTherapeuticResponseProposition":
+            self.add_condition(tx, proposition.conditionQualifier)
+            self.add_therapeutic(tx, proposition.objectTherapeutic)
+        elif proposition.type in {
+            "VariantDiagnosticProposition",
+            "VariantPrognosticProposition",
+        }:
+            self.add_condition(tx, proposition.objectCondition)
+        else:
+            raise NotImplementedError(proposition)
+        if statement.reportedIn:
+            for document in statement.reportedIn:
+                if isinstance(document, Document):
+                    self.add_document(tx, document)
+
+        if isinstance(statement.specifiedBy.reportedIn, Document):
+            self.add_document(tx, statement.specifiedBy.reportedIn)
+        # TODO merge into add statement? where is add strength?
+        self.add_method(tx, statement.specifiedBy)
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
                 statement_node = TherapeuticResponseStatementNode.from_gks(statement)
@@ -324,35 +378,34 @@ class Neo4jRepository(AbstractRepository):
             statement=statement_node.model_dump(mode="json"),
         )
 
-    def load_statement(self, statement: Statement) -> None:
-        """Load individual statement, and contained entities, into DB
+    def _recursive_delete_ev_line(self, tx: Transaction, ev_line: EvidenceLine) -> None:
+        """Delete an evidence line and any evidence lines that it contains
 
-        :param statement: statement to load
+        This saves us the effort of manually moving edges around when evidence structure changes
+
+        :param tx: neo4j transaction
+        :param assertion:
+        """
+        if not ev_line.hasEvidenceItems:
+            _logger.error(
+                "No evidence items under evidence line (%s)-- something has gone wrong",
+                ev_line,
+            )
+            raise ValueError
+        for item in ev_line.hasEvidenceItems:
+            if isinstance(item, EvidenceLine):
+                self._recursive_delete_ev_line(tx, item)
+        tx.run(queries_catalog.delete_evidence_line(), evidence_line_id=ev_line.id)
+
+    def add_assertion(self, assertion: Statement) -> None:
+        """Add or update a complete assertion object to the DB
+
+        :param assertion: metakb assertion
         """
         with self.session.begin_transaction() as tx:
-            proposition = statement.proposition
-            self.add_catvar(tx, proposition.subjectVariant)
-            self.add_gene(tx, proposition.geneContextQualifier)
-            # handle proposition-specific properties
-            if proposition.type == "VariantTherapeuticResponseProposition":
-                self.add_condition(tx, proposition.conditionQualifier)
-                self.add_therapeutic(tx, proposition.objectTherapeutic)
-            elif proposition.type in {
-                "VariantDiagnosticProposition",
-                "VariantPrognosticProposition",
-            }:
-                self.add_condition(tx, proposition.objectCondition)
-            else:
-                raise NotImplementedError(proposition)
-            if statement.reportedIn:
-                for document in statement.reportedIn:
-                    if isinstance(document, Document):
-                        self.add_document(tx, document)
-
-            if isinstance(statement.specifiedBy.reportedIn, Document):
-                self.add_document(tx, statement.specifiedBy.reportedIn)
-            self.add_method(tx, statement.specifiedBy)
-            self.add_statement(tx, statement)
+            for line in assertion.hasEvidenceLines:
+                self._recursive_delete_ev_line(tx, line)
+            self._add_statement(tx, assertion)
 
     @staticmethod
     def _make_allele_node(
@@ -791,42 +844,50 @@ class Neo4jRepository(AbstractRepository):
         )
         return [r["s.id"] for r in result]
 
-    def update_assertion_strength(
-        self, assertion_id: str, strength: MappableConcept
-    ) -> None:
-        """Update strength associated with an assertion
-
-        :param assertion_id: ID of assertion node
-        :param strength: object containing new strength node properties
-        """
-        strength_node = StrengthNode.from_gks(strength)
-        with self.session.begin_transaction() as tx:
-            tx.run(
-                queries_catalog.update_assertion_strength(),
-                statement_id=assertion_id,
-                strength=strength_node.model_dump(mode="json"),
-            )
-
-    def update_assertion_properties(
-        self,
-        assertion_id: str,
-        direction: Direction | str,
-        extensions: list[Extension] | None = None,
-    ) -> None:
-        """Update mutable properties for a higher-order assertion
-
-        :param assertion_id: ID of the assertion node
-        :param direction: new direction property
-        :param extensions: new extensions for the assertion
-        """
-        with self.session.begin_transaction() as tx:
-            tx.run(
-                queries_catalog.update_assertion_properties(),
-                statement_id=assertion_id,
-                direction=direction.value
-                if isinstance(direction, Direction)
-                else direction,
-                extensions=json.dumps(
-                    _Extensions(extensions or []).model_dump(mode="json")
-                ),
-            )
+    # def update_assertion_strength(
+    #     self, assertion_id: str, strength: MappableConcept
+    # ) -> None:
+    #     """Update strength associated with an assertion
+    #
+    #     :param assertion_id: ID of assertion node
+    #     :param strength: object containing new strength node properties
+    #     """
+    #     strength_node = StrengthNode.from_gks(strength)
+    #     with self.session.begin_transaction() as tx:
+    #         tx.run(
+    #             queries_catalog.update_assertion_strength(),
+    #             statement_id=assertion_id,
+    #             strength=strength_node.model_dump(mode="json"),
+    #         )
+    #
+    # def update_assertion_properties(
+    #     self,
+    #     assertion_id: str,
+    #     direction: Direction | str,
+    #     extensions: list[Extension] | None = None,
+    # ) -> None:
+    #     """Update mutable properties for a higher-order assertion
+    #
+    #     :param assertion_id: ID of the assertion node
+    #     :param direction: new direction property
+    #     :param extensions: new extensions for the assertion
+    #     """
+    #     with self.session.begin_transaction() as tx:
+    #         tx.run(
+    #             queries_catalog.update_assertion_properties(),
+    #             statement_id=assertion_id,
+    #             direction=direction.value
+    #             if isinstance(direction, Direction)
+    #             else direction,
+    #             extensions=json.dumps(
+    #                 _Extensions(extensions or []).model_dump(mode="json")
+    #             ),
+    #         )
+    #
+    # def delete_evidence_line(self, evidence_line_id: str) -> None:
+    #     """Delete an evidence line so that assertion evidence can be restructured to accommodate new items
+    #
+    #     :param evidence_line_id: ID (incl. UUID) of evidence line to delete
+    #     """
+    #     with self.session.begin_transaction() as tx:
+    #         tx.run()

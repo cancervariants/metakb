@@ -366,6 +366,7 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
 
     This function MUST define
 
+    * ``id`` -- needed for dropping/recreating nodes in the DB
     * ``strengthOfEvidenceProvided`` (using VICC evidence codes)
     * ``directionOfEvidenceProvided``
     * ``evidenceOutcome`` (using a MetaKB star rating concept)
@@ -607,7 +608,7 @@ def initialize_assertion(
         extensions=[
             Extension(
                 name="metakb_star_rating",
-                value=evidence_line.evidenceOutcome.model_dump(),
+                value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
             ),
             Extension(
                 name="metakb_star_rating_reason",

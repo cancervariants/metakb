@@ -742,19 +742,20 @@ class EvidenceLineNode(BaseNode):
         TherapeuticResponseStatementNode
         | DiagnosticStatementNode
         | PrognosticStatementNode
+        | EvidenceLineNode
     ] = Field(min_length=1)
-    strength_of_evidence_provided: str
+    has_strength: StrengthNode
+    evidence_outcome: str
+    extensions: str
 
     @classmethod
-    def from_gks(cls, evidence_line: EvidenceLine, statement_id: str) -> Self:
+    def from_gks(cls, evidence_line: EvidenceLine) -> Self:
         """Construct node representation of Evidence Line object"""
-        strength_serialized = evidence_line.strengthOfEvidenceProvided.model_dump_json(
-            exclude_none=True
-        )
         evidence_items = []
         for item in evidence_line.hasEvidenceItems:
-            proposition_type = item.proposition.type
-            match proposition_type:
+            if isinstance(item, EvidenceLine):
+                evidence_items.append(EvidenceLineNode.from_gks(item))
+            match item.proposition.type:
                 case "VariantTherapeuticResponseProposition":
                     evidence_items.append(
                         TherapeuticResponseStatementNode.from_gks(item)
@@ -769,7 +770,15 @@ class EvidenceLineNode(BaseNode):
             id=evidence_line.id,
             direction=evidence_line.directionOfEvidenceProvided,
             has_evidence_items=evidence_items,
-            strength_of_evidence_provided=strength_serialized,
+            has_strength=StrengthNode.from_gks(
+                evidence_line.strengthOfEvidenceProvided
+            ),
+            evidence_outcome=evidence_line.evidenceOutcome.model_dump_json(
+                exclude_none=True
+            ),
+            extensions=_Extensions(evidence_line.extensions or []).model_dump_json(
+                exclude_none=True
+            ),
         )
 
     def to_gks(self) -> EvidenceLine:
@@ -778,9 +787,9 @@ class EvidenceLineNode(BaseNode):
             id=self.id,
             directionOfEvidenceProvided=self.direction,
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
-            strengthOfEvidenceProvided=MappableConcept(
-                **json.loads(self.strength_of_evidence_provided)
-            ),
+            strengthOfEvidenceProvided=self.has_strength.to_gks(),
+            evidenceOutcome=MappableConcept(**json.loads(self.evidence_outcome)),
+            extensions=_Extensions(json.loads(self.extensions)).root or None,
         )
 
 
@@ -887,7 +896,7 @@ class TherapeuticResponseStatementNode(StatementNodeBase):
         tr_proposition = statement.proposition
         evidence_line_nodes = (
             [
-                EvidenceLineNode.from_gks(evidence_line, statement.id)
+                EvidenceLineNode.from_gks(evidence_line)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines
@@ -990,7 +999,7 @@ class DiagnosticStatementNode(StatementNodeBase):
         strength_node = StrengthNode.from_gks(statement.strength)
         evidence_lines = (
             [
-                EvidenceLineNode.from_gks(evidence_line, statement.id)
+                EvidenceLineNode.from_gks(evidence_line)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines
@@ -1083,7 +1092,7 @@ class PrognosticStatementNode(StatementNodeBase):
         strength_node = StrengthNode.from_gks(statement.strength)
         evidence_line_nodes = (
             [
-                EvidenceLineNode.from_gks(evidence_line, statement.id)
+                EvidenceLineNode.from_gks(evidence_line)
                 for evidence_line in statement.hasEvidenceLines
             ]
             if statement.hasEvidenceLines

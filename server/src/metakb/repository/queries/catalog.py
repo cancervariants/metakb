@@ -133,3 +133,18 @@ def update_assertion_strength() -> str:
 @cache
 def update_assertion_properties() -> str:
     return _load("update_assertion_properties.cypher")
+
+
+@cache
+def delete_evidence_line() -> str:
+    return _load("delete_evidence_line.cypher")
+
+
+@cache
+def load_evidence_line() -> str:
+    return _load("load_evidence_line.cypher")
+
+
+@cache
+def load_strength() -> str:
+    return _load("load_strength.cypher")
