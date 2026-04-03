@@ -75,8 +75,12 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         """Calculate decimal AGE from AGE_AT_BIOPSY and AGE_AT_BIOPSY_MONTHS."""
         if "AGE_AT_BIOPSY" in df.columns and "AGE_AT_BIOPSY_MONTHS" in df.columns:
             years = pd.to_numeric(df["AGE_AT_BIOPSY"], errors="coerce")
-            months = pd.to_numeric(df["AGE_AT_BIOPSY_MONTHS"], errors="coerce").fillna(0)
+            months = pd.to_numeric(df["AGE_AT_BIOPSY_MONTHS"], errors="coerce").fillna(
+                0
+            )
             df["AGE"] = (years + months / 12).round(2)
         else:
             df["AGE"] = "No_Data"
-        return df.drop(columns=["AGE_AT_BIOPSY", "AGE_AT_BIOPSY_MONTHS"], errors="ignore")
+        return df.drop(
+            columns=["AGE_AT_BIOPSY", "AGE_AT_BIOPSY_MONTHS"], errors="ignore"
+        )
