@@ -17,13 +17,7 @@ _logger = logging.getLogger(__name__)
 def load_from_json(
     src_transformed_cdm: Path, repository: AbstractRepository, silent: bool = True
 ) -> None:
-    """Load evidence into DB from given CDM JSON file.
-
-    Iterate through the provided statements. If a statement looks like a MetaKB assertion,
-    then try to load
-
-    1. all constituent evidence items, recursively
-    2. the assertion itself
+    """Load assertions and evidence into DB from given CDM JSON file.
 
     :param src_transformed_cdm: path to file for a source's transformed data to
         common data model containing statements, variation, therapies, conditions,

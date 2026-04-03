@@ -97,10 +97,10 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def load_statement(self, statement: Statement) -> None:
-        """Load individual statement, and contained entities, into DB
+    def load_assertion(self, assertion: Statement) -> None:
+        """Add or update a complete assertion object to the DB
 
-        :param statement: statement to load
+        :param assertion: metakb assertion
         """
 
     @abc.abstractmethod

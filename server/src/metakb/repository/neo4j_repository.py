@@ -334,13 +334,13 @@ class Neo4jRepository(AbstractRepository):
         )
 
     def _add_statement(self, tx: Transaction, statement: Statement) -> None:
-        """TODO
+        """Add an individual statement, as well as any contained evidence, to the DB
 
         Note that this function gets used BOTH for loading higher-order assertions
         AND loading the statements they contain.
 
         :param tx: neo4j transaction
-        :param assertion:
+        :param statement: va-spec statement
         """
         if statement.hasEvidenceLines:
             for ev_line in statement.hasEvidenceLines:
@@ -387,7 +387,8 @@ class Neo4jRepository(AbstractRepository):
     def _recursive_delete_ev_line(self, tx: Transaction, ev_line: EvidenceLine) -> None:
         """Delete an evidence line and any evidence lines that it contains
 
-        This saves us the effort of manually moving edges around when evidence structure changes
+        This saves us the effort of manually moving edges around when evidence structure
+        changes. Recursivity means it needs to be factored out into its own method.
 
         :param tx: neo4j transaction
         :param assertion:
@@ -403,7 +404,7 @@ class Neo4jRepository(AbstractRepository):
                 self._recursive_delete_ev_line(tx, item)
         tx.run(queries_catalog.delete_evidence_line(), evidence_line_id=ev_line.id)
 
-    def add_assertion(self, assertion: Statement) -> None:
+    def load_assertion(self, assertion: Statement) -> None:
         """Add or update a complete assertion object to the DB
 
         :param assertion: metakb assertion
