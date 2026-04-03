@@ -974,15 +974,15 @@ class CBioPortalTransformerBase(Transformer):
             logger.info(
                 "[%s] ETHNICITY_HARMONIZED distribution: %s",
                 study,
-                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
+                df["RACE_HARMONIZED"].value_counts().to_dict(),
             )
         else:
             logger.warning(
-                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
+                "[%s] No RACE column found; setting RACE_HARMONIZED to 'No_Data'",
                 study,
             )
-            df["ETHNICITY_ORIGINAL"] = "No_Data"
-            df["ETHNICITY_HARMONIZED"] = "No_Data"
+            df["RACE_ORIGINAL"] = "No_Data"
+            df["RACE_HARMONIZED"] = "No_Data"
 
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
