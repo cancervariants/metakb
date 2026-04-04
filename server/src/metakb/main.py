@@ -16,9 +16,7 @@ from metakb import __version__
 from metakb.config import get_config
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository, RepositoryStats
-from metakb.repository.neo4j_repository import (
-    get_driver,
-)
+from metakb.repository.neo4j_repository import get_driver
 from metakb.restapi.dependencies import get_repository
 from metakb.restapi.search import api_router as search_router
 from metakb.schemas.api import (

@@ -697,18 +697,8 @@ class StrengthNode(BaseNode):
     @classmethod
     def from_gks(cls, strength: MappableConcept) -> Self:
         """Create Node instance from GKS class."""
-        match strength.primaryCoding.system:
-            case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
-                node_id = f"civic.strength:{strength.primaryCoding.code.root}"
-            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
-                node_id = f"amp-asco-cap.strength:{strength.primaryCoding.code.root}"
-            case "https://moalmanac.org/about":
-                node_id = f"moalmanac.strength:{strength.primaryCoding.code.root}"
-            case _:
-                msg = f"Unrecognized strength concept: {strength}"
-                raise ValueError(msg)
         return cls(
-            id=node_id,
+            id=strength.id,
             name=strength.name or "",
             mappings=_Mappings(strength.mappings or []).model_dump_json(
                 exclude_none=True
@@ -755,17 +745,18 @@ class EvidenceLineNode(BaseNode):
         for item in evidence_line.hasEvidenceItems:
             if isinstance(item, EvidenceLine):
                 evidence_items.append(EvidenceLineNode.from_gks(item))
-            match item.proposition.type:
-                case "VariantTherapeuticResponseProposition":
-                    evidence_items.append(
-                        TherapeuticResponseStatementNode.from_gks(item)
-                    )
-                case "VariantDiagnosticProposition":
-                    evidence_items.append(DiagnosticStatementNode.from_gks(item))
-                case "VariantPrognosticProposition":
-                    evidence_items.append(PrognosticStatementNode.from_gks(item))
-                case _:
-                    raise NotImplementedError
+            else:
+                match item.proposition.type:
+                    case "VariantTherapeuticResponseProposition":
+                        evidence_items.append(
+                            TherapeuticResponseStatementNode.from_gks(item)
+                        )
+                    case "VariantDiagnosticProposition":
+                        evidence_items.append(DiagnosticStatementNode.from_gks(item))
+                    case "VariantPrognosticProposition":
+                        evidence_items.append(PrognosticStatementNode.from_gks(item))
+                    case _:
+                        raise NotImplementedError
         return cls(
             id=evidence_line.id,
             direction=evidence_line.directionOfEvidenceProvided,

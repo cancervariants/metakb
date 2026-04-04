@@ -199,18 +199,24 @@ class CivicTransformer(Transformer):
                     value=f"Level {statement.strength.primaryCoding.code.root}",
                 )
             ]
+            statement.strength.id = (
+                f"civic.strength:{statement.strength.primaryCoding.code.root}"
+            )
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
-                    value=f"Level {statement.strength.primaryCoding.code}",
+                    value=f"Level {statement.strength.primaryCoding.code.root}",
                 )
             ]
+            statement.strength.id = (
+                f"civic.strength:{statement.strength.primaryCoding.code.root}"
+            )
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
-                # TODO: Put this in civicpy instead.
+                # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
                 statement_exts.append(
@@ -220,6 +226,15 @@ class CivicTransformer(Transformer):
                     )
                 )
                 statement.extensions = statement_exts
+                statement.strength.extensions = [
+                    Extension(
+                        name="metakb_display_value",
+                        value=statement.strength.primaryCoding.code.root,
+                    )
+                ]
+                statement.strength.id = (
+                    f"amp_asco_cap:{statement.strength.primaryCoding.code.root}"
+                )
             except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",

@@ -199,7 +199,16 @@ class MoaTransformer(Transformer):
             .upper()
         )
         evidence_level = MoaEvidenceLevel[predictive_implication]
-        return MappableConcept(primaryCoding=get_evidence_level_coding(evidence_level))
+        return MappableConcept(
+            id=f"moa.strength:{evidence_level.value}",
+            primaryCoding=get_evidence_level_coding(evidence_level),
+            extensions=[
+                Extension(
+                    name="metakb_display_value",
+                    value="Level D",  # TODO fix
+                )
+            ],
+        )
 
     def _create_moa_disease(
         self, name: str, oncotree_code: str | None, oncotree_term: str | None

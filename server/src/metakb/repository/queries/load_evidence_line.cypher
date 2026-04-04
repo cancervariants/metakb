@@ -7,6 +7,7 @@ MERGE (el:EvidenceLine {id: $evidence_line.id})
         evidence_outcome: $evidence_line.evidence_outcome
       }
 
+WITH el
 MATCH (strength:Strength {id: $evidence_line.has_strength.id})
 MERGE (el)-[:HAS_STRENGTH]->(strength)
 
