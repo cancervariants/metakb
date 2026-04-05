@@ -563,30 +563,89 @@ class Neo4jRepository(AbstractRepository):
         :param statement_id: ID of the statement minted by the source
         :return: complete statement if available
         """
-        result = self._execute_search_statements(statement_ids=[statement_id])
-        if not result:
+        results = self._execute_statement_search(
+            [], [], [], [], [statement_id], 0, CYPHER_PAGE_LIMIT
+        )
+        if len(results) == 0:
             return None
-        processed_results = self._get_statements_from_results(result)
-        if len(processed_results) != 1:
-            _logger.error(
-                "Unexpected quantity of statements in processed results list: %s",
-                processed_results,
-            )
-            raise RuntimeError
-        return processed_results[0]
+        if len(results) > 1:
+            raise ValueError
+        return self._get_statement_node_from_result(results[0]).to_gks()
 
-    def _get_evidence_item_node_from_line(
-        self, ev_item: dict
-    ) -> (
-        DiagnosticStatementNode
-        | PrognosticStatementNode
-        | TherapeuticResponseStatementNode
-        | EvidenceLineNode
-    ):
-        raise NotImplementedError
+    @staticmethod
+    def _renest_evidence_line_chains(chains: list[dict]) -> list[dict]:
+        """Reconstruct nested evidence lines from flattened root-to-leaf chains."""
+        roots: dict[str, dict] = {}
+
+        for entry in chains or []:
+            chain = entry.get("chain", [])
+            if not chain:
+                continue
+
+            root_vals = chain[0]
+            root = roots.setdefault(
+                root_vals["id"], {**root_vals, "has_evidence_items": []}
+            )
+            current = root
+
+            for line_vals in chain[1:]:
+                existing = next(
+                    (
+                        child
+                        for child in current["has_evidence_items"]
+                        if isinstance(child, dict)
+                        and child.get("id") == line_vals["id"]
+                    ),
+                    None,
+                )
+                if existing is None:
+                    existing = {**line_vals, "has_evidence_items": []}
+                    current["has_evidence_items"].append(existing)
+                current = existing
+
+            current["has_evidence_items"] = chain[-1].get("has_evidence_items", [])
+
+        return list(roots.values())
+
+    def _build_evidence_line_node(self, ev_line: dict) -> EvidenceLineNode:
+        """Convert nested evidence line dict into an EvidenceLineNode."""
+        item_nodes = []
+
+        for item in ev_line.get("has_evidence_items", []):
+            if "chain" in item:
+                # defensive only; ideally these should already be re-nested
+                msg = "Unexpected flattened evidence chain during conversion"
+                raise ValueError(msg)
+            if isinstance(item, Record) and "s" in item.keys():  # noqa: SIM118
+                # fetched Neo4j record-like mapping for a statement
+                item_nodes.append(self._get_statement_node_from_result(item))
+            elif isinstance(item, dict):
+                # nested evidence line dict
+                item_nodes.append(self._build_evidence_line_node(item))
+            else:
+                _logger.error(
+                    "Encountered unexpected evidence item: %s of type %s",
+                    item,
+                    type(item),
+                )
+                msg = f"Unexpected evidence item type: {type(item)!r}"
+                raise ValueError(msg)
+        return EvidenceLineNode(
+            id=ev_line["id"],
+            direction=ev_line["direction"],
+            has_evidence_items=item_nodes,
+            has_strength=StrengthNode(**ev_line["has_strength"]),
+            extensions=ev_line.get("extensions", []),
+            evidence_outcome=ev_line["evidence_outcome"],
+        )
+
+    def _build_evidence_line_nodes(self, chains: list[dict]) -> list[EvidenceLineNode]:
+        """Convert flattened evidence-line chains into nested EvidenceLineNodes."""
+        nested_lines = self._renest_evidence_line_chains(chains)
+        return [self._build_evidence_line_node(line) for line in nested_lines]
 
     def _get_statement_node_from_result(
-        self, record: dict
+        self, record: Record
     ) -> (
         DiagnosticStatementNode
         | PrognosticStatementNode
@@ -640,20 +699,7 @@ class Neo4jRepository(AbstractRepository):
         )
         document_nodes = [DocumentNode(**d) for d in record["documents"]]
         strength_node = StrengthNode(**record["str"])
-        evidence_line_nodes = [
-            EvidenceLineNode(
-                id=record_line["direction"],
-                direction=record_line["direction"],
-                has_evidence_items=[
-                    self._get_evidence_item_node_from_line(item)
-                    for item in record_line["evidence_items"]
-                ],
-                strength_of_evidence_provided=record_line[
-                    "strength_of_evidence_provided"
-                ],
-            )
-            for record_line in record["evidence_lines"]
-        ]
+        evidence_line_nodes = self._build_evidence_line_nodes(record["evidence_lines"])
         classification_node = (
             ClassificationNode(**record["classification"])
             if record["classification"]
@@ -705,7 +751,7 @@ class Neo4jRepository(AbstractRepository):
                 raise ValueError(msg)
         return statement
 
-    def _get_statements_from_results(self, records: list[dict]) -> list[Statement]:
+    def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
         A lot of assumptions are being made that the shape/columns of the records are consistent
@@ -721,36 +767,24 @@ class Neo4jRepository(AbstractRepository):
             statements.append(statement.to_gks())
         return statements
 
-    def _execute_search_statements(
+    def _execute_statement_search(
         self,
-        variation_ids: list[str] | None = None,
-        gene_ids: list[str] | None = None,
-        therapy_ids: list[str] | None = None,
-        disease_ids: list[str] | None = None,
-        statement_ids: list[str] | None = None,
-        start: int = 0,
-        limit: int | None = None,
-    ) -> list[dict]:
-        """Execute a statements search query and return raw Neo4j records
+        variation_ids: list[str],
+        gene_ids: list[str],
+        therapy_ids: list[str],
+        disease_ids: list[str],
+        statement_ids: list[str],
+        start: int,
+        limit: int,
+    ) -> list[Record]:
+        """TODO
 
-        This is refactored into an independent function because it needs to be recursive;
-        since statements can contain statements, we need to execute a new query for each
-        level of the tree.
+        factored out to support recursion
 
-        :param variation_ids: list of normalized variation IDs
-        :param gene_ids: list of normalized gene IDs
-        :param therapy_ids: list of normalized therapy IDs
-        :param disease_ids: list of normalized disease IDs
-        :param statement_ids: list of source statement IDs
-        :param start: pagination start point
-        :param limit: page size
-        :return: list of neo4j result records
+        IDs args MUST be lists -- can't be null or the Cypher query will error out
+
         """
-        if limit is None:
-            limit = CYPHER_PAGE_LIMIT
-
-        # IDs args MUST be lists -- can't be null or the Cypher query will error out
-        results = self.session.execute_read(
+        search_results = self.session.execute_read(
             lambda tx, **kwargs: list(
                 tx.run(queries_catalog.search_statements(), **kwargs)
             ),
@@ -762,130 +796,73 @@ class Neo4jRepository(AbstractRepository):
             start=start,
             limit=limit,
         )
-        results = [dict(record) for record in results]
-        for record in results:
-            record["evidence_lines"] = self._renest_evidence_lines(
-                record["evidence_lines"]
-            )
-        pending_statement_ids = self._get_pending_statement_ids(results)
-
-        while True:
-            if not pending_statement_ids:
-                break
-            fetched = self.session.execute_read(
-                lambda tx, **kwargs: list(
-                    tx.run(queries_catalog.search_statements(), **kwargs)
-                ),
-                statement_ids=pending_statement_ids,
+        pending_statement_ids = self._get_pending_statement_ids(search_results)
+        if pending_statement_ids:
+            fetched = self._execute_statement_search(
                 variation_ids=[],
-                condition_ids=[],
                 gene_ids=[],
                 therapy_ids=[],
+                disease_ids=[],
+                statement_ids=pending_statement_ids,
                 start=0,
                 limit=CYPHER_PAGE_LIMIT,
             )
-            fetched = [dict(record) for record in fetched]
-            for record in fetched:
-                record["evidence_lines"] = self._renest_evidence_lines(
-                    record["evidence_lines"]
-                )
-            pending_statement_ids = self._get_pending_statement_ids(fetched)
+            self._resolve_pending_statement_refs(search_results, fetched)
 
-        return results
+        return search_results
 
     @staticmethod
-    def _renest_evidence_lines(flattened: list[dict]) -> list[dict]:
-        """Reconstruct nested evidence lines from flattened root->leaf chains.
+    def _get_pending_statement_ids(results: list[Record]) -> list[str]:
+        """Collect unique unresolved statement IDs from evidence line chains."""
+        pending_ids: list[str] = []
 
-        Input is expected to be a list of dicts where each dict contains:
-        * ``root_id``: ID of the top-level evidence line
-        * ``chain``: ordered list of evidence line dicts from root to leaf
-
-        The returned value is a list of top-level evidence line dicts, where each
-        evidence line's ``hasEvidenceItems`` contains either nested evidence line
-        dicts or unresolved statement IDs at the leaves.
-        """
-        roots: dict[str, dict] = {}
-
-        for entry in flattened or []:
-            chain = entry.get("chain") or []
-            if not chain:
-                continue
-
-            root_line = chain[0]
-            root = roots.setdefault(
-                root_line["id"],
-                {**root_line, "hasEvidenceItems": []},
-            )
-            current = root
-
-            for line in chain[1:]:
-                existing = next(
-                    (
-                        child
-                        for child in current["hasEvidenceItems"]
-                        if isinstance(child, dict) and child.get("id") == line["id"]
-                    ),
-                    None,
-                )
-                if existing is None:
-                    existing = {**line, "hasEvidenceItems": []}
-                    current["hasEvidenceItems"].append(existing)
-                current = existing
-
-            leaf_items = chain[-1].get("hasEvidenceItems") or []
-            current["hasEvidenceItems"] = leaf_items
-        return list(roots.values())
-
-    @staticmethod
-    def _iter_pending_ids_in_ev_lines(evidence_lines: list[dict]) -> list[str]:
-        """Collect unresolved statement IDs from nested evidence lines."""
-        pending: list[str] = []
-
-        def _walk(ev_line: dict) -> None:
-            for item in ev_line.get("hasEvidenceItems", []):
-                if isinstance(item, str):
-                    pending.append(item)
-                elif isinstance(item, dict):
-                    _walk(item)
-
-        for ev_line in evidence_lines or []:
-            _walk(ev_line)
-
-        return pending
-
-    def _get_pending_statement_ids(self, results: list[dict]) -> list[str]:
-        """Given search results, get unique unresolved statement IDs from evidence leaves."""
-        pending: list[str] = []
         for record in results:
-            pending.extend(self._iter_pending_ids_in_ev_lines(record["evidence_lines"]))
-        return list(dict.fromkeys(pending))
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+                pending_ids.extend(
+                    item
+                    for item in chain[-1]["has_evidence_items"]
+                    if isinstance(item, str)
+                )
+
+        return list(dict.fromkeys(pending_ids))
 
     @staticmethod
-    def _add_statements_to_ev_lines(
-        results: list[Record], fetched: list[Record]
+    def _fill_evidence_item_refs(
+        results: list[Record], fetched_map: dict[str, Record]
     ) -> None:
-        """Replace unresolved statement IDs in results with fetched statement payloads."""
-        fetched_by_id = {record["s"]["id"]: dict(record) for record in fetched}
-
-        def _walk(ev_line: dict) -> None:
-            new_items = []
-
-            for item in ev_line.get("hasEvidenceItems", []):
-                if isinstance(item, str):
-                    replacement = fetched_by_id.get(item)
-                    new_items.append(replacement if replacement is not None else item)
-                elif isinstance(item, dict):
-                    _walk(item)
-                    new_items.append(item)
-                else:
-                    new_items.append(item)
-
-            ev_line["hasEvidenceItems"] = new_items
-
+        """Replace leaf statement ID refs in evidence line chains with fetched records."""
         for record in results:
-            for ev_line in record["evidence_lines"] or []:
-                _walk(ev_line)
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+
+                leaf_items = chain[-1].get("has_evidence_items", [])
+                for i, item in enumerate(leaf_items):
+                    if isinstance(item, str) and item in fetched_map:
+                        leaf_items[i] = fetched_map[item]
+
+    def _resolve_pending_statement_refs(
+        self, search_results: list[Record], fetched: list[Record]
+    ) -> None:
+        """Fill in pending statement refs in evidence lines with newly-fetched Records
+
+        :param search_results: initial search results from user-query, updated in-place
+        :param fetched: just-fetched statements to resolve pending statement references
+        """
+        fetched_map = {r["s"]["id"]: r for r in fetched}
+        for record in search_results:
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+                leaf_items = chain[-1].get("has_evidence_items", [])
+                for i, item in enumerate(leaf_items):
+                    if isinstance(item, str) and item in fetched_map:
+                        leaf_items[i] = fetched_map[item]
 
     def search_statements(
         self,
@@ -919,16 +896,20 @@ class Neo4jRepository(AbstractRepository):
         :param limit: page size
         :return: list of statements matching provided criteria
         """
-        result = self._execute_search_statements(
-            variation_ids,
-            gene_ids,
-            therapy_ids,
-            disease_ids,
-            statement_ids,
+        if limit is None:
+            limit = CYPHER_PAGE_LIMIT
+
+        search_results = self._execute_statement_search(
+            variation_ids or [],
+            gene_ids or [],
+            therapy_ids or [],
+            disease_ids or [],
+            statement_ids or [],
             start,
             limit,
         )
-        return self._get_statements_from_results(result)
+
+        return self._get_statements_from_results(search_results)
 
     def get_stats(self) -> RepositoryStats:
         """Fetch counts for entities

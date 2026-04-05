@@ -36,15 +36,7 @@ class AbstractRepository(abc.ABC):
         """Set up DB schema"""
 
     @abc.abstractmethod
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
+    def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source

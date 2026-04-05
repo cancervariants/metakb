@@ -154,15 +154,11 @@ CALL (s) {
 // because getting a truly recursively nested JSON tree of arbitrary depth directly
 // from Cypher is awkward without APOC
 CALL (s) {
-  // Match every top-level evidence line, and then every descendant
-  // evidence line beneath it, including the case where the root itself
-  // is the leaf.
   MATCH
     p =
       (s)-[:HAS_EVIDENCE_LINE]->
       (root:EvidenceLine)-[:HAS_EVIDENCE_LINE*0..]->
       (leaf:EvidenceLine)
-  // Only keep terminal evidence lines: lines that point to statements.
   WHERE (leaf)-[:HAS_EVIDENCE_ITEM]->(:Statement)
   MATCH (leaf)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)
   WITH root, p, leaf, collect(DISTINCT ei.id) AS item_ids
@@ -172,11 +168,14 @@ CALL (s) {
         root_id: root.id,
         chain:
           [
-            line IN nodes(p)
-            WHERE line:EvidenceLine
+            line IN [n IN nodes(p) WHERE n:EvidenceLine]
             | line {
               .*,
-              hasEvidenceItems:
+              has_strength:
+                head(
+                  [(line)-[:HAS_STRENGTH]->(strength:Strength) | strength {.*} ]
+                ),
+              has_evidence_items:
                 CASE
                   WHEN line = leaf THEN item_ids
                   ELSE []
