@@ -427,7 +427,7 @@ class CBioPortalTransformerBase(Transformer):
         if cache_key in self.variant_cache:
             return self.variant_cache[cache_key]
 
-        base_url = "https://normalize.cancervariants.org/variation/"
+        base_url = "http://localhost:8001/variation/"
         params = {
             "q": variant_notation,
             "hgvs_dup_del_mode": "default",
