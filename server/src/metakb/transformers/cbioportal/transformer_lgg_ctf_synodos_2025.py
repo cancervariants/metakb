@@ -1,4 +1,6 @@
-"""Transformer for the pptc_2019 cBioPortal study."""
+"""Transformer for the lgg_ctf_synodos_2025 cBioPortal study."""
+
+import pandas as pd
 
 from metakb.transformers.cbioportal.base import CBioPortalStudyTransformer
 
@@ -24,11 +26,9 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
-    "Amino_Acid_Change",
-    "User_Amino_Acid_Change",
 ]
 
-PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "INFERRED_ETHNICITY"]
+PATIENT_HEADERS = ["PATIENT_ID", "SEX", "RACE"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
@@ -37,15 +37,21 @@ SAMPLE_HEADERS = [
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
     "TMB_NONSYNONYMOUS",
+    "AGE_AT_BIOPSY",
+    "AGE_AT_BIOPSY_MONTHS",
 ]
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for pptc_2019 study."""
+    """Transformer for lgg_ctf_synodos_2025 study."""
 
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        return "pptc_2019"
+        return "lgg_ctf_synodos_2025"
+
+    def get_genome_build(self) -> str:
+        """Return GRCh38 as the genome build for this study."""
+        return "GRCh38"
 
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
@@ -62,10 +68,19 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
         return {
-            "amino_acid_change_source": "User_Amino_Acid_Change",
-            "additional_columns": {"Sequence_Source": "WES"},
+            "additional_columns": {"Sequence_Source": "WGS"},
         }
 
-    def get_patient_transformations(self) -> dict:
-        """Return study-specific patient transformations."""
-        return {"ethnicity_source": "INFERRED_ETHNICITY"}
+    def apply_custom_sample_logic(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate decimal AGE from AGE_AT_BIOPSY and AGE_AT_BIOPSY_MONTHS."""
+        if "AGE_AT_BIOPSY" in df.columns and "AGE_AT_BIOPSY_MONTHS" in df.columns:
+            years = pd.to_numeric(df["AGE_AT_BIOPSY"], errors="coerce")
+            months = pd.to_numeric(df["AGE_AT_BIOPSY_MONTHS"], errors="coerce").fillna(
+                0
+            )
+            df["AGE"] = (years + months / 12).round(2)
+        else:
+            df["AGE"] = "No_Data"
+        return df.drop(
+            columns=["AGE_AT_BIOPSY", "AGE_AT_BIOPSY_MONTHS"], errors="ignore"
+        )

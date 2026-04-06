@@ -88,4 +88,4 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
         self.variants = self.variants[
             self.variants["SAMPLE_ID"].isin(tumor_sample_ids)
         ].reset_index(drop=True)
-        return tumor_df
+        return tumor_df.drop(columns=["SAMPLE_CLASS"], errors="ignore")

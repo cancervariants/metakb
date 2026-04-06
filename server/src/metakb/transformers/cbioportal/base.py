@@ -53,6 +53,7 @@ STUDY_TO_MODULE = {
     "pancan_mappyacts_2022": "metakb.transformers.cbioportal.transformer_pancan_mappyacts_2022",
     "chl_sccc_2023": "metakb.transformers.cbioportal.transformer_chl_sccc_2023",
     "pancan_pdx_uthsa_2023": "metakb.transformers.cbioportal.transformer_pancan_pdx_uthsa_2023",
+    "lgg_ctf_synodos_2025": "metakb.transformers.cbioportal.transformer_lgg_ctf_synodos_2025",
 }
 
 # Genome build is defined per-study via get_genome_build() in each study transformer.
@@ -426,7 +427,7 @@ class CBioPortalTransformerBase(Transformer):
         if cache_key in self.variant_cache:
             return self.variant_cache[cache_key]
 
-        base_url = "https://normalize.cancervariants.org/variation/"
+        base_url = "http://localhost:8001/variation/"
         params = {
             "q": variant_notation,
             "hgvs_dup_del_mode": "default",
@@ -910,6 +911,9 @@ class CBioPortalTransformerBase(Transformer):
                 # Mixed/Other/Unknown -> No_Data
                 "Mixed_or_Unknown": "Other or Mixed",
                 "Other": "Other or Mixed",
+                "Other/Non-Hispanic or Latino": "Other or Mixed",
+                "White/Hispanic or Latino": "Hispanic or Latino",
+                "White/Non-Hispanic or Latino": "White",
                 "Unknown": "No_Data",
                 "Not reported": "No_Data",
                 "Not Reported": "No_Data",
@@ -936,6 +940,49 @@ class CBioPortalTransformerBase(Transformer):
             )
             df["RACE_ORIGINAL"] = "No_Data"
             df["RACE_HARMONIZED"] = "No_Data"
+
+        # Harmonize ETHNICITY column
+        logger.info("Harmonizing ETHNICITY terms for study: %s", study)
+        if "ETHNICITY" in df.columns:
+            ethnicity_mapping = {
+                "No_Data": "No_Data",
+                "European": "European",
+                "White/Europe": "European",
+                "White": "European",
+                "White/North Africa": "White/North African",
+                "African": "African",
+                "Black": "African",
+                "Black/Sub-Saharan Africa": "African",
+                "EastAsian": "Asian",
+                "Asian": "Asian",
+                "Asian Indian": "South Asian",
+                "Hispanic": "Hispanic",
+                "White/Latin America": "Hispanic",
+                "Mixed_or_Unknown": "Mixed or Unknown",
+                "Non-Hispanic": "Non-Hispanic",
+                "SouthAsianOrHispanic": "South Asian or Hispanic",
+                # catch-alls
+                "Unknown": "No_Data",
+                "Not reported": "No_Data",
+                "Not Reported": "No_Data",
+                "No_data": "No_Data",
+            }
+
+            df["ETHNICITY_ORIGINAL"] = df["ETHNICITY"]
+            df["ETHNICITY_HARMONIZED"] = df["ETHNICITY"].replace(ethnicity_mapping)
+
+            logger.info(
+                "[%s] ETHNICITY_HARMONIZED distribution: %s",
+                study,
+                df["ETHNICITY_HARMONIZED"].value_counts().to_dict(),
+            )
+        else:
+            logger.warning(
+                "[%s] No ETHNICITY column found; setting ETHNICITY_HARMONIZED to 'No_Data'",
+                study,
+            )
+            df["ETHNICITY_ORIGINAL"] = "No_Data"
+            df["ETHNICITY_HARMONIZED"] = "No_Data"
 
         logger.info("Adding gene mappings for study: %s", study)
         mappable_genes, gene_qc = self._add_genes(transformer, df)
@@ -965,10 +1012,9 @@ class CBioPortalTransformerBase(Transformer):
         self.mappable_variants_by_study[study] = mappable_variants
         logger.info("[%s] mappable_variants count: %d", study, len(mappable_variants))
 
-        if "STUDY_ID" not in df.columns:
-            df = df.assign(STUDY_ID=study)
+        df["STUDY_ID"] = transformer.get_study_name()
 
-        return df
+        return CBioPortalTransformerBase.fill_missing_values(df)
 
     def run_transformers(self, harvested: dict[str, Any]) -> pd.DataFrame:
         """Run transformers for all harvested studies and combine results.
@@ -1012,6 +1058,7 @@ class CBioPortalTransformerBase(Transformer):
             raise ValueError(msg)
 
         combined = pd.concat(dfs, ignore_index=True, sort=False)
+        combined = CBioPortalTransformerBase.fill_missing_values(combined)
 
         # -----------------------------------------
         # Add variant frequency columns
@@ -1308,6 +1355,9 @@ class CBioPortalTransformerBase(Transformer):
             # Drop the original fallback column now that it's merged
             if fallback_column != "Sequence_Source":
                 df = df.drop(columns=[fallback_column])
+
+        # Normalise WXS → WES
+        df["Sequence_Source"] = df["Sequence_Source"].replace("WXS", "WES")
 
         df["Sequence_Source"] = df["Sequence_Source"].fillna("No_Data")
 
