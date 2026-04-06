@@ -34,7 +34,9 @@ def load_from_json(
         loaded_stmt_count = 0
         for assertion in tqdm(data.assertions, disable=silent):
             if existing_assertion := repository.get_statement(assertion.id):
-                assertion = merge_assertions(assertion, existing_assertion)  # noqa: PLW2901
+                # MUST pass the existing assertion as the first arg to ensure
+                # IDs remain consistent
+                assertion = merge_assertions(existing_assertion, assertion)  # noqa: PLW2901
             repository.load_assertion(assertion)
             loaded_stmt_count += 1
 

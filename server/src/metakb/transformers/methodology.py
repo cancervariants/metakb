@@ -555,6 +555,9 @@ def _get_evidence_from_assertion(assertion: Statement) -> list[Statement]:
 def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
     """Combine two assertions with the same proposition
 
+    TODO this needs to be changed
+    - we need to make sure the DB assertion is the one having stuff added to it
+
     :param assertion: assertion #1
     :param new_assertion: assertion #2
     :return: assertion #1, now containing all evidence items from #2
@@ -609,6 +612,8 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
 
             # If we already have a grouped low-star line under the assertion,
             # add the new item beneath that existing line and recompute concordance.
+            # we determine that it's a "grouped" evidence line if it contains an EvidenceLine
+            # in the first slot -- this assumption should be safe
             if ev_line_star_rating in {
                 StarRating.ONE_STAR,
                 StarRating.TWO_STAR,
