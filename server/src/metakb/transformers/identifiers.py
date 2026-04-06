@@ -107,8 +107,11 @@ def compute_combo_id(
     return f"{source_prefix.lower()}.{combo_class_abbrev}:{digest}"
 
 
-def generate_ev_line_id() -> str:
+def generate_metakb_evidenceline_id() -> str:
     """Create a UUID for an evidence line object
+
+    It's sort of silly to have a one-line function like this, but it lets us
+    explicitly declare an identifier policy.
 
     These are supposed to behave like UUIDs rather than hashes, because they might move
     around. We could potentially calculate them based off something like proposition +

@@ -25,7 +25,7 @@ from ga4gh.va_spec.base import (
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
-from metakb.transformers.identifiers import generate_ev_line_id
+from metakb.transformers.identifiers import generate_metakb_evidenceline_id
 
 _logger = logging.getLogger(__name__)
 
@@ -393,7 +393,7 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
         reason = StarRatingReason.SINGLE_SUBMISSION
 
     return EvidenceLine(
-        id=generate_ev_line_id(),
+        id=generate_metakb_evidenceline_id(),
         directionOfEvidenceProvided=ev_item.direction,
         strengthOfEvidenceProvided=vicc_strength_code,
         evidenceOutcome=MappableConcept(
@@ -596,7 +596,7 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
                 and ev_line.hasEvidenceItems
             ):
                 grouped_line = EvidenceLine(
-                    id=generate_ev_line_id(),
+                    id=generate_metakb_evidenceline_id(),
                     directionOfEvidenceProvided=Direction.NEUTRAL,  # temporary
                     strengthOfEvidenceProvided=ev_line.strengthOfEvidenceProvided,
                     evidenceOutcome=MappableConcept(

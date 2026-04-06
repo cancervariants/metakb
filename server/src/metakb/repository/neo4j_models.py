@@ -745,7 +745,7 @@ class EvidenceLineNode(BaseNode):
         for item in evidence_line.hasEvidenceItems:
             if isinstance(item, EvidenceLine):
                 evidence_items.append(EvidenceLineNode.from_gks(item))
-            else:
+            elif isinstance(item, Statement):
                 match item.proposition.type:
                     case "VariantTherapeuticResponseProposition":
                         evidence_items.append(
@@ -757,6 +757,8 @@ class EvidenceLineNode(BaseNode):
                         evidence_items.append(PrognosticStatementNode.from_gks(item))
                     case _:
                         raise NotImplementedError
+            else:
+                raise TypeError
         return cls(
             id=evidence_line.id,
             direction=evidence_line.directionOfEvidenceProvided,
@@ -766,7 +768,9 @@ class EvidenceLineNode(BaseNode):
             ),
             evidence_outcome=evidence_line.evidenceOutcome.model_dump_json(
                 exclude_none=True
-            ),
+            )
+            if evidence_line.evidenceOutcome
+            else "",
             extensions=_Extensions(evidence_line.extensions or []).model_dump_json(
                 exclude_none=True
             ),
@@ -774,12 +778,17 @@ class EvidenceLineNode(BaseNode):
 
     def to_gks(self) -> EvidenceLine:
         """Create EvidenceLine instance."""
+        outcome = (
+            MappableConcept(**json.loads(self.evidence_outcome))
+            if self.evidence_outcome
+            else None
+        )
         return EvidenceLine(
             id=self.id,
             directionOfEvidenceProvided=self.direction,
             hasEvidenceItems=[st.to_gks() for st in self.has_evidence_items],
             strengthOfEvidenceProvided=self.has_strength.to_gks(),
-            evidenceOutcome=MappableConcept(**json.loads(self.evidence_outcome)),
+            evidenceOutcome=outcome or None,
             extensions=_Extensions(json.loads(self.extensions)).root or None,
         )
 
