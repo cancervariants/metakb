@@ -137,7 +137,7 @@ def get_normalized_protein_consequence_name(
         accession = (
             protein_alias.split(":", 1)[1] if ":" in protein_alias else protein_alias
         )
-        gene_symbol = transcript_mappings.get_gene_symbol_from_refeq_protein(
+        gene_symbol = transcript_mappings.get_gene_symbol_from_refseq_protein(
             accession
         ) or transcript_mappings.get_gene_symbol_from_ensembl_protein(accession)
         if gene_symbol:

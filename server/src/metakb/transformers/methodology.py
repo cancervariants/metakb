@@ -274,13 +274,6 @@ class StarRatingReason(StrEnum):
     )
 
 
-class StarRatingResult(BaseModel):
-    """Structured star rating result for an aggregate statement."""
-
-    star_rating: StarRating
-    reason: StarRatingReason
-
-
 # --- Helper functions for converting/normalizing evidence and performing aggregation ---
 
 
@@ -401,6 +394,44 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
         ),
         hasEvidenceItems=[ev_item],
         extensions=[Extension(name="metakb_star_rating_reason", value=reason.value)],
+    )
+
+
+def initialize_assertion(
+    assertion_id: str,
+    proposition: VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantTherapeuticResponseProposition,
+    evidence_item: Statement,
+) -> Statement:
+    """Create a new metakb assertion given some previously-computed parameters
+
+    Implementation makes use of some stuff that the existing ingest/transform pipeline
+    will have already computed, but that makes it relatively brittle to new changes
+
+    :param assertion_id: expected ID for the assertion ("metakb.assertion:")
+    :param proposition: proposition using normalized biomedical entities
+    :param evidence_item: evidence item from source
+    :return: full metakb assertion containing a single evidence line
+    """
+    evidence_line = _initialize_evidence_line(evidence_item)
+    return Statement(
+        id=assertion_id,
+        proposition=proposition,
+        direction=evidence_line.directionOfEvidenceProvided,
+        strength=evidence_line.strengthOfEvidenceProvided,
+        specifiedBy=METAKB_METHOD,
+        hasEvidenceLines=[evidence_line],
+        extensions=[
+            Extension(
+                name="metakb_star_rating",
+                value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
+            ),
+            Extension(
+                name="metakb_star_rating_reason",
+                value=evidence_line.extensions[0].value,
+            ),
+        ],
     )
 
 
@@ -578,23 +609,18 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
 
             # If we already have a grouped low-star line under the assertion,
             # add the new item beneath that existing line and recompute concordance.
-            if (
-                ev_line_star_rating in {StarRating.ONE_STAR, StarRating.TWO_STAR}
-                and hasattr(ev_line, "hasEvidenceLines")
-                and ev_line.hasEvidenceLines
-            ):
-                ev_line.hasEvidenceLines.append(item_ev_line)
+            if ev_line_star_rating in {
+                StarRating.ONE_STAR,
+                StarRating.TWO_STAR,
+            } and isinstance(ev_line.hasEvidenceItems[0], EvidenceLine):
+                ev_line.hasEvidenceItems.append(item_ev_line)
                 _update_grouped_low_star_line(ev_line)
                 grouped_existing_low_star = True
                 break
 
             # If we find a single low-star item directly under the assertion,
             # replace it with a new grouped parent evidence line containing both.
-            if (
-                ev_line_star_rating == StarRating.ONE_STAR
-                and hasattr(ev_line, "hasEvidenceItems")
-                and ev_line.hasEvidenceItems
-            ):
+            if ev_line_star_rating == StarRating.ONE_STAR:
                 grouped_line = EvidenceLine(
                     id=generate_metakb_evidenceline_id(),
                     directionOfEvidenceProvided=Direction.NEUTRAL,  # temporary
@@ -624,41 +650,3 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
 
     _recompute_aggregate_assertion_values(assertion)
     return assertion
-
-
-def initialize_assertion(
-    assertion_id: str,
-    proposition: VariantDiagnosticProposition
-    | VariantPrognosticProposition
-    | VariantTherapeuticResponseProposition,
-    evidence_item: Statement,
-) -> Statement:
-    """Create a new metakb assertion given some previously-computed parameters
-
-    Implementation makes use of some stuff that the existing ingest/transform pipeline
-    will have already computed, but that makes it relatively brittle to new changes
-
-    :param assertion_id: expected ID for the assertion ("metakb.assertion:")
-    :param proposition: proposition using normalized biomedical entities
-    :param evidence_item: evidence item from source
-    :return: full metakb assertion containing a single evidence line
-    """
-    evidence_line = _initialize_evidence_line(evidence_item)
-    return Statement(
-        id=assertion_id,
-        proposition=proposition,
-        direction=evidence_line.directionOfEvidenceProvided,
-        strength=evidence_line.strengthOfEvidenceProvided,
-        specifiedBy=METAKB_METHOD,
-        hasEvidenceLines=[evidence_line],
-        extensions=[
-            Extension(
-                name="metakb_star_rating",
-                value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
-            ),
-            Extension(
-                name="metakb_star_rating_reason",
-                value=evidence_line.extensions[0].value,
-            ),
-        ],
-    )
