@@ -149,7 +149,7 @@ CALL (s) {
   RETURN collect(DISTINCT doc) AS documents
 }
 
-// get evidence line IDs
+// get evidence lines
 // this is pretty janky, and requires some complex reconstruction on the python side,
 // because getting a truly recursively nested JSON tree of arbitrary depth directly
 // from Cypher is awkward without APOC
@@ -157,7 +157,7 @@ CALL (s) {
   MATCH
     p =
       (s)-[:HAS_EVIDENCE_LINE]->
-      (root:EvidenceLine)-[:HAS_EVIDENCE_LINE*0..]->
+      (root:EvidenceLine)-[:HAS_EVIDENCE_ITEM*0..]->
       (leaf:EvidenceLine)
   WHERE (leaf)-[:HAS_EVIDENCE_ITEM]->(:Statement)
   MATCH (leaf)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)

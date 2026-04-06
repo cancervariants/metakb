@@ -572,6 +572,10 @@ class Neo4jRepository(AbstractRepository):
         results = self._execute_statement_search(
             [], [], [], [], [statement_id], 0, CYPHER_PAGE_LIMIT
         )
+        if statement_id == "metakb.assertion:hJ0lRzYLWxl9o1t1Qk2EFaouRgG5adct":
+            import ipdb
+
+            ipdb.set_trace()
         if len(results) == 0:
             return None
         if len(results) > 1:
@@ -794,11 +798,11 @@ class Neo4jRepository(AbstractRepository):
             lambda tx, **kwargs: list(
                 tx.run(queries_catalog.search_statements(), **kwargs)
             ),
-            statement_ids=statement_ids or [],
-            variation_ids=variation_ids or [],
-            condition_ids=disease_ids or [],
-            gene_ids=gene_ids or [],
-            therapy_ids=therapy_ids or [],
+            statement_ids=statement_ids,
+            variation_ids=variation_ids,
+            condition_ids=disease_ids,
+            gene_ids=gene_ids,
+            therapy_ids=therapy_ids,
             start=start,
             limit=limit,
         )
