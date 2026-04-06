@@ -4,11 +4,6 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from ga4gh.va_spec.base import (
-    VariantDiagnosticProposition,
-    VariantPrognosticProposition,
-    VariantTherapeuticResponseProposition,
-)
 
 from metakb.repository.base import AbstractRepository
 from metakb.restapi.dependencies import get_repository
@@ -91,46 +86,14 @@ async def get_statements(
         ) from e
 
     mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
-
-    # group statements
-    grouped_statements = {
-        "therapeutic_statements": {},
-        "diagnostic_statements": {},
-        "prognostic_statements": {},
-    }
-    statement_ids = []
-    for statement in search_results.statements:
-        statement_ids.append(statement.id)
-        variant_id = statement.proposition.subjectVariant.id
-        predicate = statement.proposition.predicate
-        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            key = f"{variant_id}|{statement.proposition.conditionQualifier.root.id}|{statement.proposition.objectTherapeutic.root.id}|{predicate}"
-            grouped_statements["therapeutic_statements"].setdefault(key, []).append(
-                statement
-            )
-        elif isinstance(statement.proposition, VariantDiagnosticProposition):
-            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
-            grouped_statements["diagnostic_statements"].setdefault(key, []).append(
-                statement
-            )
-        elif isinstance(statement.proposition, VariantPrognosticProposition):
-            key = f"{variant_id}|{statement.proposition.objectCondition.root.id}|{predicate}"
-            grouped_statements["prognostic_statements"].setdefault(key, []).append(
-                statement
-            )
-        else:
-            msg = f"Unrecognized proposition type `{type(statement.proposition)}` in {statement}"
-            raise ValueError(msg)  # noqa: TRY004
-
     end_time = perf_counter()
     return SearchStatementsResponse(
         query=SearchStatementsQuery(**mapped_terms),
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),
-        statement_ids=statement_ids,
         duration_s=end_time - start_time,
-        **grouped_statements,
+        statements=search_results.statements,
     )
 
 

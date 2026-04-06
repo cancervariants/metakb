@@ -161,16 +161,7 @@ class SearchStatementsResponse(BaseModel):
     query: SearchStatementsQuery
     start: int
     limit: int | None
-    statement_ids: list[str]
-    therapeutic_statements: dict[
-        str, list[VariantTherapeuticResponseStudyStatement | Statement]
-    ] = {}
-    diagnostic_statements: dict[
-        str, list[VariantDiagnosticStudyStatement | Statement]
-    ] = {}
-    prognostic_statements: dict[
-        str, list[VariantPrognosticStudyStatement | Statement]
-    ] = {}
+    statements: list[Statement]
     duration_s: float
     service_meta_: ServiceMeta
 

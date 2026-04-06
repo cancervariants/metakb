@@ -716,6 +716,7 @@ class StrengthNode(BaseNode):
         )
         extensions = _Extensions(json.loads(self.extensions)).root
         return MappableConcept(
+            id=self.id,
             name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root or None,
             primaryCoding=coding,
