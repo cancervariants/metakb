@@ -7,9 +7,17 @@ MERGE (el:EvidenceLine {id: $evidence_line.id})
         evidence_outcome: $evidence_line.evidence_outcome
       }
 
+// sometimes source evidence lines don't have richer metadata so there's no
+// associated strength (eg with civic assertions)
 WITH el
-MATCH (strength:Strength {id: $evidence_line.has_strength.id})
-MERGE (el)-[:HAS_STRENGTH]->(strength)
+OPTIONAL MATCH (strength:Strength {id: $strength_id})
+FOREACH (_ IN
+CASE
+  WHEN strength IS NULL THEN []
+  ELSE [1]
+END |
+  MERGE (el)-[:HAS_STRENGTH]->(strength)
+)
 
 WITH el
 UNWIND $item_ids AS item_id

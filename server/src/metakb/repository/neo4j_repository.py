@@ -325,11 +325,17 @@ class Neo4jRepository(AbstractRepository):
                 self._add_statement(tx, item)
             else:
                 raise TypeError
-        self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
+        if evidence_line.strengthOfEvidenceProvided:
+            self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
+            strength_id = evidence_line.strengthOfEvidenceProvided.id
+        else:
+            strength_id = None
+
         evline_node = EvidenceLineNode.from_gks(evidence_line)
         tx.run(
             queries_catalog.load_evidence_line(),
             evidence_line=evline_node.model_dump(mode="json"),
+            strength_id=strength_id,
             item_ids=[i.id for i in evline_node.has_evidence_items],
         )
 
