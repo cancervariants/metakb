@@ -12,7 +12,13 @@ SET
       direction: $statement.direction
     }
 
-// add strength node and connect it
+// sever edge to an existing strength node, and make edge to strength node
+// this query gets used to both create AND update statements, so we'll just eat the cost
+// of redundant queries to make things simpler
+WITH statement
+OPTIONAL MATCH (statement)-[old_rel:HAS_STRENGTH]->(:Strength)
+DELETE old_rel
+WITH statement
 MERGE (strength:Strength {id: $statement.has_strength.id})
 MERGE (statement)-[:HAS_STRENGTH]->(strength)
 
