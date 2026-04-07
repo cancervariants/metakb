@@ -116,7 +116,7 @@ class ViccConceptVocabEntry(BaseModel):
     term: StrictStr
     parents: list[StrictStr] = []
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    aac_mapping: AmpAscoCapStrength | None = None
+    aac_mapping: AmpAscoCapStrength
     definition: StrictStr
 
 

@@ -37,6 +37,7 @@ from metakb.transformers.base import (
 )
 from metakb.transformers.identifiers import compute_combo_id
 from metakb.transformers.methodology import (
+    VICC_CODE_EXACT_MAPPING_INDEX,
     MoaEvidenceLevel,
     get_evidence_level_coding,
 )
@@ -199,13 +200,15 @@ class MoaTransformer(Transformer):
             .upper()
         )
         evidence_level = MoaEvidenceLevel[predictive_implication]
+        vicc_code = VICC_CODE_EXACT_MAPPING_INDEX[evidence_level]
+        display_value = vicc_code.aac_mapping.removeprefix("Level")
         return MappableConcept(
             id=f"moa.strength:{evidence_level.value}",
             primaryCoding=get_evidence_level_coding(evidence_level),
             extensions=[
                 Extension(
                     name="metakb_display_value",
-                    value="D",  # TODO fix
+                    value=display_value,
                 )
             ],
         )
