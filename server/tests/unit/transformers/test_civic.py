@@ -1,11 +1,9 @@
 import json
 from pathlib import Path
-from types import SimpleNamespace
 
 import civicpy.civic as civicpy
 import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Extension
 from ga4gh.va_spec.base import ConditionSet, TherapyGroup
 
 from metakb.transformers.civic import CivicTransformer
@@ -93,83 +91,6 @@ def test_civic_claim_to_statement():
     pass
 
 
-def test_civic_claim_to_statement_adds_vcep_extension(monkeypatch):
-    class FakeAssertion:
-        def __init__(self, approvals):
-            self.approvals = approvals
-            self.id = 123
-
-    class FakeOrganization:
-        def __init__(self, is_approved_vcep: bool):
-            self.is_approved_vcep = is_approved_vcep
-
-    class FakeApproval:
-        def __init__(self, is_approved_vcep: bool):
-            self.organization = FakeOrganization(is_approved_vcep)
-
-    statement = SimpleNamespace(
-        proposition=SimpleNamespace(
-            objectCondition=SimpleNamespace(root=SimpleNamespace()),
-        ),
-        hasEvidenceLines=None,
-        reportedIn=[],
-        extensions=[Extension(name="existing", value=True)],
-    )
-
-    monkeypatch.setattr(civicpy, "Assertion", FakeAssertion)
-    monkeypatch.setattr(
-        "metakb.transformers.civic.create_gks_record_from_assertion",
-        lambda _item: statement,
-    )
-
-    result = CivicTransformer(normalizers=SimpleNamespace())._civic_claim_to_statement(
-        FakeAssertion([FakeApproval(False), FakeApproval(True)])
-    )
-
-    assert result is statement
-    assert result.extensions == [
-        Extension(name="existing", value=True),
-        Extension(name="has_vcep_approval", value=True),
-    ]
-
-
-def test_civic_claim_to_statement_adds_false_vcep_extension(monkeypatch):
-    class FakeAssertion:
-        def __init__(self, approvals):
-            self.approvals = approvals
-            self.id = 123
-
-    class FakeOrganization:
-        def __init__(self, is_approved_vcep: bool):
-            self.is_approved_vcep = is_approved_vcep
-
-    class FakeApproval:
-        def __init__(self, is_approved_vcep: bool):
-            self.organization = FakeOrganization(is_approved_vcep)
-
-    statement = SimpleNamespace(
-        proposition=SimpleNamespace(
-            objectCondition=SimpleNamespace(root=SimpleNamespace()),
-        ),
-        hasEvidenceLines=None,
-        reportedIn=[],
-        extensions=None,
-    )
-
-    monkeypatch.setattr(civicpy, "Assertion", FakeAssertion)
-    monkeypatch.setattr(
-        "metakb.transformers.civic.create_gks_record_from_assertion",
-        lambda _item: statement,
-    )
-
-    result = CivicTransformer(normalizers=SimpleNamespace())._civic_claim_to_statement(
-        FakeAssertion([FakeApproval(False)])
-    )
-
-    assert result is statement
-    assert result.extensions == [Extension(name="has_vcep_approval", value=False)]
-
-
 def test_civic_ensure_therapygroup_id(
     civic_transformer: CivicTransformer,
     ensure_therapygroup_id_input: dict[str, TherapyGroup],
@@ -207,8 +128,8 @@ async def test_transform(test_data_dir: Path, civic_transformer: CivicTransforme
     civicpy.load_cache(str(cache_pkl_path), on_stale="ignore")
     await civic_transformer.transform()
 
-    assert civic_transformer.processed_data.statements[0].id == "civic.eid:238"
+    assert civic_transformer.processed_data.evidence[0].id == "civic.eid:238"
     assert (
-        civic_transformer.processed_data.statements[1].id
-        == "metakb.assertion:WRdtjMzgdMFsPX2i4MgN-BTFz_C3ITZQ"
+        civic_transformer.processed_data.assertions[0].id
+        == "metakb.assertion:tHdOs_zg6VUmJFoY3h97EmtVZC_tq7_k"
     )
