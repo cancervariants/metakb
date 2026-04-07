@@ -57,7 +57,7 @@ def _get_test_allele(
 
 class _DummyTxMappings(TranscriptMappings):
     def __init__(self, gene_name: str | None = "BRAF") -> None:
-        self.get_gene_symbol_from_refeq_protein = lambda _: gene_name
+        self.get_gene_symbol_from_refseq_protein = lambda _: gene_name
         self.get_gene_symbol_from_ensembl_protein = lambda _: gene_name
 
 
