@@ -156,6 +156,16 @@ async def test_build_aggregate_statement(
     await transformer._upsert_assertion_from_evidence(statement, assertions)
     result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
     assert result is not None
+    assert (
+        result.proposition.subjectVariant.id
+        == "metakb.cv:PSQ.VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    )
+    assert result.proposition.geneContextQualifier.id == "metakb.gene:hgnc_1097"
+    assert (
+        result.proposition.objectTherapeutic.root.id
+        == "metakb.tg:GMZoYSJ8w0MBfq1cFjivZdxrbrFgtD7N"
+    )
+    assert result.proposition.conditionQualifier.root.id == "metakb.disease:ncit_C3224"
     result_exts = {ext.name: ext.value for ext in result.extensions}
     assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "1_star"
     assert (
@@ -166,6 +176,16 @@ async def test_build_aggregate_statement(
     statement = statements["civic.aid:10"]
     await transformer._upsert_assertion_from_evidence(statement, assertions)
     result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
+    assert (
+        result.proposition.subjectVariant.id
+        == "metakb.cv:PSQ.VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    )
+    assert result.proposition.geneContextQualifier.id == "metakb.gene:hgnc_1097"
+    assert (
+        result.proposition.objectTherapeutic.root.id
+        == "metakb.tg:GMZoYSJ8w0MBfq1cFjivZdxrbrFgtD7N"
+    )
+    assert result.proposition.conditionQualifier.root.id == "metakb.disease:ncit_C3224"
     result_exts = {ext.name: ext.value for ext in result.extensions}
     assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "4_star"
     assert (
