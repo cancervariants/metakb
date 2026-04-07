@@ -312,6 +312,20 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     if not vicc_vocab_entry.aac_mapping:
         return None
 
+    mappings = [
+        ConceptMapping(
+            relation=Relation.EXACT_MATCH, coding=get_evidence_level_coding(i)
+        )
+        for i in vicc_vocab_entry.source_mappings
+    ]
+    if vicc_vocab_entry.aac_mapping:
+        mappings.append(
+            ConceptMapping(
+                relation=Relation.RELATED_MATCH,
+                coding=get_evidence_level_coding(vicc_vocab_entry.aac_mapping),
+            )
+        )
+
     return MappableConcept(
         id=vicc_vocab_entry.id,
         name=vicc_vocab_entry.term,
@@ -319,12 +333,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             system=VICC_EVIDENCE_CODE_SYSTEM,
             code=code(vicc_vocab_entry.id.split("vicc:")[-1]),
         ),
-        mappings=[
-            ConceptMapping(
-                relation=Relation.EXACT_MATCH, coding=get_evidence_level_coding(i)
-            )
-            for i in vicc_vocab_entry.source_mappings
-        ],
+        mappings=mappings,
         extensions=[
             Extension(
                 name="metakb_display_value",
