@@ -43,9 +43,10 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
  * selected filter criteria.
  *
  * Each filter category (variants, diseases, therapies, evidenceLevels,
- * significance, sources) is optional — if no values are selected in a
- * category, all items pass that category. Otherwise, an item must match
- * at least one of the selected values for each active category.
+ * starRatings, significance, sources) is optional — if no values are
+ * selected in a category, all items pass that category. Otherwise, an
+ * item must match at least one of the selected values for each active
+ * category.
  *
  * @param items - Array of `NormalizedResult` rows to filter.
  * @param selected - Object containing the active filter selections.
@@ -53,6 +54,7 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
  *   - `diseases`: Disease names to match (checks against all diseases in a row - in case of a ConditionSet).
  *   - `therapies`: Therapies to match.
  *   - `evidenceLevels`: Evidence levels to match.
+ *   - `starRatings`: Star ratings to match.
  *   - `significance`: Clinical significance values to match.
  *   - `sources`: Evidence sources to match (checks if row contains any selected source).
  *
@@ -65,6 +67,7 @@ export const applyFilters = (
     diseases: string[]
     therapies: string[]
     evidenceLevels: string[]
+    starRatings: string[]
     significance: string[]
     sources: string[]
   },
@@ -80,6 +83,9 @@ export const applyFilters = (
       r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
     const levelMatch =
       selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
+    const starRatingMatch =
+      selected.starRatings.length === 0 ||
+      selected.starRatings.includes(String(r.star_rating.starRating))
     const significanceMatch =
       selected.significance.length === 0 || selected.significance.includes(r.significance)
 
@@ -87,7 +93,13 @@ export const applyFilters = (
       selected.sources.length === 0 || selected.sources.some((s) => r.sources.includes(s))
 
     return (
-      variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch && sourceMatch
+      variantMatch &&
+      diseaseMatch &&
+      therapyMatch &&
+      levelMatch &&
+      starRatingMatch &&
+      significanceMatch &&
+      sourceMatch
     )
   })
 }
