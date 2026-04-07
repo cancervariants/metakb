@@ -405,22 +405,15 @@ export function buildVariantDiseaseMatrix(
  * the grade cannot be determined.
  */
 export function getEvidenceGrade(strength?: MappableConcept | null): string {
-  if (!strength?.primaryCoding) return ''
+  if (!strength || !Array.isArray(strength.extensions)) return ''
 
-  const { system, code } = strength.primaryCoding
+  const displayExtension = strength.extensions.find(
+    (ext): ext is { name: string; value: unknown } =>
+      typeof ext === 'object' &&
+      ext !== null &&
+      'name' in ext &&
+      ext.name === 'metakb_display_value',
+  )
 
-  const stripLevel = (v: string) => v.replace(/^Level\s+/i, '')
-
-  // AMP / ASCO / CAP evidence
-  if (system?.includes('AMP/ASCO/CAP') && typeof code === 'string') {
-    return stripLevel(code)
-  }
-
-  // VICC evidence code
-  const displayExtension = strength.extensions?.find((ext) => ext.name === 'metakb_display_value')
-
-  if (typeof displayExtension?.value === 'string') {
-    return stripLevel(displayExtension.value)
-  }
-  return ''
+  return typeof displayExtension?.value === 'string' ? displayExtension.value : ''
 }

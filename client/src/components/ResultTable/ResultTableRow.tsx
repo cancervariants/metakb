@@ -45,10 +45,11 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               const { evidenceLabel, evidenceUrl } = getEvidenceLabelUrl(statement.id || '')
               const evidenceSource = statement.id ? getEvidenceSource(statement.id) : null
               const originalCode = statement.strength?.primaryCoding?.code
-              const normalizedLevel = getEvidenceGrade(statement.strength)
+              const displayLevel = getEvidenceGrade(statement.strength)
+              console.log(displayLevel)
               const levelColor =
-                normalizedLevel in theme.palette.evidence
-                  ? theme.palette.evidence[normalizedLevel as keyof typeof theme.palette.evidence]
+                displayLevel in theme.palette.evidence
+                  ? theme.palette.evidence[displayLevel as keyof typeof theme.palette.evidence]
                   : '#ccc'
 
               return (
@@ -73,7 +74,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
                     </Link>
                   </div>
                   <div>
-                    <strong>Evidence Level:</strong> {normalizedLevel}
+                    <strong>Evidence Level:</strong> {displayLevel}
                     {evidenceSource && originalCode ? (
                       <>
                         {' '}

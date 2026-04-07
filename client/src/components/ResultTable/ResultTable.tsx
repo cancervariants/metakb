@@ -148,7 +148,9 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       render: (value: NormalizedResult) => {
         const supportingEvidence = value.grouped_evidence
         // get array of normalized codes from supporting evidence
-        const codeGroups = supportingEvidence.map((evidence) => getEvidenceGrade(evidence.strength))
+        const codeGroups = supportingEvidence.map((evidence) =>
+          getEvidenceGrade(evidence.strengthOfEvidenceProvided),
+        )
 
         // format into object with counts
         const counts = codeGroups.reduce<Record<EvidenceLevel, number>>(
