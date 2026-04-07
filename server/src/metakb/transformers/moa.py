@@ -201,7 +201,7 @@ class MoaTransformer(Transformer):
         )
         evidence_level = MoaEvidenceLevel[predictive_implication]
         vicc_code = VICC_CODE_EXACT_MAPPING_INDEX[evidence_level]
-        display_value = vicc_code.aac_mapping.removeprefix("Level")
+        display_value = vicc_code.aac_mapping.removeprefix("Level ")
         return MappableConcept(
             id=f"moa.strength:{evidence_level.value}",
             primaryCoding=get_evidence_level_coding(evidence_level),
