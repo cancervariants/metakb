@@ -212,7 +212,7 @@ class CivicTransformer(Transformer):
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
-                    value=f"Level {statement.strength.primaryCoding.code.root}",
+                    value=statement.strength.primaryCoding.code.root,
                 )
             ]
             statement.strength.id = (
@@ -223,7 +223,7 @@ class CivicTransformer(Transformer):
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
-                    value=f"Level {statement.strength.primaryCoding.code.root}",
+                    value=statement.strength.primaryCoding.code.root,
                 )
             ]
             statement.strength.id = (
@@ -245,7 +245,9 @@ class CivicTransformer(Transformer):
                 statement.strength.extensions = [
                     Extension(
                         name="metakb_display_value",
-                        value=statement.strength.primaryCoding.code.root,
+                        value=statement.strength.primaryCoding.code.root.removeprefix(
+                            "Level "
+                        ),
                     )
                 ]
                 statement.strength.id = (

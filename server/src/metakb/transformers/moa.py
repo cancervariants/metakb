@@ -205,7 +205,7 @@ class MoaTransformer(Transformer):
             extensions=[
                 Extension(
                     name="metakb_display_value",
-                    value="Level D",  # TODO fix
+                    value="D",  # TODO fix
                 )
             ],
         )

@@ -4,6 +4,11 @@ from time import perf_counter
 from typing import TYPE_CHECKING, Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from ga4gh.va_spec.base import (
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
+)
 
 from metakb.repository.base import AbstractRepository
 from metakb.restapi.dependencies import get_repository
@@ -86,6 +91,20 @@ async def get_statements(
         ) from e
 
     mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
+    therapeutic_response_statements = []
+    diagnostic_statements = []
+    prognostic_statements = []
+    for statement in search_results.statements:
+        match statement.proposition:
+            case VariantTherapeuticResponseProposition():
+                therapeutic_response_statements.append(statement)
+            case VariantDiagnosticProposition():
+                diagnostic_statements.append(statement)
+            case VariantPrognosticProposition():
+                prognostic_statements.append(statement)
+            case _:
+                raise TypeError
+
     end_time = perf_counter()
     return SearchStatementsResponse(
         query=SearchStatementsQuery(**mapped_terms),
@@ -93,7 +112,9 @@ async def get_statements(
         limit=limit,
         service_meta_=ServiceMeta(),
         duration_s=end_time - start_time,
-        statements=search_results.statements,
+        diagnostic_statements=diagnostic_statements,
+        prognostic_statements=prognostic_statements,
+        therapeutic_response_statements=therapeutic_response_statements,
     )
 
 
