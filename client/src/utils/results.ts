@@ -13,7 +13,14 @@
  *
  */
 
-import { EvidenceLine, MappableConcept, Statement } from '../models/domain'
+import {
+  EvidenceLine,
+  MappableConcept,
+  Statement,
+  VariantDiagnosticProposition,
+  VariantPrognosticProposition,
+  VariantTherapeuticResponseProposition,
+} from '../models/domain'
 import {
   getDiseaseFromProposition,
   getTherapyFromProposition,
@@ -48,11 +55,30 @@ export interface StarRating {
   ratingReason: string
 }
 
+type SupportedAssertionProposition =
+  | VariantDiagnosticProposition
+  | VariantPrognosticProposition
+  | VariantTherapeuticResponseProposition
+
+const isSupportedAssertionProposition = (
+  proposition: Statement['proposition'] | null | undefined,
+): proposition is SupportedAssertionProposition => {
+  if (!proposition || typeof proposition !== 'object') return false
+
+  return (
+    proposition.type === 'VariantDiagnosticProposition' ||
+    proposition.type === 'VariantPrognosticProposition' ||
+    proposition.type === 'VariantTherapeuticResponseProposition'
+  )
+}
+
 /**
- * Represents a single normalized row of evidence results, aggregating evidence
+ * Represents a single row for a MetaKB assertion, aggregating evidence
  * from one or more `Statement` objects into a single table row.
  */
-export interface NormalizedResult {
+export interface AssertionResult {
+  /** Proposition defining the assertion */
+  proposition: SupportedAssertionProposition
   /** Human-readable variant name (normalized for display) */
   variant_name: string
   /** Highest evidence level among grouped evidence */
@@ -124,18 +150,17 @@ export const evidenceOrder: Record<string, number> = {
   'N/A': 999,
 }
 
-type EvidenceLineWithItems = {
-  hasEvidenceItems?: unknown[] | null
-}
-
-const isEvidenceLineWithItems = (line: unknown): line is EvidenceLineWithItems =>
-  typeof line === 'object' && line !== null && 'hasEvidenceItems' in line
-
 export const isStatement = (item: unknown): item is Statement =>
   typeof item === 'object' &&
   item !== null &&
   'type' in item &&
   (item as { type?: unknown }).type === 'Statement'
+
+export const isEvidenceLine = (item: unknown): item is EvidenceLine =>
+  typeof item === 'object' &&
+  item !== null &&
+  'directionOfEvidenceProvided' in item &&
+  'hasEvidenceItems' in item
 
 const getTerminalEvidenceLines = (assertion?: Statement | null): EvidenceLine[] => {
   const results: EvidenceLine[] = []
@@ -150,19 +175,33 @@ const getTerminalEvidenceLines = (assertion?: Statement | null): EvidenceLine[] 
     }
 
     items.forEach((item) => {
-      if (isEvidenceLineWithItems(item)) {
+      if (isEvidenceLine(item)) {
         walk(item)
       }
     })
   }
 
   ;(assertion?.hasEvidenceLines ?? []).forEach((line) => {
-    if (isEvidenceLineWithItems(line)) {
+    if (isEvidenceLine(line)) {
       walk(line)
     }
   })
 
   return results
+}
+
+const getStarRatingValue = (value: unknown): number => {
+  if (!value || typeof value !== 'object' || !('primaryCoding' in value)) return 1
+
+  const primaryCoding = value.primaryCoding
+  if (!primaryCoding || typeof primaryCoding !== 'object' || !('code' in primaryCoding)) {
+    return 1
+  }
+
+  if (typeof primaryCoding.code !== 'string') return 1
+
+  const match = primaryCoding.code.match(/^(\d+)_star$/)
+  return match ? Number(match[1]) : 1
 }
 
 /**
@@ -185,11 +224,12 @@ const getTerminalEvidenceLines = (assertion?: Statement | null): EvidenceLine[] 
  * @returns Array of `NormalizedResult` objects, one per assertion.
  *          Returns an empty array if the input is empty or invalid.
  */
-export const normalizeResults = (data: Record<string, Statement>): NormalizedResult[] => {
+export const normalizeResults = (data: Record<string, Statement>): AssertionResult[] => {
   if (!data || Object.keys(data).length === 0) return []
 
   return Object.values(data).flatMap((assertion) => {
-    if (!assertion) return []
+    if (!assertion || !isSupportedAssertionProposition(assertion.proposition)) return []
+
     const groupedEvidence = getTerminalEvidenceLines(assertion)
     const groupedStatements = groupedEvidence
       .flatMap((line) => line.hasEvidenceItems ?? [])
@@ -205,19 +245,7 @@ export const normalizeResults = (data: Record<string, Statement>): NormalizedRes
       const ratingExt = extensions.find((ext) => ext.name === 'metakb_star_rating')?.value
       const reasonExt = extensions.find((ext) => ext.name === 'metakb_star_rating_reason')?.value
 
-      let rating = 1
-
-      if (
-        ratingExt &&
-        typeof ratingExt === 'object' &&
-        'primaryCoding' in ratingExt &&
-        typeof ratingExt.primaryCoding?.code === 'string'
-      ) {
-        const match = ratingExt.primaryCoding.code.match(/^(\d+)_star$/)
-        if (match) {
-          rating = Number(match[1])
-        }
-      }
+      const rating = getStarRatingValue(ratingExt)
 
       starRating = {
         starRating: rating,
@@ -226,6 +254,7 @@ export const normalizeResults = (data: Record<string, Statement>): NormalizedRes
     }
     return [
       {
+        proposition: assertion.proposition,
         variant_name: getVariantNameFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
         disease: getDiseaseFromProposition(assertion.proposition),
@@ -327,7 +356,7 @@ export interface VisxHeatmapData {
  * @returns
  */
 export function buildVariantDiseaseMatrix(
-  results: NormalizedResult[],
+  results: AssertionResult[],
   limitRows?: number,
   limitCols?: number,
 ): VisxHeatmapData {
@@ -408,11 +437,7 @@ export function getEvidenceGrade(strength?: MappableConcept | null): string {
   if (!strength || !Array.isArray(strength.extensions)) return ''
 
   const displayExtension = strength.extensions.find(
-    (ext): ext is { name: string; value: unknown } =>
-      typeof ext === 'object' &&
-      ext !== null &&
-      'name' in ext &&
-      ext.name === 'metakb_display_value',
+    (ext) => typeof ext === 'object' && ext !== null && ext.name === 'metakb_display_value',
   )
 
   return typeof displayExtension?.value === 'string' ? displayExtension.value : ''

@@ -23,7 +23,7 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
-import { NormalizedResult, TherapyInteractionType } from '../../utils'
+import { AssertionResult, TherapyInteractionType } from '../../utils'
 import { getEvidenceGrade } from '../../utils/results'
 import { EvidenceLevel } from '../../models/codings'
 import { PieChart, Pie, Cell } from 'recharts'
@@ -86,7 +86,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 
 interface ResultTableProps {
   // list of results
-  results: NormalizedResult[]
+  results: AssertionResult[]
   // result type - used for determining which columns to show
   resultType: 'therapeutic' | 'prognostic' | 'diagnostic'
 }
@@ -113,7 +113,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'star_rating',
       headerName: 'Star Rating',
       width: 100,
-      render: (value: NormalizedResult) => {
+      render: (value: AssertionResult) => {
         const rating = value.star_rating.starRating
         const reason = value.star_rating.ratingReason
         return (
@@ -139,13 +139,13 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'variant_name',
       headerName: 'Variant',
       width: 150,
-      render: (value: NormalizedResult) => value?.variant_name,
+      render: (value: AssertionResult) => value?.variant_name,
     },
     {
       field: 'evidence_summary',
       headerName: 'Evidence Summary',
       width: 100,
-      render: (value: NormalizedResult) => {
+      render: (value: AssertionResult) => {
         const supportingEvidence = value.grouped_evidence
         // get array of normalized codes from supporting evidence
         const codeGroups = supportingEvidence.map((evidence) =>
@@ -240,13 +240,13 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'disease',
       headerName: 'Disease',
       width: 150,
-      render: (value: NormalizedResult) => value?.disease,
+      render: (value: AssertionResult) => value?.disease,
     },
     {
       field: 'significance',
       headerName: 'Significance',
       width: 100,
-      render: (value: NormalizedResult) => value?.significance,
+      render: (value: AssertionResult) => value?.significance,
     },
     {
       field: 'expandRow',
@@ -270,7 +270,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         field: 'therapy',
         headerName: 'Therapy',
         width: 150,
-        render: (value: NormalizedResult) => {
+        render: (value: AssertionResult) => {
           const therapyData = value?.therapy
           if (!therapyData) return ''
 

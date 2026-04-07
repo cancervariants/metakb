@@ -4,10 +4,10 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { EvidenceLine } from '../../models/domain'
 import { ResultColumn } from './types'
-import { getEvidenceLabelUrl, getEvidenceSource, NormalizedResult } from '../../utils'
+import { getEvidenceLabelUrl, getEvidenceSource, AssertionResult } from '../../utils'
 import { getEvidenceGrade, isStatement } from '../../utils/results'
 
-const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = ({
+const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
   row,
   columns,
 }) => {
@@ -27,7 +27,7 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               column.render(row)
             ) : (
               (() => {
-                const val = row[column.field as keyof NormalizedResult]
+                const val = row[column.field as keyof AssertionResult]
                 return Array.isArray(val) ? val.join(', ') : (val as React.ReactNode)
               })()
             )}
@@ -46,7 +46,6 @@ const ResultTableRow: FC<{ row: NormalizedResult; columns: ResultColumn[] }> = (
               const evidenceSource = statement.id ? getEvidenceSource(statement.id) : null
               const originalCode = statement.strength?.primaryCoding?.code
               const displayLevel = getEvidenceGrade(statement.strength)
-              console.log(displayLevel)
               const levelColor =
                 displayLevel in theme.palette.evidence
                   ? theme.palette.evidence[displayLevel as keyof typeof theme.palette.evidence]
