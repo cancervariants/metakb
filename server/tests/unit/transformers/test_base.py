@@ -150,29 +150,30 @@ def test_normalize_therapeutic(
 async def test_build_aggregate_statement(
     transformer: Transformer, statements: dict[str, Statement]
 ):
-    statement = statements["civic.eid:1420"]
-    result = await transformer._create_aggregate_statement(statement)
+    assertions = {}
+
+    statement = statements["civic.eid:1421"]
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
     assert result is not None
-    assert result.id == "metakb.assertion:nHR-z_2yza1WDI4CaDT974TSGkLeXCDd"
-    assert result.extensions is not None
     result_exts = {ext.name: ext.value for ext in result.extensions}
-    assert result_exts["star_rating"] == 1
+    assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "1_star"
     assert (
-        result_exts["star_rating_reason"]
+        result_exts["metakb_star_rating_reason"]
         == "single submission from a clinical lab or online resource"
     )
 
-    statement = statements["civic.eid:6034"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is not None
-    assert result.id == "metakb.assertion:1btFUh0orXY6FAy9M23YYhocP1CCZkMF"
-
-    statement = statements["moa.assertion:66"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is not None
-    assert result.id == "metakb.assertion:FjG0sW5kHU9anpIRFlFMkx42a8nZbNCp"
+    statement = statements["civic.aid:10"]
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
+    result_exts = {ext.name: ext.value for ext in result.extensions}
+    assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "4_star"
+    assert (
+        result_exts["metakb_star_rating_reason"]
+        == "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+    )
 
     # smoothly handle failed normalization
     statement = statements["moa.assertion:1"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is None
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    assert len(assertions) == 1
