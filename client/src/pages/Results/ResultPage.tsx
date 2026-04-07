@@ -148,9 +148,10 @@ const ResultPage = () => {
         })
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
+
         const prognostic_data = data.prognostic_statements
         const diagnostic_data = data.diagnostic_statements
-        const therapeutic_data = data.therapeutic_statements
+        const therapeutic_data = data.therapeutic_response_statements
 
         const norm_prog_data = normalizeResults(prognostic_data)
         const norm_diag_data = normalizeResults(diagnostic_data)

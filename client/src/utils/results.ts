@@ -13,7 +13,7 @@
  *
  */
 
-import { MappableConcept, Statement } from '../models/domain'
+import { EvidenceLine, MappableConcept, Statement } from '../models/domain'
 import {
   getDiseaseFromProposition,
   getTherapyFromProposition,
@@ -63,8 +63,8 @@ export interface NormalizedResult {
   therapy: NormalizedTherapy
   /** Clinical significance string */
   significance: string
-  /** All evidence statements grouped into this row */
-  grouped_evidence: Statement[]
+  /** Lines of evidence (incl statements) grouped into this row */
+  grouped_evidence: EvidenceLine[]
   /** Sources (databases) that contributed evidence to this row */
   sources: string[]
   star_rating: StarRating
@@ -131,61 +131,109 @@ type EvidenceLineWithItems = {
 const isEvidenceLineWithItems = (line: unknown): line is EvidenceLineWithItems =>
   typeof line === 'object' && line !== null && 'hasEvidenceItems' in line
 
-const isStatement = (item: unknown): item is Statement =>
-  typeof item === 'object' && item !== null && 'proposition' in item
+export const isStatement = (item: unknown): item is Statement =>
+  typeof item === 'object' &&
+  item !== null &&
+  'type' in item &&
+  (item as { type?: unknown }).type === 'Statement'
+
+const getTerminalEvidenceLines = (assertion?: Statement | null): EvidenceLine[] => {
+  const results: EvidenceLine[] = []
+
+  const walk = (line: EvidenceLine): void => {
+    const items = line.hasEvidenceItems ?? []
+
+    const hasDirectStatementChild = items.some(isStatement)
+    if (hasDirectStatementChild) {
+      results.push(line)
+      return
+    }
+
+    items.forEach((item) => {
+      if (isEvidenceLineWithItems(item)) {
+        walk(item)
+      }
+    })
+  }
+
+  ;(assertion?.hasEvidenceLines ?? []).forEach((line) => {
+    if (isEvidenceLineWithItems(line)) {
+      walk(line)
+    }
+  })
+
+  return results
+}
 
 /**
- * Normalizes raw evidence statements into `NormalizedResult` rows
+ * Normalizes raw assertion statements into `NormalizedResult` rows
  * suitable for display in the results table.
  *
- * Each entry in the input `data` represents a group of `Statement[]`
- * (evidence records) associated with a single variant/disease/therapy context.
+ * Each entry in the input `data` represents a single MetaKB assertion.
  * This function:
- *  - Flattens grouped evidence into rows
  *  - Extracts display metadata (variant name, disease(s), therapy, significance)
- *  - Collects all source databases referenced by the evidence
- *  - Preserves the full set of underlying `Statement`s in `grouped_evidence`
+ *  - Collects all source databases referenced by terminal evidence statements
+ *  - Preserves the terminal evidence lines in `grouped_evidence`
  *
- * @param data - A record mapping keys to arrays of `Statement` objects
+ * Terminal evidence lines are the deepest evidence lines under the MetaKB
+ * assertion that directly contain evidence item `Statement`s. The traversal
+ * does not recurse into those statements, even if they themselves contain
+ * evidence lines.
+ *
+ * @param data - A record mapping keys to assertion `Statement` objects
  *               returned from the API.
- * @returns Array of `NormalizedResult` objects, one per evidence grouping.
+ * @returns Array of `NormalizedResult` objects, one per assertion.
  *          Returns an empty array if the input is empty or invalid.
  */
-export const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[] => {
+export const normalizeResults = (data: Record<string, Statement>): NormalizedResult[] => {
   if (!data || Object.keys(data).length === 0) return []
-  return Object.values(data).flatMap((arr) => {
-    if (!Array.isArray(arr) || arr.length === 0) return []
 
-    const groupedEvidence = arr
-      .flatMap((statement) => statement.hasEvidenceLines ?? [])
-      .flatMap((line) => (isEvidenceLineWithItems(line) ? (line.hasEvidenceItems ?? []) : []))
+  return Object.values(data).flatMap((assertion) => {
+    if (!assertion) return []
+    const groupedEvidence = getTerminalEvidenceLines(assertion)
+    const groupedStatements = groupedEvidence
+      .flatMap((line) => line.hasEvidenceItems ?? [])
       .filter(isStatement)
 
-    const assertion = arr[0]
     const extensions = assertion.extensions
     let starRating: StarRating = {
       starRating: 1,
       ratingReason: 'Does not meet other criteria',
     }
+
     if (extensions) {
-      const rating = extensions.find((ext) => ext.name === 'star_rating')?.value
-      const reason = extensions.find((ext) => ext.name === 'star_rating_reason')?.value
+      const ratingExt = extensions.find((ext) => ext.name === 'metakb_star_rating')?.value
+      const reasonExt = extensions.find((ext) => ext.name === 'metakb_star_rating_reason')?.value
+
+      let rating = 1
+
+      if (
+        ratingExt &&
+        typeof ratingExt === 'object' &&
+        'primaryCoding' in ratingExt &&
+        typeof ratingExt.primaryCoding?.code === 'string'
+      ) {
+        const match = ratingExt.primaryCoding.code.match(/^(\d+)_star$/)
+        if (match) {
+          rating = Number(match[1])
+        }
+      }
+
       starRating = {
-        starRating: typeof rating === 'number' ? rating : 1,
-        ratingReason: typeof reason === 'string' ? reason : starRating.ratingReason,
+        starRating: rating,
+        ratingReason: typeof reasonExt === 'string' ? reasonExt : starRating.ratingReason,
       }
     }
-
     return [
       {
-        variant_name: getVariantNameFromProposition(assertion?.proposition),
-        evidence_level: getEvidenceGrade(assertion?.strength),
-        disease: getDiseaseFromProposition(assertion?.proposition),
-        therapy: getTherapyFromProposition(assertion?.proposition),
-        significance: assertion?.proposition?.predicate
-          ? formatSignificance(assertion?.proposition?.predicate)
+        variant_name: getVariantNameFromProposition(assertion.proposition),
+        evidence_level: getEvidenceGrade(assertion.strength),
+        disease: getDiseaseFromProposition(assertion.proposition),
+        therapy: getTherapyFromProposition(assertion.proposition),
+        significance: assertion.proposition?.predicate
+          ? formatSignificance(assertion.proposition.predicate)
           : 'N/A',
-        sources: getSources(groupedEvidence),
+        sources: getSources(groupedStatements),
         grouped_evidence: groupedEvidence,
         star_rating: starRating,
       },
