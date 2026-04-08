@@ -63,6 +63,33 @@ DEFAULT_GENOME_BUILD = "GRCh37"
 
 TRANSFORMER_CLASS_NAME = "CBioPortalTransformer"
 
+CHROMOSOME_ACCESSIONS = {
+    "1":  {"GRCh37": "NC_000001.10", "GRCh38": "NC_000001.11"},
+    "2":  {"GRCh37": "NC_000002.11", "GRCh38": "NC_000002.12"},
+    "3":  {"GRCh37": "NC_000003.11", "GRCh38": "NC_000003.12"},
+    "4":  {"GRCh37": "NC_000004.11", "GRCh38": "NC_000004.12"},
+    "5":  {"GRCh37": "NC_000005.9",  "GRCh38": "NC_000005.10"},
+    "6":  {"GRCh37": "NC_000006.11", "GRCh38": "NC_000006.12"},
+    "7":  {"GRCh37": "NC_000007.13", "GRCh38": "NC_000007.14"},
+    "8":  {"GRCh37": "NC_000008.10", "GRCh38": "NC_000008.11"},
+    "9":  {"GRCh37": "NC_000009.11", "GRCh38": "NC_000009.12"},
+    "10": {"GRCh37": "NC_000010.10", "GRCh38": "NC_000010.11"},
+    "11": {"GRCh37": "NC_000011.9",  "GRCh38": "NC_000011.10"},
+    "12": {"GRCh37": "NC_000012.11", "GRCh38": "NC_000012.12"},
+    "13": {"GRCh37": "NC_000013.10", "GRCh38": "NC_000013.11"},
+    "14": {"GRCh37": "NC_000014.8",  "GRCh38": "NC_000014.9"},
+    "15": {"GRCh37": "NC_000015.9",  "GRCh38": "NC_000015.10"},
+    "16": {"GRCh37": "NC_000016.9",  "GRCh38": "NC_000016.10"},
+    "17": {"GRCh37": "NC_000017.10", "GRCh38": "NC_000017.11"},
+    "18": {"GRCh37": "NC_000018.9",  "GRCh38": "NC_000018.10"},
+    "19": {"GRCh37": "NC_000019.9",  "GRCh38": "NC_000019.10"},
+    "20": {"GRCh37": "NC_000020.10", "GRCh38": "NC_000020.11"},
+    "21": {"GRCh37": "NC_000021.8",  "GRCh38": "NC_000021.9"},
+    "22": {"GRCh37": "NC_000022.10", "GRCh38": "NC_000022.11"},
+    "X":  {"GRCh37": "NC_000023.10", "GRCh38": "NC_000023.11"},
+    "Y":  {"GRCh37": "NC_000024.9",  "GRCh38": "NC_000024.10"},
+    "MT": {"GRCh37": "NC_012920.1",  "GRCh38": "NC_012920.1"},
+}
 
 class CBioPortalTransformerBase(Transformer):
     """Orchestrates per-study cBioportal transformers AND performs centralized
@@ -74,12 +101,14 @@ class CBioPortalTransformerBase(Transformer):
         study_to_module: dict[str, str] | None = None,
         transformer_class_name: str = TRANSFORMER_CLASS_NAME,
         rate_limit_delay: float = 0.1,  # 100ms between API calls
+        sr: object | None = None,  # optional SeqRepo instance for variant retry
     ) -> None:
         """Initialize cBioPortal transformer base orchestrator.
 
         :param study_to_module: Mapping of study names to transformer module paths
         :param transformer_class_name: Name of the transformer class to load from each module
         :param rate_limit_delay: Delay in seconds between API calls
+        :param sr: Optional SeqRepo instance for variant retry normalization
         """
         super().__init__()  # initialize Transformer's internals
         self.study_to_module = study_to_module or STUDY_TO_MODULE
@@ -101,6 +130,7 @@ class CBioPortalTransformerBase(Transformer):
         # Track failed normalizations
         self.failed_genes: list[dict[str, str]] = []
         self.failed_variants: list[dict[str, str]] = []
+        self.failed_variants_after_retry: list[dict[str, str]] = []
 
         # Cache for normalized genes and variants to avoid duplicate API calls
         self.gene_cache: dict[
@@ -109,6 +139,7 @@ class CBioPortalTransformerBase(Transformer):
         self.variant_cache: dict[str, str | None] = {}  # variant_notation -> vrs_id
 
         self.current_genome_build: str = DEFAULT_GENOME_BUILD
+        self.sr = sr
 
     # ======================================================
     #  Required abstract methods from Transformer
@@ -455,17 +486,65 @@ class CBioPortalTransformerBase(Transformer):
         # Store in cache with genome build in key
         self.variant_cache[cache_key] = vrs_id
         return vrs_id
+    
+    def _build_updated_gnomad_notation(
+        self, variant_notation: str, sr: object
+    ) -> str | None:
+        """For variants that failed normalization, build an updated Gnomad
+        notation by prepending the upstream base from SeqRepo.
+
+        :param variant_notation: Original Gnomad notation (e.g. "1-27551121---G")
+        :param sr: SeqRepo instance
+        :return: Updated notation string, or None if not possible
+        """
+        parts = variant_notation.split("-", 3)
+        if len(parts) != 4:
+            return None
+
+        chrom, pos, ref, alt = parts
+
+        # Strip leading dashes that result from triple-dash notation (e.g. "---ATATTC")
+        ref = ref.lstrip("-")
+        alt = alt.lstrip("-")
+
+        try:
+            start_pos = int(pos)
+            upstream_pos = start_pos - 1
+
+            accession = CHROMOSOME_ACCESSIONS.get(str(chrom), {}).get(
+                self.current_genome_build
+            )
+            if not accession:
+                logger.warning(
+                    "No accession found for chromosome %s build %s",
+                    chrom,
+                    self.current_genome_build,
+                )
+                return None
+
+            upstream_base = sr[accession][upstream_pos - 1:upstream_pos]
+            if not upstream_base:
+                return None
+
+            updated_ref = upstream_base + (ref if ref != "-" else "")
+            updated_alt = upstream_base + (alt if alt != "-" else "")
+
+            return f"{chrom}-{upstream_pos}-{updated_ref}-{updated_alt}"
+
+        except Exception as e:
+            logger.warning(
+                "Failed to build updated notation for %s: %s", variant_notation, e
+            )
+            return None
 
     def _normalize_variants(self, df: pd.DataFrame, study_id: str) -> pd.DataFrame:
         """Normalize all unique variants in the DataFrame and add a vrs_id column.
-
-        Uses the VICC variation normalizer (with caching) to resolve each unique
-        Gnomad_Notation to a VRS identifier. Failed normalizations are tracked in
-        ``self.failed_variants``.
+        For variants that fail, retries with an updated notation using the upstream
+        base from SeqRepo if sr is available.
 
         :param df: DataFrame with a Gnomad_Notation column
         :param study_id: Study identifier for failure tracking
-        :return: DataFrame with a ``vrs_id`` column added
+        :return: DataFrame with vrs_id, Updated_Gnomad_Notation, and Updated_vrs_id columns
         """
         if "Gnomad_Notation" not in df.columns:
             logger.warning(
@@ -477,6 +556,8 @@ class CBioPortalTransformerBase(Transformer):
 
         unique_variants = df["Gnomad_Notation"].dropna().drop_duplicates().tolist()
         vrs_map: dict[str, str | None] = {}
+        updated_notation_map: dict[str, str] = {}
+        updated_vrs_map: dict[str, str] = {}
 
         for variant in tqdm(
             unique_variants, desc=f"Normalizing variants for {study_id}", unit="variant"
@@ -485,7 +566,7 @@ class CBioPortalTransformerBase(Transformer):
             vrs_map[variant] = vrs_id
 
             if not vrs_id:
-                # Track failed variant normalizations
+                # Track failed variant normalizations (first attempt)
                 already_tracked = any(
                     f["variant_notation"] == variant and f["study_id"] == study_id
                     for f in self.failed_variants
@@ -505,7 +586,49 @@ class CBioPortalTransformerBase(Transformer):
                             }
                         )
 
+                # Retry with updated notation for all failed variants if sr is available
+                if self.sr is not None:
+                    updated_notation = self._build_updated_gnomad_notation(
+                        variant, self.sr
+                    )
+                    if updated_notation:
+                        updated_notation_map[variant] = updated_notation
+                        updated_vrs_id = self._normalize_variant(updated_notation)
+                        if updated_vrs_id:
+                            updated_vrs_map[variant] = updated_vrs_id
+                            logger.info(
+                                "Retry succeeded for %s -> %s: %s",
+                                variant,
+                                updated_notation,
+                                updated_vrs_id,
+                            )
+
+        # Track variants that failed both initial normalization and retry
+        for variant in unique_variants:
+            if vrs_map.get(variant) is None and updated_vrs_map.get(variant) is None:
+                already_tracked = any(
+                    f["variant_notation"] == variant and f["study_id"] == study_id
+                    for f in self.failed_variants_after_retry
+                )
+                if not already_tracked:
+                    sample_ids = (
+                        df.loc[df["Gnomad_Notation"] == variant, "SAMPLE_ID"].tolist()
+                        if "SAMPLE_ID" in df.columns
+                        else []
+                    )
+                    for sid in sample_ids:
+                        self.failed_variants_after_retry.append(
+                            {
+                                "study_id": study_id,
+                                "sample_id": sid,
+                                "variant_notation": variant,
+                                "updated_notation": updated_notation_map.get(variant, "No_Data"),
+                            }
+                        )
+
         df["vrs_id"] = df["Gnomad_Notation"].map(vrs_map).fillna("No_Data")
+        df["Updated_Gnomad_Notation"] = df["Gnomad_Notation"].map(updated_notation_map).fillna("No_Data")
+        df["Updated_vrs_id"] = df["Gnomad_Notation"].map(updated_vrs_map).fillna("No_Data")
 
         total = len(unique_variants)
         normalized = sum(1 for v in vrs_map.values() if v is not None)
@@ -1214,6 +1337,23 @@ class CBioPortalTransformerBase(Transformer):
                     norm_failures_dir / f"{study_id}_failed_variant_normalizations.csv"
                 )
                 study_variants.to_csv(failed_variants_path, index=False)
+
+        if self.failed_variants_after_retry:
+            failed_after_retry_df = pd.DataFrame(self.failed_variants_after_retry)
+
+            combined_path = (
+                norm_failures_dir / "combined_failed_variant_normalizations_after_retry.csv"
+            )
+            failed_after_retry_df.to_csv(combined_path, index=False)
+
+            for study_id in failed_after_retry_df["study_id"].unique():
+                study_variants = failed_after_retry_df[
+                    failed_after_retry_df["study_id"] == study_id
+                ]
+                failed_path = (
+                    norm_failures_dir / f"{study_id}_failed_variant_normalizations_after_retry.csv"
+                )
+                study_variants.to_csv(failed_path, index=False)
 
         # -----------------------------------------
         # Save combined dataframe to CSV on disk
