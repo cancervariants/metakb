@@ -1,0 +1,1452 @@
+{
+  "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi_moa": {
+    "id": "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi",
+    "type": "Statement",
+    "extensions": [
+      {
+        "name": "metakb_star_rating",
+        "value": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "4_star"
+          }
+        }
+      },
+      {
+        "name": "metakb_star_rating_reason",
+        "value": "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+      }
+    ],
+    "specifiedBy": {
+      "id": "metakb.method:1",
+      "type": "Method",
+      "name": "MetaKB Computational Assertion Protocol",
+      "reportedIn": {
+        "type": "Document",
+        "name": "cancervariants/metakb",
+        "urls": ["https://github.com/cancervariants/metakb"],
+        "doi": "10.5281/zenodo.15675452"
+      }
+    },
+    "proposition": {
+      "type": "VariantTherapeuticResponseProposition",
+      "subjectVariant": {
+        "id": "metakb.cv:PSQ.VA.pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+        "type": "CategoricalVariant",
+        "name": "BRAF V600K",
+        "constraints": [
+          {
+            "type": "DefiningAlleleConstraint",
+            "allele": {
+              "id": "ga4gh:VA.pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+              "type": "Allele",
+              "digest": "pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+              "location": {
+                "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                "type": "SequenceLocation",
+                "digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+                },
+                "start": 599,
+                "end": 600,
+                "sequence": "V"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "K"
+              }
+            },
+            "relations": [
+              {
+                "primaryCoding": {
+                  "system": "ga4gh-gks-term:allele-relation",
+                  "code": "liftover_to"
+                }
+              },
+              {
+                "primaryCoding": {
+                  "system": "http://www.sequenceontology.org",
+                  "code": "translation_of"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "metakb.gene:hgnc_1097",
+        "conceptType": "Gene",
+        "name": "BRAF",
+        "primaryCoding": {
+          "id": "hgnc:1097",
+          "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+          "code": "HGNC:1097"
+        }
+      },
+      "alleleOriginQualifier": {
+        "name": "somatic"
+      },
+      "predicate": "predictsSensitivityTo",
+      "objectTherapeutic": {
+        "id": "metakb.therapy:rxcui_1425098",
+        "conceptType": "Therapy",
+        "name": "trametinib dimethyl sulfoxide",
+        "primaryCoding": {
+          "id": "rxcui:1425098",
+          "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+          "code": "1425098"
+        }
+      },
+      "conditionQualifier": {
+        "id": "metakb.disease:ncit_C3224",
+        "conceptType": "Disease",
+        "name": "Melanoma",
+        "primaryCoding": {
+          "id": "ncit:C3224",
+          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+          "code": "C3224"
+        }
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "id": "vicc:e000002",
+      "extensions": [
+        {
+          "name": "metakb_display_value",
+          "value": "A"
+        }
+      ],
+      "name": "FDA recognized evidence",
+      "primaryCoding": {
+        "system": "https://go.osu.edu/evidence-codes",
+        "code": "e000002"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "system": "https://moalmanac.org/about",
+            "code": "FDA-Approved"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    },
+    "hasEvidenceLines": [
+      {
+        "id": "metakb.evline:ac282b45-a7d4-4a2e-9bd9-d994e214bb14",
+        "type": "EvidenceLine",
+        "extensions": [
+          {
+            "name": "metakb_star_rating_reason",
+            "value": "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+          }
+        ],
+        "hasEvidenceItems": [
+          {
+            "id": "moa.assertion:151",
+            "type": "Statement",
+            "description": "The U.S. Food and Drug Administration (FDA) granted approval to trametinib as a single agent for the treament of patients with unresectable or metastatic melanoma (MEL) with BRAF V600E or V600K mutation, as detected by an FDA-approved test.",
+            "specifiedBy": {
+              "id": "moa.method:2021",
+              "type": "Method",
+              "name": "MOAlmanac (2021)",
+              "reportedIn": {
+                "type": "Document",
+                "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                "doi": "10.1038/s43018-021-00243-3",
+                "pmid": "35121878"
+              }
+            },
+            "reportedIn": [
+              {
+                "id": "moa.source:63",
+                "type": "Document",
+                "extensions": [
+                  {
+                    "name": "source_type",
+                    "value": "FDA"
+                  }
+                ],
+                "title": "Novartis Pharmaceuticals Corporation. Mekinist (trametinib) [package insert]. U.S. Food and Drug Administration website. https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/204114s016lbl.pdf. Revised June 2020. Accessed November 12, 2020.",
+                "urls": [
+                  "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/204114s016lbl.pdf"
+                ]
+              }
+            ],
+            "proposition": {
+              "type": "VariantTherapeuticResponseProposition",
+              "subjectVariant": {
+                "id": "moa.variant:146",
+                "type": "CategoricalVariant",
+                "name": "BRAF V600K",
+                "extensions": [
+                  {
+                    "name": "moa_representative_coordinate",
+                    "value": {
+                      "chromosome": "7",
+                      "start_position": "140453136",
+                      "end_position": "140453137",
+                      "reference_allele": "AC",
+                      "alternate_allele": "TT",
+                      "cdna_change": "c.1798_1799GT>AA",
+                      "protein_change": "p.V600K",
+                      "exon": "15"
+                    }
+                  },
+                  {
+                    "name": "moa_feature_type",
+                    "value": "somatic_variant"
+                  },
+                  {
+                    "name": "moa_variant_annotation",
+                    "value": "Missense"
+                  }
+                ],
+                "mappings": [
+                  {
+                    "coding": {
+                      "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                      "code": "rs121913227"
+                    },
+                    "relation": "relatedMatch"
+                  }
+                ]
+              },
+              "geneContextQualifier": {
+                "id": "moa.gene:BRAF",
+                "name": "BRAF"
+              },
+              "alleleOriginQualifier": {
+                "name": "somatic"
+              },
+              "predicate": "predictsSensitivityTo",
+              "objectTherapeutic": {
+                "id": "moa.drug:Trametinib",
+                "extensions": [
+                  {
+                    "name": "moa_therapy_type",
+                    "value": "Targeted therapy"
+                  }
+                ],
+                "conceptType": "Drug",
+                "name": "Trametinib"
+              },
+              "conditionQualifier": {
+                "id": "moa.disease:Melanoma",
+                "conceptType": "Disease",
+                "name": "Melanoma",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "oncotree:MEL",
+                      "name": "Melanoma",
+                      "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                      "code": "MEL"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              }
+            },
+            "direction": "supports",
+            "strength": {
+              "id": "moa.strength:FDA-Approved",
+              "extensions": [
+                {
+                  "name": "metakb_display_value",
+                  "value": "A"
+                }
+              ],
+              "primaryCoding": {
+                "system": "https://moalmanac.org/about",
+                "code": "FDA-Approved"
+              }
+            }
+          }
+        ],
+        "directionOfEvidenceProvided": "supports",
+        "strengthOfEvidenceProvided": {
+          "id": "vicc:e000002",
+          "extensions": [
+            {
+              "name": "metakb_display_value",
+              "value": "A"
+            }
+          ],
+          "name": "FDA recognized evidence",
+          "primaryCoding": {
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000002"
+          },
+          "mappings": [
+            {
+              "coding": {
+                "system": "https://moalmanac.org/about",
+                "code": "FDA-Approved"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        },
+        "evidenceOutcome": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "4_star"
+          }
+        }
+      }
+    ]
+  },
+  "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi_civic": {
+    "id": "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi",
+    "type": "Statement",
+    "extensions": [
+      {
+        "name": "metakb_star_rating",
+        "value": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "1_star"
+          }
+        }
+      },
+      {
+        "name": "metakb_star_rating_reason",
+        "value": "single submission from a clinical lab or online resource"
+      }
+    ],
+    "specifiedBy": {
+      "id": "metakb.method:1",
+      "type": "Method",
+      "name": "MetaKB Computational Assertion Protocol",
+      "reportedIn": {
+        "type": "Document",
+        "name": "cancervariants/metakb",
+        "urls": ["https://github.com/cancervariants/metakb"],
+        "doi": "10.5281/zenodo.15675452"
+      }
+    },
+    "proposition": {
+      "type": "VariantTherapeuticResponseProposition",
+      "subjectVariant": {
+        "id": "metakb.cv:PSQ.VA.pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+        "type": "CategoricalVariant",
+        "name": "BRAF V600K",
+        "constraints": [
+          {
+            "type": "DefiningAlleleConstraint",
+            "allele": {
+              "id": "ga4gh:VA.pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+              "type": "Allele",
+              "digest": "pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8",
+              "location": {
+                "id": "ga4gh:SL.t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                "type": "SequenceLocation",
+                "digest": "t-3DrWALhgLdXHsupI-e-M00aL3HgK3y",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.cQvw4UsHHRRlogxbWCB8W-mKD4AraM9y"
+                },
+                "start": 599,
+                "end": 600,
+                "sequence": "V"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "K"
+              }
+            },
+            "relations": [
+              {
+                "primaryCoding": {
+                  "system": "ga4gh-gks-term:allele-relation",
+                  "code": "liftover_to"
+                }
+              },
+              {
+                "primaryCoding": {
+                  "system": "http://www.sequenceontology.org",
+                  "code": "translation_of"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "metakb.gene:hgnc_1097",
+        "conceptType": "Gene",
+        "name": "BRAF",
+        "primaryCoding": {
+          "id": "hgnc:1097",
+          "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+          "code": "HGNC:1097"
+        }
+      },
+      "alleleOriginQualifier": {
+        "extensions": [
+          {
+            "name": "civic_variant_origin",
+            "value": "SOMATIC"
+          }
+        ],
+        "name": "somatic"
+      },
+      "predicate": "predictsSensitivityTo",
+      "objectTherapeutic": {
+        "id": "metakb.therapy:rxcui_1425098",
+        "conceptType": "Therapy",
+        "name": "trametinib dimethyl sulfoxide",
+        "primaryCoding": {
+          "id": "rxcui:1425098",
+          "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+          "code": "1425098"
+        }
+      },
+      "conditionQualifier": {
+        "id": "metakb.disease:ncit_C3224",
+        "conceptType": "Disease",
+        "name": "Melanoma",
+        "primaryCoding": {
+          "id": "ncit:C3224",
+          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+          "code": "C3224"
+        }
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "id": "vicc:e000005",
+      "extensions": [
+        {
+          "name": "metakb_display_value",
+          "value": "B"
+        }
+      ],
+      "name": "clinical cohort evidence",
+      "primaryCoding": {
+        "system": "https://go.osu.edu/evidence-codes",
+        "code": "e000005"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+            "code": "B"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    },
+    "hasEvidenceLines": [
+      {
+        "id": "metakb.evline:72d54957-0e10-4198-b308-52129390fb31",
+        "type": "EvidenceLine",
+        "extensions": [
+          {
+            "name": "metakb_star_rating_reason",
+            "value": "single submission from a clinical lab or online resource"
+          }
+        ],
+        "hasEvidenceItems": [
+          {
+            "id": "civic.eid:2506",
+            "type": "Statement",
+            "description": "In a study of 322 advanced melanoma patients with BRAF-V600E (N=281), BRAF-V600K (N=40), or both mutations (N=1), treatment with trametinib was associated with improved progression-free survival (4.8mo vs. 1.5mo; HR: 0.45, 95% CI: 0.33-0.63, P<0.001) compared to chemotherapy control group. Additionally, treatment with trametinib was associated with increased 6-month overall survival (HR: 0.54, 95% CI: 0.32-0.92, P=0.01). The authors note similar outcomes for the primary efficacy population (V600E only) and the intention-to-treat population, however, sub-group analysis for patients with V600K did not show significant improvement in PFS (HR: 0.50, 95% CI:0.18-1.35).",
+            "specifiedBy": {
+              "id": "civic.method:2019",
+              "type": "Method",
+              "name": "CIViC Curation SOP (2019)",
+              "methodType": "curation",
+              "reportedIn": {
+                "id": "pmid:31779674",
+                "type": "Document",
+                "name": "Danos et al., 2019, Genome Med.",
+                "aliases": ["CIViC curation SOP"],
+                "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                "urls": [
+                  "https://doi.org/10.1186/s13073-019-0687-x",
+                  "https://pubmed.ncbi.nlm.nih.gov/31779674/"
+                ],
+                "doi": "10.1186/s13073-019-0687-x",
+                "pmid": "31779674"
+              }
+            },
+            "reportedIn": [
+              {
+                "id": "civic.sid:1210",
+                "type": "Document",
+                "name": "Flaherty et al., 2012",
+                "title": "Improved survival with MEK inhibition in BRAF-mutated melanoma.",
+                "urls": [
+                  "https://civicdb.org/links/source/1210",
+                  "http://www.ncbi.nlm.nih.gov/pubmed/22663011"
+                ],
+                "pmid": "22663011"
+              },
+              "https://civicdb.org/links/evidence/2506"
+            ],
+            "proposition": {
+              "type": "VariantTherapeuticResponseProposition",
+              "subjectVariant": {
+                "id": "civic.mpid:559",
+                "type": "CategoricalVariant",
+                "name": "BRAF V600K",
+                "aliases": ["VAL600LYS"],
+                "extensions": [
+                  {
+                    "name": "CIViC Molecular Profile Score",
+                    "value": 122.5
+                  },
+                  {
+                    "name": "expressions",
+                    "value": [
+                      {
+                        "id": null,
+                        "extensions": null,
+                        "syntax": "hgvs.c",
+                        "value": "ENST00000288602.6:c.1798_1799delinsAA",
+                        "syntax_version": null
+                      },
+                      {
+                        "id": null,
+                        "extensions": null,
+                        "syntax": "hgvs.g",
+                        "value": "NC_000007.13:g.140453136_140453137delinsTT",
+                        "syntax_version": null
+                      },
+                      {
+                        "id": null,
+                        "extensions": null,
+                        "syntax": "hgvs.c",
+                        "value": "NM_004333.4:c.1798_1799delGTinsAA",
+                        "syntax_version": null
+                      },
+                      {
+                        "id": null,
+                        "extensions": null,
+                        "syntax": "hgvs.p",
+                        "value": "NP_004324.2:p.Val600Lys",
+                        "syntax_version": null
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CIViC representative coordinate",
+                    "value": {
+                      "chromosome": "7",
+                      "start": 140453136,
+                      "stop": 140453137,
+                      "reference_bases": "AC",
+                      "variant_bases": "TT",
+                      "ensembl_version": 75,
+                      "representative_transcript": "ENST00000288602.6",
+                      "reference_build": "GRCh37",
+                      "type": "coordinates"
+                    }
+                  }
+                ],
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "civic.mpid:559",
+                      "system": "https://civicdb.org/links/molecular_profile/",
+                      "code": "559"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "civic.vid:563",
+                      "extensions": [
+                        {
+                          "name": "subtype",
+                          "value": "gene_variant"
+                        },
+                        {
+                          "name": "variant_types",
+                          "value": [
+                            {
+                              "id": null,
+                              "extensions": null,
+                              "coding": {
+                                "id": "civic.variant_type:47",
+                                "extensions": null,
+                                "name": "Missense Variant",
+                                "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                "systemVersion": null,
+                                "code": "SO:0001583",
+                                "iris": null
+                              },
+                              "relation": "exactMatch"
+                            }
+                          ]
+                        }
+                      ],
+                      "name": "V600K",
+                      "system": "https://civicdb.org/links/variant/",
+                      "code": "563"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+                      "code": "CA16602420"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+                      "code": "375941"
+                    },
+                    "relation": "relatedMatch"
+                  },
+                  {
+                    "coding": {
+                      "system": "https://www.ncbi.nlm.nih.gov/snp/",
+                      "code": "rs121913227"
+                    },
+                    "relation": "relatedMatch"
+                  }
+                ]
+              },
+              "geneContextQualifier": {
+                "id": "civic.gid:5",
+                "extensions": [
+                  {
+                    "name": "aliases",
+                    "value": [
+                      "B-RAF1",
+                      "B-raf",
+                      "BRAF",
+                      "BRAF-1",
+                      "BRAF1",
+                      "NS7",
+                      "RAFB1"
+                    ]
+                  },
+                  {
+                    "name": "description",
+                    "value": "BRAF mutations are found to be recurrent in many cancer types. Of these, the mutation of valine 600 to glutamic acid (V600E) is the most prevalent. V600E has been determined to be an activating mutation, and cells that harbor it, along with other V600 mutations are sensitive to the BRAF inhibitor dabrafenib. It is also common to use MEK inhibition as a substitute for BRAF inhibitors, and the MEK inhibitor trametinib has seen some success in BRAF mutant melanomas. BRAF mutations have also been correlated with poor prognosis in many cancer types, although there is at least one study that questions this conclusion in papillary thyroid cancer.\n\nOncogenic BRAF mutations are divided into three categories that determine their sensitivity to inhibitors.\nClass 1 BRAF mutations (V600) are RAS-independent, signal as monomers and are sensitive to current RAF monomer inhibitors.\nClass 2 BRAF mutations (K601E, K601N, K601T, L597Q, L597V, G469A, G469V, G469R, G464V, G464E, and fusions) are RAS-independent, signaling as constitutive dimers and are resistant to vemurafenib. Such mutants may be sensitive to novel RAF dimer inhibitors or MEK inhibitors.\nClass 3 BRAF mutations (D287H, V459L, G466V, G466E, G466A, S467L, G469E, N581S, N581I, D594N, D594G, D594A, D594H, F595L, G596D, and G596R) with low or absent kinase activity are RAS-dependent and they activate ERK by increasing their binding to activated RAS and wild-type CRAF. Class 3 BRAF mutations coexist with mutations in RAS or NF1 in melanoma may be treated with MEK inhibitors. In epithelial tumors such as CRC or NSCLC may be effectively treated with combinations that include inhibitors of receptor tyrosine kinase."
+                  }
+                ],
+                "conceptType": "Gene",
+                "name": "BRAF",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncbigene:673",
+                      "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                      "code": "673"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              "alleleOriginQualifier": {
+                "extensions": [
+                  {
+                    "name": "civic_variant_origin",
+                    "value": "SOMATIC"
+                  }
+                ],
+                "name": "somatic"
+              },
+              "predicate": "predictsSensitivityTo",
+              "objectTherapeutic": {
+                "id": "civic.tid:19",
+                "extensions": [
+                  {
+                    "name": "aliases",
+                    "value": [
+                      "GSK 1120212",
+                      "GSK 212",
+                      "GSK-1120212",
+                      "GSK-212",
+                      "GSK1120212",
+                      "GSK212",
+                      "JTP 74057",
+                      "JTP-74057",
+                      "JTP74057",
+                      "MEK Inhibitor GSK1120212",
+                      "Mekinist",
+                      "N-(3-{3-cyclopropyl-5-[(2-fluoro-4-iodophenyl)amino]-6,8-dimethyl-2,4,7-trioxo-3,4,6,7-tetrahydropyrido[4,3-d]pyrimidin-1(2H)-yl}phenyl)acetamide"
+                    ]
+                  }
+                ],
+                "conceptType": "Therapy",
+                "name": "Trametinib",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncit:C77908",
+                      "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+                      "code": "C77908"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              "conditionQualifier": {
+                "id": "civic.did:7",
+                "conceptType": "Disease",
+                "name": "Melanoma",
+                "mappings": [
+                  {
+                    "coding": {
+                      "system": "https://disease-ontology.org/?id=",
+                      "code": "DOID:1909"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              }
+            },
+            "direction": "supports",
+            "strength": {
+              "id": "civic.strength:B",
+              "extensions": [
+                {
+                  "name": "metakb_display_value",
+                  "value": "B"
+                }
+              ],
+              "name": "Clinical evidence",
+              "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "B"
+              },
+              "mappings": [
+                {
+                  "coding": {
+                    "name": "clinical cohort evidence",
+                    "system": "https://go.osu.edu/evidence-codes",
+                    "code": "e000005"
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          }
+        ],
+        "directionOfEvidenceProvided": "supports",
+        "strengthOfEvidenceProvided": {
+          "id": "vicc:e000005",
+          "extensions": [
+            {
+              "name": "metakb_display_value",
+              "value": "B"
+            }
+          ],
+          "name": "clinical cohort evidence",
+          "primaryCoding": {
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000005"
+          },
+          "mappings": [
+            {
+              "coding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "B"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        },
+        "evidenceOutcome": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "1_star"
+          }
+        }
+      }
+    ]
+  },
+  "BRAF mutation": {
+    "id": "metakb.assertion:RXgu1CLSyUKNM3c7-YfTF_lh5meCOnSM",
+    "type": "Statement",
+    "extensions": [
+      {
+        "name": "metakb_star_rating",
+        "value": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "1_star"
+          }
+        }
+      },
+      {
+        "name": "metakb_star_rating_reason",
+        "value": "single submission from a clinical lab or online resource"
+      }
+    ],
+    "specifiedBy": {
+      "id": "metakb.method:1",
+      "type": "Method",
+      "name": "MetaKB Computational Assertion Protocol",
+      "reportedIn": {
+        "type": "Document",
+        "name": "cancervariants/metakb",
+        "urls": ["https://github.com/cancervariants/metakb"],
+        "doi": "10.5281/zenodo.15675452"
+      }
+    },
+    "proposition": {
+      "type": "VariantTherapeuticResponseProposition",
+      "subjectVariant": {
+        "id": "metakb.cv:FC.metakb.gene_hgnc_1097",
+        "type": "CategoricalVariant",
+        "name": "BRAF Mutation",
+        "constraints": [
+          {
+            "type": "FeatureContextConstraint",
+            "featureContext": {
+              "id": "metakb.gene:hgnc_1097",
+              "conceptType": "Gene",
+              "name": "BRAF",
+              "primaryCoding": {
+                "id": "hgnc:1097",
+                "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+                "code": "HGNC:1097"
+              }
+            }
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "metakb.gene:hgnc_1097",
+        "conceptType": "Gene",
+        "name": "BRAF",
+        "primaryCoding": {
+          "id": "hgnc:1097",
+          "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+          "code": "HGNC:1097"
+        }
+      },
+      "alleleOriginQualifier": {
+        "name": "somatic"
+      },
+      "predicate": "predictsSensitivityTo",
+      "objectTherapeutic": {
+        "id": "metakb.tg:JgptHcUAwUcXajKEtKy7elEoRLldjZN3",
+        "therapies": [
+          {
+            "id": "metakb.therapy:rxcui_2289380",
+            "conceptType": "Therapy",
+            "name": "selumetinib",
+            "primaryCoding": {
+              "id": "rxcui:2289380",
+              "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+              "code": "2289380"
+            }
+          },
+          {
+            "id": "metakb.therapy:rxcui_1147220",
+            "conceptType": "Therapy",
+            "name": "vemurafenib",
+            "primaryCoding": {
+              "id": "rxcui:1147220",
+              "system": "https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm=",
+              "code": "1147220"
+            }
+          }
+        ],
+        "membershipOperator": "AND"
+      },
+      "conditionQualifier": {
+        "id": "metakb.disease:ncit_C3224",
+        "conceptType": "Disease",
+        "name": "Melanoma",
+        "primaryCoding": {
+          "id": "ncit:C3224",
+          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+          "code": "C3224"
+        }
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "id": "vicc:e000009",
+      "extensions": [
+        {
+          "name": "metakb_display_value",
+          "value": "D"
+        }
+      ],
+      "name": "preclinical evidence",
+      "primaryCoding": {
+        "system": "https://go.osu.edu/evidence-codes",
+        "code": "e000009"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+            "code": "D"
+          },
+          "relation": "exactMatch"
+        },
+        {
+          "coding": {
+            "system": "https://moalmanac.org/about",
+            "code": "Preclinical evidence"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    },
+    "hasEvidenceLines": [
+      {
+        "id": "metakb.evline:cafcf313-36bb-44bd-b414-8b14373c4034",
+        "type": "EvidenceLine",
+        "extensions": [
+          {
+            "name": "metakb_star_rating_reason",
+            "value": "single submission from a clinical lab or online resource"
+          }
+        ],
+        "hasEvidenceItems": [
+          {
+            "id": "moa.assertion:166",
+            "type": "Statement",
+            "description": "Treating mutant BRAF melanoma cell with both Selumetinib and PLX4720, a predecessor to Vemurafenib, prevented emergence of resistant clones.",
+            "specifiedBy": {
+              "id": "moa.method:2021",
+              "type": "Method",
+              "name": "MOAlmanac (2021)",
+              "reportedIn": {
+                "type": "Document",
+                "name": "Reardon, B., Moore, N.D., Moore, N.S. et al.",
+                "title": "Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
+                "doi": "10.1038/s43018-021-00243-3",
+                "pmid": "35121878"
+              }
+            },
+            "reportedIn": [
+              {
+                "id": "moa.source:71",
+                "type": "Document",
+                "extensions": [
+                  {
+                    "name": "source_type",
+                    "value": "Journal"
+                  }
+                ],
+                "title": "Emery CM, Vijayendran KG, Zipser MC, et al. MEK1 mutations confer resistance to MEK and B-RAF inhibition. Proc Natl Acad Sci USA. 2009;106(48):20411-6.",
+                "urls": ["https://doi.org/10.1073/pnas.0905833106"],
+                "doi": "10.1073/pnas.0905833106",
+                "pmid": "19915144"
+              }
+            ],
+            "proposition": {
+              "type": "VariantTherapeuticResponseProposition",
+              "subjectVariant": {
+                "id": "moa.variant:166",
+                "type": "CategoricalVariant",
+                "name": "BRAF Mutation",
+                "extensions": [
+                  {
+                    "name": "moa_representative_coordinate",
+                    "value": {
+                      "chromosome": "7",
+                      "start_position": null,
+                      "end_position": null,
+                      "reference_allele": null,
+                      "alternate_allele": null,
+                      "cdna_change": null,
+                      "protein_change": null,
+                      "exon": null
+                    }
+                  },
+                  {
+                    "name": "moa_feature_type",
+                    "value": "somatic_variant"
+                  }
+                ]
+              },
+              "geneContextQualifier": {
+                "id": "moa.gene:BRAF",
+                "name": "BRAF"
+              },
+              "alleleOriginQualifier": {
+                "name": "somatic"
+              },
+              "predicate": "predictsSensitivityTo",
+              "objectTherapeutic": {
+                "id": "moa.tg:LEJKS-FtGtGlrC9h7i3_e9nh0xWyWnzq",
+                "extensions": [
+                  {
+                    "name": "moa_therapy_type",
+                    "value": "Targeted therapy"
+                  }
+                ],
+                "therapies": [
+                  {
+                    "id": "moa.drug:Selumetinib",
+                    "conceptType": "Drug",
+                    "name": "Selumetinib"
+                  },
+                  {
+                    "id": "moa.drug:Vemurafenib",
+                    "conceptType": "Drug",
+                    "name": "Vemurafenib"
+                  }
+                ],
+                "membershipOperator": "AND"
+              },
+              "conditionQualifier": {
+                "id": "moa.disease:Melanoma",
+                "conceptType": "Disease",
+                "name": "Melanoma",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "oncotree:MEL",
+                      "name": "Melanoma",
+                      "system": "https://oncotree.mskcc.org/?version=oncotree_latest_stable&field=CODE&search=",
+                      "code": "MEL"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              }
+            },
+            "direction": "supports",
+            "strength": {
+              "id": "moa.strength:Preclinical evidence",
+              "extensions": [
+                {
+                  "name": "metakb_display_value",
+                  "value": "D"
+                }
+              ],
+              "primaryCoding": {
+                "system": "https://moalmanac.org/about",
+                "code": "Preclinical evidence"
+              }
+            }
+          }
+        ],
+        "directionOfEvidenceProvided": "supports",
+        "strengthOfEvidenceProvided": {
+          "id": "vicc:e000009",
+          "extensions": [
+            {
+              "name": "metakb_display_value",
+              "value": "D"
+            }
+          ],
+          "name": "preclinical evidence",
+          "primaryCoding": {
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000009"
+          },
+          "mappings": [
+            {
+              "coding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "D"
+              },
+              "relation": "exactMatch"
+            },
+            {
+              "coding": {
+                "system": "https://moalmanac.org/about",
+                "code": "Preclinical evidence"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        },
+        "evidenceOutcome": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "1_star"
+          }
+        }
+      }
+    ]
+  },
+  "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz": {
+    "id": "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz",
+    "type": "Statement",
+    "extensions": [
+      {
+        "name": "metakb_star_rating",
+        "value": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "4_star"
+          }
+        }
+      },
+      {
+        "name": "metakb_star_rating_reason",
+        "value": "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+      }
+    ],
+    "specifiedBy": {
+      "id": "metakb.method:1",
+      "type": "Method",
+      "name": "MetaKB Computational Assertion Protocol",
+      "reportedIn": {
+        "type": "Document",
+        "name": "cancervariants/metakb",
+        "urls": ["https://github.com/cancervariants/metakb"],
+        "doi": "10.5281/zenodo.15675452"
+      }
+    },
+    "proposition": {
+      "type": "VariantDiagnosticProposition",
+      "subjectVariant": {
+        "id": "metakb.cv:PSQ.VA.UAquUsb5z-WfBxmE_eqEu3txfseQoRqU",
+        "type": "CategoricalVariant",
+        "name": "FOXL2 C134W",
+        "constraints": [
+          {
+            "type": "DefiningAlleleConstraint",
+            "allele": {
+              "id": "ga4gh:VA.UAquUsb5z-WfBxmE_eqEu3txfseQoRqU",
+              "type": "Allele",
+              "digest": "UAquUsb5z-WfBxmE_eqEu3txfseQoRqU",
+              "location": {
+                "id": "ga4gh:SL.tmFxcbYedkFzqlvi5ieZJkI6MThMweVE",
+                "type": "SequenceLocation",
+                "digest": "tmFxcbYedkFzqlvi5ieZJkI6MThMweVE",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.K_PDfazl8WkmyP2xjr5wnqhiyeJbQWfK"
+                },
+                "start": 133,
+                "end": 134,
+                "sequence": "C"
+              },
+              "state": {
+                "type": "LiteralSequenceExpression",
+                "sequence": "W"
+              }
+            },
+            "relations": [
+              {
+                "primaryCoding": {
+                  "system": "ga4gh-gks-term:allele-relation",
+                  "code": "liftover_to"
+                }
+              },
+              {
+                "primaryCoding": {
+                  "system": "http://www.sequenceontology.org",
+                  "code": "translation_of"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "geneContextQualifier": {
+        "id": "metakb.gene:hgnc_1092",
+        "conceptType": "Gene",
+        "name": "FOXL2",
+        "primaryCoding": {
+          "id": "hgnc:1092",
+          "system": "https://www.genenames.org/data/gene-symbol-report/#!/hgnc_id/",
+          "code": "HGNC:1092"
+        }
+      },
+      "alleleOriginQualifier": {
+        "extensions": [
+          {
+            "name": "civic_variant_origin",
+            "value": "SOMATIC"
+          }
+        ],
+        "name": "somatic"
+      },
+      "predicate": "isDiagnosticInclusionCriterionFor",
+      "objectCondition": {
+        "id": "metakb.disease:ncit_C4862",
+        "conceptType": "Disease",
+        "name": "Ovarian Sex Cord-Stromal Tumor",
+        "primaryCoding": {
+          "id": "ncit:C4862",
+          "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
+          "code": "C4862"
+        }
+      }
+    },
+    "direction": "supports",
+    "strength": {
+      "id": "vicc:e000001",
+      "extensions": [
+        {
+          "name": "metakb_display_value",
+          "value": "A"
+        }
+      ],
+      "name": "authoritative evidence",
+      "primaryCoding": {
+        "system": "https://go.osu.edu/evidence-codes",
+        "code": "e000001"
+      },
+      "mappings": [
+        {
+          "coding": {
+            "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+            "code": "A"
+          },
+          "relation": "exactMatch"
+        }
+      ]
+    },
+    "hasEvidenceLines": [
+      {
+        "id": "metakb.evline:07df038e-82a3-41db-b867-71304d0ff76e",
+        "type": "EvidenceLine",
+        "extensions": [
+          {
+            "name": "metakb_star_rating_reason",
+            "value": "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+          }
+        ],
+        "hasEvidenceItems": [
+          {
+            "id": "civic.eid:6034",
+            "type": "Statement",
+            "description": "FOXL2 mutations were found in 94% of pathologically confirmed A-GCTs (95/101), in one of eight juvenile granulosa cell tumours (J-GCTs), and in two of 19 SLCTs.",
+            "specifiedBy": {
+              "id": "civic.method:2019",
+              "type": "Method",
+              "name": "CIViC Curation SOP (2019)",
+              "methodType": "curation",
+              "reportedIn": {
+                "id": "pmid:31779674",
+                "type": "Document",
+                "name": "Danos et al., 2019, Genome Med.",
+                "aliases": ["CIViC curation SOP"],
+                "title": "Standard operating procedure for curation and clinical interpretation of variants in cancer",
+                "urls": [
+                  "https://doi.org/10.1186/s13073-019-0687-x",
+                  "https://pubmed.ncbi.nlm.nih.gov/31779674/"
+                ],
+                "doi": "10.1186/s13073-019-0687-x",
+                "pmid": "31779674"
+              }
+            },
+            "reportedIn": [
+              {
+                "id": "civic.sid:2237",
+                "type": "Document",
+                "name": "Goulvent et al., 2016",
+                "title": "DICER1 and FOXL2 mutations in ovarian sex cord-stromal tumours: a GINECO Group study.",
+                "urls": [
+                  "https://civicdb.org/links/source/2237",
+                  "http://www.ncbi.nlm.nih.gov/pubmed/26033501"
+                ],
+                "pmid": "26033501"
+              },
+              "https://civicdb.org/links/evidence/6034"
+            ],
+            "proposition": {
+              "type": "VariantDiagnosticProposition",
+              "subjectVariant": {
+                "id": "civic.mpid:198",
+                "type": "CategoricalVariant",
+                "name": "FOXL2 C134W",
+                "description": "The variant C134W on the FOXL2 gene was revealed to have a high frequency (95-97%) in the adult form of granulosa cell tumors that comprises 5% of ovarian cancers. Due to the mutation's high frequency, future therapeutics might target for this single apparent mechanism. However, the consequence of this mutation remain unknown.",
+                "extensions": [
+                  {
+                    "name": "CIViC Molecular Profile Score",
+                    "value": 70.0
+                  },
+                  {
+                    "name": "expressions",
+                    "value": [
+                      {
+                        "id": null,
+                        "extensions": null,
+                        "syntax": "hgvs.g",
+                        "value": "NC_000003.11:g.138665163G>C",
+                        "syntax_version": null
+                      }
+                    ]
+                  },
+                  {
+                    "name": "CIViC representative coordinate",
+                    "value": {
+                      "chromosome": "3",
+                      "start": 138665163,
+                      "stop": 138665163,
+                      "reference_bases": "G",
+                      "variant_bases": "C",
+                      "ensembl_version": 75,
+                      "representative_transcript": "ENST00000330315.3",
+                      "reference_build": "GRCh37",
+                      "type": "coordinates"
+                    }
+                  }
+                ],
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "civic.mpid:198",
+                      "system": "https://civicdb.org/links/molecular_profile/",
+                      "code": "198"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "id": "civic.vid:198",
+                      "extensions": [
+                        {
+                          "name": "subtype",
+                          "value": "gene_variant"
+                        },
+                        {
+                          "name": "variant_types",
+                          "value": [
+                            {
+                              "id": null,
+                              "extensions": null,
+                              "coding": {
+                                "id": "civic.variant_type:47",
+                                "extensions": null,
+                                "name": "Missense Variant",
+                                "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                                "systemVersion": null,
+                                "code": "SO:0001583",
+                                "iris": null
+                              },
+                              "relation": "exactMatch"
+                            }
+                          ]
+                        }
+                      ],
+                      "name": "C134W",
+                      "system": "https://civicdb.org/links/variant/",
+                      "code": "198"
+                    },
+                    "relation": "exactMatch"
+                  },
+                  {
+                    "coding": {
+                      "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+                      "code": "CA16602790"
+                    },
+                    "relation": "relatedMatch"
+                  }
+                ]
+              },
+              "geneContextQualifier": {
+                "id": "civic.gid:72",
+                "extensions": [
+                  {
+                    "name": "aliases",
+                    "value": ["BPES", "BPES1", "FOXL2", "PFRK", "PINTO", "POF3"]
+                  }
+                ],
+                "conceptType": "Gene",
+                "name": "FOXL2",
+                "mappings": [
+                  {
+                    "coding": {
+                      "id": "ncbigene:668",
+                      "system": "https://www.ncbi.nlm.nih.gov/gene/",
+                      "code": "668"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              },
+              "alleleOriginQualifier": {
+                "extensions": [
+                  {
+                    "name": "civic_variant_origin",
+                    "value": "SOMATIC"
+                  }
+                ],
+                "name": "somatic"
+              },
+              "predicate": "isDiagnosticInclusionCriterionFor",
+              "objectCondition": {
+                "id": "civic.did:2969",
+                "conceptType": "Disease",
+                "name": "Ovarian Sex-cord Stromal Tumor",
+                "mappings": [
+                  {
+                    "coding": {
+                      "system": "https://disease-ontology.org/?id=",
+                      "code": "DOID:0080369"
+                    },
+                    "relation": "exactMatch"
+                  }
+                ]
+              }
+            },
+            "direction": "supports",
+            "strength": {
+              "id": "civic.strength:A",
+              "extensions": [
+                {
+                  "name": "metakb_display_value",
+                  "value": "A"
+                }
+              ],
+              "name": "Validated association",
+              "primaryCoding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A"
+              },
+              "mappings": [
+                {
+                  "coding": {
+                    "name": "authoritative evidence",
+                    "system": "https://go.osu.edu/evidence-codes",
+                    "code": "e000001"
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          }
+        ],
+        "directionOfEvidenceProvided": "supports",
+        "strengthOfEvidenceProvided": {
+          "id": "vicc:e000001",
+          "extensions": [
+            {
+              "name": "metakb_display_value",
+              "value": "A"
+            }
+          ],
+          "name": "authoritative evidence",
+          "primaryCoding": {
+            "system": "https://go.osu.edu/evidence-codes",
+            "code": "e000001"
+          },
+          "mappings": [
+            {
+              "coding": {
+                "system": "https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                "code": "A"
+              },
+              "relation": "exactMatch"
+            }
+          ]
+        },
+        "evidenceOutcome": {
+          "primaryCoding": {
+            "system": "metakb",
+            "code": "4_star"
+          }
+        }
+      }
+    ]
+  }
+}

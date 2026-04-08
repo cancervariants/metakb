@@ -20,7 +20,7 @@ from metakb.transformers.methodology import (
 @pytest.fixture(scope="session")
 def statements(test_data_dir: Path) -> dict[str, Statement]:
     with (
-        test_data_dir / "transformers" / "base_build_statements_input.json"
+        test_data_dir / "transformers" / "base_construct_statements_input.json"
     ).open() as f:
         data = json.load(f)
         return {k: Statement(**v) for k, v in data.items()}
