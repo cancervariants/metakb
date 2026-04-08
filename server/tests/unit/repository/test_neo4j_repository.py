@@ -156,6 +156,15 @@ def test_feature_context_assertion_roundtrip(
 
 
 @pytest.mark.ci_only
+def test_assertion_update(repository: Neo4jRepository, assertions: dict):
+    """Test an assertion update that alters the evidence line structure
+
+    Ideally just find two 1-star pieces of evidence so that merging them creates a grouped ev line
+    """
+    # TODO
+
+
+@pytest.mark.ci_only
 def test_diagnostic_assertion(repository: Neo4jRepository, assertions: dict):
     assertion_id = "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz"
     assertion = assertions[assertion_id]
