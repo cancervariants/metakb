@@ -64,32 +64,33 @@ DEFAULT_GENOME_BUILD = "GRCh37"
 TRANSFORMER_CLASS_NAME = "CBioPortalTransformer"
 
 CHROMOSOME_ACCESSIONS = {
-    "1":  {"GRCh37": "NC_000001.10", "GRCh38": "NC_000001.11"},
-    "2":  {"GRCh37": "NC_000002.11", "GRCh38": "NC_000002.12"},
-    "3":  {"GRCh37": "NC_000003.11", "GRCh38": "NC_000003.12"},
-    "4":  {"GRCh37": "NC_000004.11", "GRCh38": "NC_000004.12"},
-    "5":  {"GRCh37": "NC_000005.9",  "GRCh38": "NC_000005.10"},
-    "6":  {"GRCh37": "NC_000006.11", "GRCh38": "NC_000006.12"},
-    "7":  {"GRCh37": "NC_000007.13", "GRCh38": "NC_000007.14"},
-    "8":  {"GRCh37": "NC_000008.10", "GRCh38": "NC_000008.11"},
-    "9":  {"GRCh37": "NC_000009.11", "GRCh38": "NC_000009.12"},
+    "1": {"GRCh37": "NC_000001.10", "GRCh38": "NC_000001.11"},
+    "2": {"GRCh37": "NC_000002.11", "GRCh38": "NC_000002.12"},
+    "3": {"GRCh37": "NC_000003.11", "GRCh38": "NC_000003.12"},
+    "4": {"GRCh37": "NC_000004.11", "GRCh38": "NC_000004.12"},
+    "5": {"GRCh37": "NC_000005.9", "GRCh38": "NC_000005.10"},
+    "6": {"GRCh37": "NC_000006.11", "GRCh38": "NC_000006.12"},
+    "7": {"GRCh37": "NC_000007.13", "GRCh38": "NC_000007.14"},
+    "8": {"GRCh37": "NC_000008.10", "GRCh38": "NC_000008.11"},
+    "9": {"GRCh37": "NC_000009.11", "GRCh38": "NC_000009.12"},
     "10": {"GRCh37": "NC_000010.10", "GRCh38": "NC_000010.11"},
-    "11": {"GRCh37": "NC_000011.9",  "GRCh38": "NC_000011.10"},
+    "11": {"GRCh37": "NC_000011.9", "GRCh38": "NC_000011.10"},
     "12": {"GRCh37": "NC_000012.11", "GRCh38": "NC_000012.12"},
     "13": {"GRCh37": "NC_000013.10", "GRCh38": "NC_000013.11"},
-    "14": {"GRCh37": "NC_000014.8",  "GRCh38": "NC_000014.9"},
-    "15": {"GRCh37": "NC_000015.9",  "GRCh38": "NC_000015.10"},
-    "16": {"GRCh37": "NC_000016.9",  "GRCh38": "NC_000016.10"},
+    "14": {"GRCh37": "NC_000014.8", "GRCh38": "NC_000014.9"},
+    "15": {"GRCh37": "NC_000015.9", "GRCh38": "NC_000015.10"},
+    "16": {"GRCh37": "NC_000016.9", "GRCh38": "NC_000016.10"},
     "17": {"GRCh37": "NC_000017.10", "GRCh38": "NC_000017.11"},
-    "18": {"GRCh37": "NC_000018.9",  "GRCh38": "NC_000018.10"},
-    "19": {"GRCh37": "NC_000019.9",  "GRCh38": "NC_000019.10"},
+    "18": {"GRCh37": "NC_000018.9", "GRCh38": "NC_000018.10"},
+    "19": {"GRCh37": "NC_000019.9", "GRCh38": "NC_000019.10"},
     "20": {"GRCh37": "NC_000020.10", "GRCh38": "NC_000020.11"},
-    "21": {"GRCh37": "NC_000021.8",  "GRCh38": "NC_000021.9"},
+    "21": {"GRCh37": "NC_000021.8", "GRCh38": "NC_000021.9"},
     "22": {"GRCh37": "NC_000022.10", "GRCh38": "NC_000022.11"},
-    "X":  {"GRCh37": "NC_000023.10", "GRCh38": "NC_000023.11"},
-    "Y":  {"GRCh37": "NC_000024.9",  "GRCh38": "NC_000024.10"},
-    "MT": {"GRCh37": "NC_012920.1",  "GRCh38": "NC_012920.1"},
+    "X": {"GRCh37": "NC_000023.10", "GRCh38": "NC_000023.11"},
+    "Y": {"GRCh37": "NC_000024.9", "GRCh38": "NC_000024.10"},
+    "MT": {"GRCh37": "NC_012920.1", "GRCh38": "NC_012920.1"},
 }
+
 
 class CBioPortalTransformerBase(Transformer):
     """Orchestrates per-study cBioportal transformers AND performs centralized
@@ -486,7 +487,7 @@ class CBioPortalTransformerBase(Transformer):
         # Store in cache with genome build in key
         self.variant_cache[cache_key] = vrs_id
         return vrs_id
-    
+
     def _build_updated_gnomad_notation(
         self, variant_notation: str, sr: object
     ) -> str | None:
@@ -497,8 +498,9 @@ class CBioPortalTransformerBase(Transformer):
         :param sr: SeqRepo instance
         :return: Updated notation string, or None if not possible
         """
+        expected_parts = 4  # chrom, pos, ref, alt
         parts = variant_notation.split("-", 3)
-        if len(parts) != 4:
+        if len(parts) != expected_parts:
             return None
 
         chrom, pos, ref, alt = parts
@@ -522,20 +524,20 @@ class CBioPortalTransformerBase(Transformer):
                 )
                 return None
 
-            upstream_base = sr[accession][upstream_pos - 1:upstream_pos]
+            upstream_base = sr[accession][upstream_pos - 1 : upstream_pos]
             if not upstream_base:
                 return None
 
             updated_ref = upstream_base + (ref if ref != "-" else "")
             updated_alt = upstream_base + (alt if alt != "-" else "")
 
-            return f"{chrom}-{upstream_pos}-{updated_ref}-{updated_alt}"
-
         except Exception as e:
             logger.warning(
                 "Failed to build updated notation for %s: %s", variant_notation, e
             )
             return None
+        else:
+            return f"{chrom}-{upstream_pos}-{updated_ref}-{updated_alt}"
 
     def _normalize_variants(self, df: pd.DataFrame, study_id: str) -> pd.DataFrame:
         """Normalize all unique variants in the DataFrame and add a vrs_id column.
@@ -622,13 +624,19 @@ class CBioPortalTransformerBase(Transformer):
                                 "study_id": study_id,
                                 "sample_id": sid,
                                 "variant_notation": variant,
-                                "updated_notation": updated_notation_map.get(variant, "No_Data"),
+                                "updated_notation": updated_notation_map.get(
+                                    variant, "No_Data"
+                                ),
                             }
                         )
 
         df["vrs_id"] = df["Gnomad_Notation"].map(vrs_map).fillna("No_Data")
-        df["Updated_Gnomad_Notation"] = df["Gnomad_Notation"].map(updated_notation_map).fillna("No_Data")
-        df["Updated_vrs_id"] = df["Gnomad_Notation"].map(updated_vrs_map).fillna("No_Data")
+        df["Updated_Gnomad_Notation"] = (
+            df["Gnomad_Notation"].map(updated_notation_map).fillna("No_Data")
+        )
+        df["Updated_vrs_id"] = (
+            df["Gnomad_Notation"].map(updated_vrs_map).fillna("No_Data")
+        )
 
         total = len(unique_variants)
         normalized = sum(1 for v in vrs_map.values() if v is not None)
@@ -1342,7 +1350,8 @@ class CBioPortalTransformerBase(Transformer):
             failed_after_retry_df = pd.DataFrame(self.failed_variants_after_retry)
 
             combined_path = (
-                norm_failures_dir / "combined_failed_variant_normalizations_after_retry.csv"
+                norm_failures_dir
+                / "combined_failed_variant_normalizations_after_retry.csv"
             )
             failed_after_retry_df.to_csv(combined_path, index=False)
 
@@ -1351,7 +1360,8 @@ class CBioPortalTransformerBase(Transformer):
                     failed_after_retry_df["study_id"] == study_id
                 ]
                 failed_path = (
-                    norm_failures_dir / f"{study_id}_failed_variant_normalizations_after_retry.csv"
+                    norm_failures_dir
+                    / f"{study_id}_failed_variant_normalizations_after_retry.csv"
                 )
                 study_variants.to_csv(failed_path, index=False)
 
