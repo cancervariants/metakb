@@ -19,10 +19,7 @@ from metakb.transformers.moa import MoaTransformer
 
 @pytest.fixture
 def transformer() -> MoaTransformer:
-    return MoaTransformer(
-        # need to avoid triggering the normalizer factory method
-        normalizers="dummy value"
-    )
+    return MoaTransformer()
 
 
 @pytest.fixture(scope="session")
@@ -210,12 +207,12 @@ async def test_transform(
     await transformer.transform(moa_harvested_data)
     result = transformer.processed_data
 
-    statement = next(s for s in result.statements if s.id == "moa.assertion:66")
+    statement = next(s for s in result.evidence if s.id == "moa.assertion:66")
     assert statement
 
     aggr_statement = next(
         s
-        for s in result.statements
-        if s.id == "metakb.assertion:FjG0sW5kHU9anpIRFlFMkx42a8nZbNCp"
+        for s in result.assertions
+        if s.id == "metakb.assertion:CEONuWma7hpFXQNzmnN0cZKrlOlMfMfk"
     )
     assert aggr_statement

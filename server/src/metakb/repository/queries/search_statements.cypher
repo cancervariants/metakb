@@ -129,8 +129,7 @@ OPTIONAL MATCH
 OPTIONAL MATCH
   (defining_allele)-[:HAS_STATE]->(defining_allele_se:SequenceExpression)
 // Then get members
-CALL {
-  WITH cv
+CALL (cv) {
   OPTIONAL MATCH (cv)-[:HAS_MEMBER]->(m:Allele)
   OPTIONAL MATCH (m)-[:HAS_LOCATION]->(sl:SequenceLocation)
   OPTIONAL MATCH (sl)-[:HAS_SEQUENCE_REFERENCE]->(sr:SequenceReference)
@@ -145,26 +144,46 @@ CALL {
 }
 
 // get documents
-CALL {
-  WITH s
+CALL (s) {
   MATCH (s)-[:IS_REPORTED_IN]->(doc:Document)
   RETURN collect(DISTINCT doc) AS documents
 }
 
-// get evidence line IDs
-CALL {
-  WITH s
-  OPTIONAL MATCH (s)-[:HAS_EVIDENCE_LINE]->(line:EvidenceLine)
-  OPTIONAL MATCH (line)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)
-  WITH line, collect(DISTINCT ei.id) AS item_ids
-  WITH
+// get evidence lines
+// this is pretty janky, and requires some complex reconstruction on the python side,
+// because getting a truly recursively nested JSON tree of arbitrary depth directly
+// from Cypher is awkward without APOC
+CALL (s) {
+  MATCH
+    p =
+      (s)-[:HAS_EVIDENCE_LINE]->
+      (root:EvidenceLine)-[:HAS_EVIDENCE_ITEM*0..]->
+      (leaf:EvidenceLine)
+  WHERE (leaf)-[:HAS_EVIDENCE_ITEM]->(:Statement)
+  MATCH (leaf)-[:HAS_EVIDENCE_ITEM]->(ei:Statement)
+  WITH root, p, leaf, collect(DISTINCT ei.id) AS item_ids
+  RETURN
     collect(
-      CASE
-        WHEN line IS NULL THEN null
-        ELSE line {.*, evidence_item_ids: item_ids}
-      END
-    ) AS tmp
-  RETURN [x IN tmp WHERE x IS NOT NULL] AS evidence_lines
+      {
+        root_id: root.id,
+        chain:
+          [
+            line IN [n IN nodes(p) WHERE n:EvidenceLine]
+            | line {
+              .*,
+              has_strength:
+                head(
+                  [(line)-[:HAS_STRENGTH]->(strength:Strength) | strength {.*} ]
+                ),
+              has_evidence_items:
+                CASE
+                  WHEN line = leaf THEN item_ids
+                  ELSE []
+                END
+            }
+          ]
+      }
+    ) AS evidence_lines
 }
 
 // ----- return everything -----

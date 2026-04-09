@@ -44,7 +44,7 @@ def unnormalized_therapeutics(test_data_dir: Path) -> dict[str, Therapeutic]:
 @pytest.fixture(scope="session")
 def statements(test_data_dir: Path) -> dict[str, Statement]:
     with (
-        test_data_dir / "transformers" / "base_build_statements_input.json"
+        test_data_dir / "transformers" / "base_construct_statements_input.json"
     ).open() as f:
         data = json.load(f)
         return {k: Statement(**v) for k, v in data.items()}
@@ -150,29 +150,50 @@ def test_normalize_therapeutic(
 async def test_build_aggregate_statement(
     transformer: Transformer, statements: dict[str, Statement]
 ):
-    statement = statements["civic.eid:1420"]
-    result = await transformer._create_aggregate_statement(statement)
+    assertions = {}
+
+    statement = statements["civic.eid:1421"]
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
     assert result is not None
-    assert result.id == "metakb.assertion:nHR-z_2yza1WDI4CaDT974TSGkLeXCDd"
-    assert result.extensions is not None
-    result_exts = {ext.name: ext.value for ext in result.extensions}
-    assert result_exts["star_rating"] == 1
     assert (
-        result_exts["star_rating_reason"]
+        result.proposition.subjectVariant.id
+        == "metakb.cv:PSQ.VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    )
+    assert result.proposition.geneContextQualifier.id == "metakb.gene:hgnc_1097"
+    assert (
+        result.proposition.objectTherapeutic.root.id
+        == "metakb.tg:GMZoYSJ8w0MBfq1cFjivZdxrbrFgtD7N"
+    )
+    assert result.proposition.conditionQualifier.root.id == "metakb.disease:ncit_C3224"
+    result_exts = {ext.name: ext.value for ext in result.extensions}
+    assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "1_star"
+    assert (
+        result_exts["metakb_star_rating_reason"]
         == "single submission from a clinical lab or online resource"
     )
 
-    statement = statements["civic.eid:6034"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is not None
-    assert result.id == "metakb.assertion:1btFUh0orXY6FAy9M23YYhocP1CCZkMF"
-
-    statement = statements["moa.assertion:66"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is not None
-    assert result.id == "metakb.assertion:FjG0sW5kHU9anpIRFlFMkx42a8nZbNCp"
+    statement = statements["civic.aid:10"]
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    result = assertions["metakb.assertion:YFka_hqmWIjps9L6LZz1VfuJFobRTuFs"]
+    assert (
+        result.proposition.subjectVariant.id
+        == "metakb.cv:PSQ.VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    )
+    assert result.proposition.geneContextQualifier.id == "metakb.gene:hgnc_1097"
+    assert (
+        result.proposition.objectTherapeutic.root.id
+        == "metakb.tg:GMZoYSJ8w0MBfq1cFjivZdxrbrFgtD7N"
+    )
+    assert result.proposition.conditionQualifier.root.id == "metakb.disease:ncit_C3224"
+    result_exts = {ext.name: ext.value for ext in result.extensions}
+    assert result_exts["metakb_star_rating"]["primaryCoding"]["code"] == "4_star"
+    assert (
+        result_exts["metakb_star_rating_reason"]
+        == "knowledge from WHO / NCCN / FDA / other regulatory or professional guidelines"
+    )
 
     # smoothly handle failed normalization
     statement = statements["moa.assertion:1"]
-    result = await transformer._create_aggregate_statement(statement)
-    assert result is None
+    await transformer._upsert_assertion_from_evidence(statement, assertions)
+    assert len(assertions) == 1

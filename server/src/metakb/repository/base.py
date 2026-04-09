@@ -2,14 +2,12 @@
 
 import abc
 
-from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.aac_2017 import (
     VariantDiagnosticStudyStatement,
     VariantPrognosticStudyStatement,
     VariantTherapeuticResponseStudyStatement,
 )
 from ga4gh.va_spec.base import (
-    Direction,
     Statement,
 )
 from pydantic import BaseModel
@@ -38,15 +36,7 @@ class AbstractRepository(abc.ABC):
         """Set up DB schema"""
 
     @abc.abstractmethod
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
+    def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
@@ -99,10 +89,10 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def load_statement(self, statement: Statement) -> None:
-        """Load individual statement, and contained entities, into DB
+    def load_assertion(self, assertion: Statement) -> None:
+        """Add or update a complete assertion object to the DB
 
-        :param statement: statement to load
+        :param assertion: metakb assertion
         """
 
     @abc.abstractmethod
@@ -112,27 +102,3 @@ class AbstractRepository(abc.ABC):
     @abc.abstractmethod
     def get_all_assertion_ids(self) -> list[str]:
         """Return all assertion IDs"""
-
-    @abc.abstractmethod
-    def update_assertion_strength(
-        self, assertion_id: str, strength: MappableConcept
-    ) -> None:
-        """Update strength associated with an assertion
-
-        :param assertion_id: ID of statement to update
-        :param strength: new strength concept
-        """
-
-    @abc.abstractmethod
-    def update_assertion_properties(
-        self,
-        assertion_id: str,
-        direction: Direction | str,
-        extensions: list[Extension] | None = None,
-    ) -> None:
-        """Update mutable properties for a higher-order assertion
-
-        :param assertion_id: ID of the assertion node
-        :param direction: new direction property
-        :param extensions: new extensions for the assertion
-        """

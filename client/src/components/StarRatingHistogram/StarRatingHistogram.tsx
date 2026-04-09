@@ -1,9 +1,9 @@
 import { Typography, useTheme } from '@mui/material'
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { NormalizedResult } from '../../utils'
+import { AssertionResult } from '../../utils'
 
 interface Props {
-  data: NormalizedResult[]
+  data: AssertionResult[]
 }
 
 export function StarRatingHistogram({ data }: Props) {

@@ -15,7 +15,7 @@ import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable/ResultTable'
 import FilterSection from '../../components/FilterSection/FilterSection'
 import {
-  NormalizedResult,
+  AssertionResult,
   buildCountMap,
   evidenceOrder,
   normalizeResults,
@@ -31,9 +31,9 @@ type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
 
 type EvidenceBuckets = {
-  prognostic: NormalizedResult[]
-  diagnostic: NormalizedResult[]
-  therapeutic: NormalizedResult[]
+  prognostic: AssertionResult[]
+  diagnostic: AssertionResult[]
+  therapeutic: AssertionResult[]
 }
 
 const CHART_MIN_WIDTH = 420
@@ -71,11 +71,19 @@ const ResultPage = () => {
 
   const { description, aliases, displayName } = useMemo(() => {
     const firstWithQualifier =
-      results.therapeutic[0]?.grouped_evidence?.[0]?.proposition ??
-      results.prognostic[0]?.grouped_evidence?.[0]?.proposition ??
-      results.diagnostic[0]?.grouped_evidence?.[0]?.proposition
+      results.therapeutic[0]?.proposition ??
+      results.prognostic[0]?.proposition ??
+      results.diagnostic[0]?.proposition
 
-    return getEntityMetadataFromProposition(firstWithQualifier, typeFromUrl as 'gene' | 'variation')
+    const tmpResults = getEntityMetadataFromProposition(
+      firstWithQualifier,
+      typeFromUrl as 'gene' | 'variation',
+    )
+    return {
+      displayName: tmpResults.displayName,
+      aliases: ['alias1_placeholder', 'alias2_placeholder'],
+      description: 'description_placeholder',
+    }
   }, [results.diagnostic, results.prognostic, results.therapeutic, typeFromUrl])
 
   const selectedFilters = {
@@ -88,7 +96,7 @@ const ResultPage = () => {
     sources: selectedSources,
   }
 
-  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', NormalizedResult[]> = {
+  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', AssertionResult[]> = {
     therapeutic: applyFilters(results.therapeutic, selectedFilters),
     diagnostic: applyFilters(results.diagnostic, selectedFilters),
     prognostic: applyFilters(results.prognostic, selectedFilters),
@@ -150,9 +158,10 @@ const ResultPage = () => {
         })
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
+
         const prognostic_data = data.prognostic_statements
         const diagnostic_data = data.diagnostic_statements
-        const therapeutic_data = data.therapeutic_statements
+        const therapeutic_data = data.therapeutic_response_statements
 
         const norm_prog_data = normalizeResults(prognostic_data)
         const norm_diag_data = normalizeResults(diagnostic_data)

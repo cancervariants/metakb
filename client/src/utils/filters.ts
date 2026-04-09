@@ -6,7 +6,7 @@
  * and counts for the sidebar UI.
  */
 
-import { NormalizedResult } from './results'
+import { AssertionResult } from './results'
 
 /**
  * Builds a frequency map of values from a list of results.
@@ -61,7 +61,7 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
  * @returns Array of `NormalizedResult` rows that satisfy all active filters.
  */
 export const applyFilters = (
-  items: NormalizedResult[],
+  items: AssertionResult[],
   selected: {
     variants: string[]
     diseases: string[]
@@ -71,7 +71,7 @@ export const applyFilters = (
     significance: string[]
     sources: string[]
   },
-): NormalizedResult[] => {
+): AssertionResult[] => {
   return items.filter((r) => {
     const variantMatch =
       selected.variants.length === 0 || selected.variants.includes(r.variant_name)
@@ -120,8 +120,8 @@ export const applyFilters = (
  *          sorted from most frequent to least frequent.
  */
 export const buildFilterOptions = (
-  results: NormalizedResult[],
-  key: keyof NormalizedResult,
+  results: AssertionResult[],
+  key: keyof AssertionResult,
 ): string[] => {
   const counts = buildCountMap(results, key)
 

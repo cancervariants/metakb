@@ -5,44 +5,33 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core.models import Coding, Extension, MappableConcept, code, iriReference
-from ga4gh.va_spec.aac_2017 import Classification as AacClassification
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
-    Direction,
-    Document,
-    EvidenceLine,
-    Method,
     Statement,
-    System,
     Therapeutic,
     TherapyGroup,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele
 from pydantic import BaseModel
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
-from metakb.transformers.identifiers import compute_aggr_statement_id, compute_combo_id
+from metakb.transformers.identifiers import (
+    compute_assertion_id,
+    compute_combo_id,
+)
 from metakb.transformers.methodology import (
-    AMP_ASCO_CAP_METHOD,
-    calculate_aggregate_values,
-    calculate_star_rating,
-    src_strength_to_vicc_code,
+    add_evidence_to_assertion,
+    initialize_assertion,
 )
 
 _logger = logging.getLogger(__name__)
@@ -51,16 +40,20 @@ _logger = logging.getLogger(__name__)
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements: list[Statement] = []
-    categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
-    variations: list[Allele] = []
-    genes: list[MappableConcept] = []
-    therapies: list[MappableConcept] = []
-    therapy_groups: list[TherapyGroup] = []
-    conditions: list[MappableConcept] = []
-    condition_sets: list[ConditionSet] = []
-    methods: list[Method] = []
-    documents: list[Document | iriReference] = []
+    evidence: list[Statement] = []
+    assertions: list[Statement] = []
+
+
+# TypeVar constrained to the specific Proposition subclasses.
+# This is used to indicate that a function operates on a single concrete
+# proposition type and returns the *same* type, rather than a generic union.
+# It preserves the relationship between input and output types for static typing.
+PropositionType = TypeVar(
+    "PropositionType",
+    VariantTherapeuticResponseProposition,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+)
 
 
 class Transformer(ABC):
@@ -147,25 +140,6 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
-
-    @staticmethod
-    def _set_star_rating_extensions(statement: Statement) -> None:
-        """Attach or refresh star-rating extensions for an aggregate statement."""
-        if not statement.hasEvidenceLines:
-            return
-
-        star_rating = calculate_star_rating(statement.hasEvidenceLines)
-        existing_exts = statement.extensions or []
-        existing_exts = [
-            ext
-            for ext in existing_exts
-            if ext.name not in {"star_rating", "star_rating_reason"}
-        ]
-        statement.extensions = [
-            *existing_exts,
-            Extension(name="star_rating", value=star_rating.star_rating),
-            Extension(name="star_rating_reason", value=star_rating.reason.value),
-        ]
 
     ### Entity normalization
 
@@ -373,199 +347,84 @@ class Transformer(ABC):
         :return: either a normalized CatVar, or None
         """
 
-    ### statement construction
+    ### evidence/assertion construction
 
-    # TODO finish in #766
+    async def _get_normalized_proposition(
+        self, proposition: PropositionType
+    ) -> PropositionType | None:
+        """Attempt to construct normalized equivalent of evidence item proposition.
 
-    @staticmethod
-    def _get_assertion_classification(evidence: list[EvidenceLine]) -> MappableConcept:  # noqa: ARG004
-        """Get classification for the assertion supported by the provided evidence
-
-        TODO this is a placeholder! it is not final!
-
-        :param evidence: supporting evidence for the assertion
-        :return: classification concept
+        :param proposition: original evidence item proposition
         """
-        return MappableConcept(
-            primaryCoding=Coding(
-                system=System.AMP_ASCO_CAP, code=code(AacClassification.TIER_IV)
+        prop_kwargs = {
+            "geneContextQualifier": self._normalize_gene(
+                proposition.geneContextQualifier
+            ),
+            "subjectVariant": await self._normalize_variant(proposition.subjectVariant),
+        }
+
+        if isinstance(proposition, VariantTherapeuticResponseProposition):
+            normalized_therapeutic = self._normalize_therapeutic(
+                proposition.objectTherapeutic
             )
+            normalized_condition = self._normalize_condition(
+                proposition.conditionQualifier
+            )
+            prop_kwargs["objectTherapeutic"] = normalized_therapeutic
+            prop_kwargs["conditionQualifier"] = normalized_condition
+        else:
+            normalized_condition = self._normalize_condition(
+                proposition.objectCondition
+            )
+            prop_kwargs["objectCondition"] = normalized_condition
+
+        # Collect failures for logging
+        failures = []
+        for key, value in prop_kwargs.items():
+            if not value:
+                original = getattr(proposition, key)
+                failures.append((key, original))
+
+        if failures:
+            _logger.debug(
+                "Failed to normalize proposition components: %s | predicate=%s",
+                ", ".join(f"{k}={v}" for k, v in failures),
+                proposition.predicate,
+            )
+            return None
+
+        return type(proposition)(
+            predicate=proposition.predicate,
+            alleleOriginQualifier=proposition.alleleOriginQualifier,
+            **prop_kwargs,
         )
 
-    async def _create_aggregate_statement(
-        self, statement: Statement
-    ) -> (
-        VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
-        """Attempt to build higher-order MetaKB assertion that wraps provided statement
+    async def _upsert_assertion_from_evidence(
+        self, evidence_item: Statement, assertions_map: dict[str, Statement]
+    ) -> None:
+        """Create or update an assertion from a single evidence item.
 
-        Try normalization of contained entities. If successful, then create a normalized
-        statement, and insert the provided source statement into a supporting ``EvidenceLine``.
+        The transformer workflow's assertions tracker is borrowed and updated in-place.
 
-        :param statement: raw statement from source
-        :return: higher-order MetaKB assertion if successful
-        :raise ValueError: if unrecognized proposition type
+        If the proposition cannot be normalized, no assertion is created.
+
+        :param evidence_item: source statement to incorporate as evidence
+        :param assertions_map: mapping of assertion_id -> Statement, updated in place
         """
-        if isinstance(statement.proposition, VariantTherapeuticResponseProposition):
-            return await self._build_aggregated_tr_statement(statement)
-        if isinstance(statement.proposition, VariantDiagnosticProposition):
-            return await self._build_aggregated_diag_statement(statement)
-        if isinstance(statement.proposition, VariantPrognosticProposition):
-            return await self._build_aggregated_prog_statement(statement)
-        raise ValueError
-
-    async def _build_aggregated_diag_statement(
-        self, statement: Statement
-    ) -> VariantDiagnosticStudyStatement | None:
-        """Attempt construction of an aggregate diagnostic study statement given a source statement
-
-        :param statement: diagnostic statement
-        :return: aggregate statement if all terms normalize
-        """
-        prop: VariantDiagnosticProposition = statement.proposition
-        normalized_disease = self._normalize_condition(prop.objectCondition)
-        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = await self._normalize_variant(prop.subjectVariant)
-        if all([normalized_disease, normalized_gene, normalized_variant]):
-            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
-            if not vicc_ev_code:
-                _logger.debug(
-                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
-                    statement.strength,
-                    statement.id,
-                )
-                return None
-            evidence = [
-                EvidenceLine(
-                    hasEvidenceItems=[statement],
-                    directionOfEvidenceProvided=statement.direction,
-                    strengthOfEvidenceProvided=vicc_ev_code,
-                )
-            ]
-            strength, direction = calculate_aggregate_values(evidence)
-            statement = VariantDiagnosticStudyStatement(
-                proposition=VariantDiagnosticProposition(
-                    geneContextQualifier=normalized_gene,
-                    subjectVariant=normalized_variant,
-                    objectCondition=normalized_disease,
-                    predicate=statement.proposition.predicate,
-                    alleleOriginQualifier=prop.alleleOriginQualifier,
-                ),
-                direction=direction,
-                specifiedBy=AMP_ASCO_CAP_METHOD,
-                hasEvidenceLines=evidence,
-                strength=strength,
-                classification=self._get_assertion_classification(evidence),
+        normalized_proposition = await self._get_normalized_proposition(
+            evidence_item.proposition
+        )
+        if not normalized_proposition:
+            _logger.debug(
+                "Unable to normalize all proposition terms for ev item %s",
+                evidence_item.id,
             )
-            statement.id = compute_aggr_statement_id(statement)
-            self._set_star_rating_extensions(statement)
-            return statement
-        return None
-
-    async def _build_aggregated_prog_statement(
-        self, statement: Statement
-    ) -> VariantPrognosticStudyStatement | None:
-        """Attempt construction of an aggregate prognostic study statement given a source statement
-
-        :param statement: prognostic statement
-        :return: aggregate statement if all terms normalize
-        """
-        prop: VariantPrognosticProposition = statement.proposition
-        normalized_disease = self._normalize_condition(prop.objectCondition)
-        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = await self._normalize_variant(prop.subjectVariant)
-        if all((normalized_disease, normalized_gene, normalized_variant)):
-            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
-            if not vicc_ev_code:
-                _logger.debug(
-                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
-                    statement.strength,
-                    statement.id,
-                )
-                return None
-            evidence = [
-                EvidenceLine(
-                    hasEvidenceItems=[statement],
-                    directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=vicc_ev_code,
-                )
-            ]
-            strength, direction = calculate_aggregate_values(evidence)
-            statement = VariantPrognosticStudyStatement(
-                proposition=VariantPrognosticProposition(
-                    geneContextQualifier=normalized_gene,
-                    subjectVariant=normalized_variant,
-                    objectCondition=normalized_disease,
-                    predicate=statement.proposition.predicate,
-                    alleleOriginQualifier=prop.alleleOriginQualifier,
-                ),
-                direction=direction,
-                specifiedBy=AMP_ASCO_CAP_METHOD,
-                hasEvidenceLines=evidence,
-                strength=strength,
-                classification=self._get_assertion_classification(evidence),
+            return
+        assertion_id = compute_assertion_id(normalized_proposition)
+        if assertion := assertions_map.get(assertion_id):
+            assertion = add_evidence_to_assertion(assertion, evidence_item)
+        else:
+            assertion = initialize_assertion(
+                assertion_id, normalized_proposition, evidence_item
             )
-            statement.id = compute_aggr_statement_id(statement)
-            self._set_star_rating_extensions(statement)
-            return statement
-        return None
-
-    async def _build_aggregated_tr_statement(
-        self, statement: Statement
-    ) -> VariantTherapeuticResponseStudyStatement | None:
-        """Attempt construction of an aggregate therapeutic response study statement given a source statement
-
-        :param statement: source TR assertion
-        :return: aggregate statement if all terms normalize
-        """
-        prop: VariantTherapeuticResponseProposition = statement.proposition
-        normalized_disease = self._normalize_condition(prop.conditionQualifier)
-        normalized_gene = self._normalize_gene(prop.geneContextQualifier)
-        normalized_variant = await self._normalize_variant(prop.subjectVariant)
-        normalized_therapeutic = self._normalize_therapeutic(prop.objectTherapeutic)
-        if all(
-            (
-                normalized_disease,
-                normalized_gene,
-                normalized_variant,
-                normalized_therapeutic,
-            )
-        ):
-            vicc_ev_code = src_strength_to_vicc_code(statement.strength)
-            if not vicc_ev_code:
-                _logger.debug(
-                    "Source evidence strength (%s) is too low or unsupported for statement ID %s",
-                    statement.strength,
-                    statement.id,
-                )
-                return None
-            evidence = [
-                EvidenceLine(
-                    hasEvidenceItems=[statement],
-                    directionOfEvidenceProvided=Direction.SUPPORTS,
-                    strengthOfEvidenceProvided=vicc_ev_code,
-                )
-            ]
-            strength, direction = calculate_aggregate_values(evidence)
-            aggr_statement = VariantTherapeuticResponseStudyStatement(
-                proposition=VariantTherapeuticResponseProposition(
-                    geneContextQualifier=normalized_gene,
-                    subjectVariant=normalized_variant,
-                    objectTherapeutic=normalized_therapeutic,
-                    conditionQualifier=normalized_disease,
-                    predicate=statement.proposition.predicate,
-                    alleleOriginQualifier=prop.alleleOriginQualifier,
-                ),
-                direction=direction,
-                specifiedBy=AMP_ASCO_CAP_METHOD,
-                hasEvidenceLines=evidence,
-                strength=strength,
-                classification=self._get_assertion_classification(evidence),
-            )
-            aggr_statement.id = compute_aggr_statement_id(aggr_statement)
-            self._set_star_rating_extensions(aggr_statement)
-            return aggr_statement
-        return None
+        assertions_map[assertion_id] = assertion

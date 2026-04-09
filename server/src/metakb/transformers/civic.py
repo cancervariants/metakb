@@ -2,6 +2,7 @@
 
 import logging
 import re
+from uuid import uuid4
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
@@ -14,6 +15,7 @@ from ga4gh.core.models import Extension, iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
+    EvidenceLine,
     Statement,
     TherapyGroup,
     VariantTherapeuticResponseProposition,
@@ -28,7 +30,6 @@ from metakb.transformers.catvars import (
     build_proteinsequenceconsequence_catvar,
 )
 from metakb.transformers.identifiers import compute_combo_id
-from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 
@@ -112,6 +113,7 @@ class CivicTransformer(Transformer):
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
+        assertions = {}
         for item in tqdm([*accepted_evidence_items, *accepted_assertions]):
             transformed_statement = self._civic_claim_to_statement(item)
             if not transformed_statement:
@@ -122,19 +124,27 @@ class CivicTransformer(Transformer):
                 )
                 continue
             statements.append(transformed_statement)
-            if aggregate_statement := await self._create_aggregate_statement(
-                transformed_statement
-            ):
-                for existing_statement in statements:
-                    if (
-                        existing_statement.proposition
-                        == aggregate_statement.proposition
-                    ):
-                        merge_assertions(existing_statement, aggregate_statement)
-                        break
-                else:
-                    statements.append(aggregate_statement)
-        self.processed_data = TransformedData(statements=statements)
+
+            await self._upsert_assertion_from_evidence(
+                transformed_statement, assertions
+            )
+        self.processed_data = TransformedData(
+            evidence=statements, assertions=list(assertions.values())
+        )
+
+    def _ensure_evidenceline_id(self, evidence_line: EvidenceLine) -> None:
+        """Ensure that an evidence line object has an ID
+
+        Modifies object in-place with UUID
+
+        :param evidence_line: evidence line underneath a civic assertion
+        """
+        if not evidence_line.hasEvidenceItems:
+            raise ValueError
+        for item in evidence_line.hasEvidenceItems:
+            if isinstance(item, EvidenceLine):
+                self._ensure_evidenceline_id(item)
+        evidence_line.id = f"civic.evline:{uuid4()}"
 
     def _ensure_therapygroup_id(self, therapy_group: TherapyGroup) -> None:
         """Ensure that a therapy group has an ID
@@ -202,21 +212,27 @@ class CivicTransformer(Transformer):
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
-                    value=f"Level {statement.strength.primaryCoding.code.root}",
+                    value=statement.strength.primaryCoding.code.root,
                 )
             ]
+            statement.strength.id = (
+                f"civic.strength:{statement.strength.primaryCoding.code.root}"
+            )
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
-                    value=f"Level {statement.strength.primaryCoding.code}",
+                    value=statement.strength.primaryCoding.code.root,
                 )
             ]
+            statement.strength.id = (
+                f"civic.strength:{statement.strength.primaryCoding.code.root}"
+            )
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = create_gks_record_from_assertion(item)
-                # TODO: Put this in civicpy instead.
+                # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
                 statement_exts.append(
@@ -226,6 +242,19 @@ class CivicTransformer(Transformer):
                     )
                 )
                 statement.extensions = statement_exts
+                statement.strength.extensions = [
+                    Extension(
+                        name="metakb_display_value",
+                        value=statement.strength.primaryCoding.code.root.removeprefix(
+                            "Level "
+                        ),
+                    )
+                ]
+                statement.strength.id = (
+                    f"amp_asco_cap:{statement.strength.primaryCoding.code.root}"
+                )
+                for evline in statement.hasEvidenceLines:
+                    self._ensure_evidenceline_id(evline)
             except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",
@@ -309,14 +338,21 @@ class CivicTransformer(Transformer):
             return None
 
         if isinstance(normalized_variation, Allele):
-            return build_proteinsequenceconsequence_catvar(
+            cv = build_proteinsequenceconsequence_catvar(
                 self.vicc_normalizers.seqrepo_access,
                 self.vicc_normalizers.transcript_mappings,
                 normalized_variation,
             )
-        if isinstance(normalized_variation, CopyNumberChange):
-            return build_copynumberchange_catvar(normalized_variation)
-        raise NotImplementedError
+        elif isinstance(normalized_variation, CopyNumberChange):
+            cv = build_copynumberchange_catvar(normalized_variation)
+        else:
+            return None
+        if len(cv.constraints) > 1:
+            _logger.debug(
+                "Civic molecular profile %s normalizes to a CV with >1 constraints; this is currently unsupported"
+            )
+            return None
+        return cv
 
     @staticmethod
     def _parse_mp_name(
