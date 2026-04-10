@@ -47,7 +47,9 @@ def moa_harvested_data(test_data_dir: Path) -> MoaHarvestedData:
 
 
 @pytest.mark.ci_ok
-def test_create_moa_variant(transformer: MoaTransformer, moa_variants: dict[str, dict]):
+def test_create_moa_variant(moa_variants: dict[str, dict]):
+    # yes this is a type error -- we want to inhibit construction of the normalizers
+    transformer = MoaTransformer(normalizers="dummy_value_to_block_normalizers")
     result = transformer._create_moa_variant(moa_variants["1"])
     assert result == CategoricalVariant(
         id="moa.variant:1",
