@@ -580,7 +580,23 @@ class Neo4jRepository(AbstractRepository):
 
     @staticmethod
     def _renest_evidence_line_chains(chains: list[dict]) -> list[dict]:
-        """Reconstruct nested evidence lines from flattened root-to-leaf chains."""
+        """Reconstruct nested evidence lines from flattened root-to-leaf chains.
+
+        An individual chain looks like this:
+
+        ```yaml
+        - chain
+          - <evidence_line>
+          - <evidence_line>
+        - root_id
+        ```
+
+        This method will reattach individual chains to the lines referenced by their `root_id`
+
+        :param chains: objects returned by cypher query -- ie an array of associations
+            between evidence lines
+        :return: properly-nested evidence lines
+        """
         roots: dict[str, dict] = {}
 
         for entry in chains or []:
@@ -614,7 +630,12 @@ class Neo4jRepository(AbstractRepository):
         return list(roots.values())
 
     def _build_evidence_line_node(self, ev_line: dict) -> EvidenceLineNode:
-        """Convert nested evidence line dict into an EvidenceLineNode."""
+        """Convert nested evidence line dict into an EvidenceLineNode.
+
+        Nothing really needs to get moved around, but this method will reconstruct
+        dicts received from the database into propery Node classes so that they
+        can be converted back to GKS objects
+        """
         item_nodes = []
 
         for item in ev_line.get("has_evidence_items", []):
@@ -783,12 +804,11 @@ class Neo4jRepository(AbstractRepository):
         start: int,
         limit: int,
     ) -> list[Record]:
-        """TODO
+        """Run a statement search query for a level of a "statement tree" of arbitrary depth
 
-        factored out to support recursion
+        This method is factored out from the public method to support recursion
 
-        IDs args MUST be lists -- can't be null or the Cypher query will error out
-
+        The IDs args MUST be lists -- can't be null or the Cypher query will error out
         """
         search_results = self.session.execute_read(
             lambda tx, **kwargs: list(

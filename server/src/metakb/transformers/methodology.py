@@ -285,7 +285,6 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     :raise ValueError: if input arg has an unknown coding system
     """
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
-        # TODO these are pending final signoff for handling civic assertions
         match strength.primaryCoding.code.root:
             case AmpAscoCapStrength.LEVEL_A:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
@@ -564,9 +563,6 @@ def _get_evidence_from_assertion(assertion: Statement) -> list[Statement]:
 
 def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
     """Combine two assertions with the same proposition
-
-    TODO this needs to be changed
-    - we need to make sure the DB assertion is the one having stuff added to it
 
     :param assertion: assertion #1
     :param new_assertion: assertion #2
