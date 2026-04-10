@@ -1,4 +1,4 @@
-"""Transformer for the mixed_pipseq_2017 cBioPortal study."""
+"""Transformer for the lgg_ctf_synodos_2025 cBioPortal study."""
 
 import pandas as pd
 
@@ -26,10 +26,9 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
-    "Amino_Acid_Change",
 ]
 
-PATIENT_HEADERS = ["PATIENT_ID", "AGE_TESTING_YEARS", "SEX", "RACE"]
+PATIENT_HEADERS = ["PATIENT_ID", "SEX", "RACE"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
@@ -38,16 +37,21 @@ SAMPLE_HEADERS = [
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
     "TMB_NONSYNONYMOUS",
-    "NGS_TEST",
+    "AGE_AT_BIOPSY",
+    "AGE_AT_BIOPSY_MONTHS",
 ]
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for mixed_pipseq_2017 study."""
+    """Transformer for lgg_ctf_synodos_2025 study."""
 
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        return "mixed_pipseq_2017"
+        return "lgg_ctf_synodos_2025"
+
+    def get_genome_build(self) -> str:
+        """Return GRCh38 as the genome build for this study."""
+        return "GRCh38"
 
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
@@ -63,17 +67,20 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {"additional_columns": {"Sequence_Source": "No_data"}}
+        return {
+            "additional_columns": {"Sequence_Source": "WGS"},
+        }
 
-    def get_patient_transformations(self) -> dict:
-        """Return study-specific patient transformations."""
-        return {"ethnicity_source": "RACE", "age_source": "AGE_TESTING_YEARS"}
-
-    def get_sample_transformations(self) -> dict:
-        """Return study-specific sample transformations."""
-        return {"sequence_source": "NGS_TEST"}
-
-    def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Replace empty/whitespace Center values with 'Columbia'."""
-        df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "Columbia", regex=True)
-        return df
+    def apply_custom_sample_logic(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calculate decimal AGE from AGE_AT_BIOPSY and AGE_AT_BIOPSY_MONTHS."""
+        if "AGE_AT_BIOPSY" in df.columns and "AGE_AT_BIOPSY_MONTHS" in df.columns:
+            years = pd.to_numeric(df["AGE_AT_BIOPSY"], errors="coerce")
+            months = pd.to_numeric(df["AGE_AT_BIOPSY_MONTHS"], errors="coerce").fillna(
+                0
+            )
+            df["AGE"] = (years + months / 12).round(2)
+        else:
+            df["AGE"] = "No_Data"
+        return df.drop(
+            columns=["AGE_AT_BIOPSY", "AGE_AT_BIOPSY_MONTHS"], errors="ignore"
+        )

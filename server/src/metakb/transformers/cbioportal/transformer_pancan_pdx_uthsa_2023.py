@@ -1,4 +1,4 @@
-"""Transformer for the mixed_pipseq_2017 cBioPortal study."""
+"""Transformer for the pancan_pdx_uthsa_2023 cBioPortal study."""
 
 import pandas as pd
 
@@ -26,28 +26,32 @@ MUT_HEADERS = [
     "RefSeq",
     "Protein_position",
     "Codons",
-    "Amino_Acid_Change",
+    "Amino_acids",
 ]
 
-PATIENT_HEADERS = ["PATIENT_ID", "AGE_TESTING_YEARS", "SEX", "RACE"]
+PATIENT_HEADERS = ["PATIENT_ID", "AGE", "SEX", "RACE", "ETHNICITY"]
 
 SAMPLE_HEADERS = [
     "PATIENT_ID",
     "SAMPLE_ID",
+    "SAMPLE_CLASS",
     "ONCOTREE_CODE",
     "CANCER_TYPE",
     "CANCER_TYPE_DETAILED",
     "TMB_NONSYNONYMOUS",
-    "NGS_TEST",
 ]
 
 
 class CBioPortalTransformer(CBioPortalStudyTransformer):
-    """Transformer for mixed_pipseq_2017 study."""
+    """Transformer for pancan_pdx_uthsa_2023 study."""
 
     def get_study_name(self) -> str:
         """Return the study identifier."""
-        return "mixed_pipseq_2017"
+        return "pancan_pdx_uthsa_2023"
+
+    def get_genome_build(self) -> str:
+        """Return GRCh38 as the genome build for this study."""
+        return "GRCh38"
 
     def get_mut_headers(self) -> list[str]:
         """Return the list of mutation/variant column headers to keep."""
@@ -63,17 +67,25 @@ class CBioPortalTransformer(CBioPortalStudyTransformer):
 
     def get_variant_transformations(self) -> dict:
         """Return study-specific variant transformations."""
-        return {"additional_columns": {"Sequence_Source": "No_data"}}
-
-    def get_patient_transformations(self) -> dict:
-        """Return study-specific patient transformations."""
-        return {"ethnicity_source": "RACE", "age_source": "AGE_TESTING_YEARS"}
-
-    def get_sample_transformations(self) -> dict:
-        """Return study-specific sample transformations."""
-        return {"sequence_source": "NGS_TEST"}
+        return {
+            "amino_acid_change_source": "Amino_acids",
+            "additional_columns": {"Sequence_Source": "WES"},
+        }
 
     def apply_custom_variant_logic(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Replace empty/whitespace Center values with 'Columbia'."""
-        df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "Columbia", regex=True)
+        """Replace empty/whitespace Center values with 'UTHSA' and strip 'chr' prefix from Chromosome."""
+        df["Center"] = df["Center"].replace(r"^\s*\.?\s*$", "UTHSA", regex=True)
+        if "Chromosome" in df.columns:
+            df["Chromosome"] = (
+                df["Chromosome"].astype(str).str.replace("^chr", "", regex=True)
+            )
         return df
+
+    def apply_custom_sample_logic(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Keep only Tumor samples and drop any variants from Xenograft samples."""
+        tumor_df = df[df["SAMPLE_CLASS"] == "Tumor"].reset_index(drop=True)
+        tumor_sample_ids = set(tumor_df["SAMPLE_ID"])
+        self.variants = self.variants[
+            self.variants["SAMPLE_ID"].isin(tumor_sample_ids)
+        ].reset_index(drop=True)
+        return tumor_df.drop(columns=["SAMPLE_CLASS"], errors="ignore")
