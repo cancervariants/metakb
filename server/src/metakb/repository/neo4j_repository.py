@@ -6,17 +6,14 @@ from urllib.parse import urlparse, urlunparse
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import MappableConcept
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
     Document,
+    EvidenceLine,
     Method,
     Statement,
+    Strength,
     Therapeutic,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -182,30 +179,30 @@ class Neo4jRepository(AbstractRepository):
             for query in queries_catalog.initialize():
                 tx.run(query)
 
-    def add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
+    def _add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
         """Add categorical variant to DB
 
-        Currently validates that the constraint property exists and has a length of
+        Currently validates that the constraint property, if it exists, has a length of
         exactly 1.
 
         :param tx: Neo4j transaction
         :param catvar: a full Categorical Variant object
+        :raise NotImplementedError: if unrecognized type of constraint is provided
         """
+        catvar_node = CategoricalVariantNode.from_gks(catvar)
         if catvar.constraints and len(catvar.constraints) == 1:
             constraint = catvar.constraints[0]
-            catvar_node = CategoricalVariantNode.from_gks(catvar)
             if constraint.root.type == "DefiningAlleleConstraint":
                 query = queries_catalog.load_dac_catvar()
             elif constraint.root.type == "FeatureContextConstraint":
                 query = queries_catalog.load_fcc_catvar()
             else:
-                raise TypeError
-            tx.run(query, cv=catvar_node.model_dump(mode="json"))
+                raise NotImplementedError
         else:
-            msg = f"Valid CatVars should have a single constraint but `constraints` property for {catvar.id} is {catvar.constraints}"
-            raise ValueError(msg)
+            query = queries_catalog.load_text_catvar()
+        tx.run(query, cv=catvar_node.model_dump(mode="json"))
 
-    def add_document(self, tx: Transaction, document: Document) -> None:
+    def _add_document(self, tx: Transaction, document: Document) -> None:
         """Add document to DB
 
         :param tx: Neo4j transaction
@@ -217,7 +214,7 @@ class Neo4jRepository(AbstractRepository):
             doc=document_node.model_dump(mode="json"),
         )
 
-    def add_gene(
+    def _add_gene(
         self,
         tx: Transaction,
         gene: MappableConcept,
@@ -230,7 +227,7 @@ class Neo4jRepository(AbstractRepository):
         gene_node = GeneNode.from_gks(gene)
         tx.run(queries_catalog.load_gene(), gene=gene_node.model_dump(mode="json"))
 
-    def add_condition(self, tx: Transaction, condition: Condition) -> None:
+    def _add_condition(self, tx: Transaction, condition: Condition) -> None:
         """Add condition to DB.
 
         :param tx: Neo4j transaction
@@ -246,7 +243,7 @@ class Neo4jRepository(AbstractRepository):
             )
 
             for child in cond.conditions:
-                self.add_condition(tx, child)
+                self._add_condition(tx, child)
             return
 
         if not isinstance(cond, MappableConcept):
@@ -269,7 +266,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized conceptType: {cond}"
             raise TypeError(msg)
 
-    def add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
+    def _add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
         """Add a therapeutic -- either an individual Drug or a group.
 
         :param tx: Neo4j transaction
@@ -289,7 +286,7 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized therapeutic type: {therapeutic}"
             raise TypeError(msg)
 
-    def add_method(self, tx: Transaction, method: Method) -> None:
+    def _add_method(self, tx: Transaction, method: Method) -> None:
         """Add a Method object.
 
         :param tx: Neo4j transaction
@@ -300,17 +297,84 @@ class Neo4jRepository(AbstractRepository):
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
-    def add_statement(self, tx: Transaction, statement: Statement) -> None:
-        """Add a Statement object.
-
-        Currently supports statements based on
-        * VariantTherapeuticResponseProposition
-        * VariantPrognosticProposition
-        * VariantDiagnosticProposition
+    def _add_strength(self, tx: Transaction, strength: Strength) -> None:
+        """Load a strength object
 
         :param tx: Neo4j transaction
-        :param statement: VA-Spec Statement
+        :param strength: VA-Spec strength object
         """
+        tx.run(
+            queries_catalog.load_strength(),
+            strength=StrengthNode.from_gks(strength).model_dump(mode="json"),
+        )
+
+    def _add_evidence_line(self, tx: Transaction, evidence_line: EvidenceLine) -> None:
+        """Load an evidence line + everything that it contains
+
+        :param tx: neo4j transaction
+        :param evidence_line: GKS evidence line
+        """
+        if not evidence_line.hasEvidenceItems:
+            msg = f"Evidence line has no evidence ({evidence_line=})"
+            _logger.error(msg)
+            raise ValueError(msg)
+        for item in evidence_line.hasEvidenceItems:
+            if isinstance(item, EvidenceLine):
+                self._add_evidence_line(tx, item)
+            elif isinstance(item, Statement):
+                self._add_statement(tx, item)
+            else:
+                raise TypeError
+        if evidence_line.strengthOfEvidenceProvided:
+            self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
+            strength_id = evidence_line.strengthOfEvidenceProvided.id
+        else:
+            strength_id = None
+
+        evline_node = EvidenceLineNode.from_gks(evidence_line)
+        tx.run(
+            queries_catalog.load_evidence_line(),
+            evidence_line=evline_node.model_dump(mode="json"),
+            strength_id=strength_id,
+            item_ids=[i.id for i in evline_node.has_evidence_items],
+        )
+
+    def _add_statement(self, tx: Transaction, statement: Statement) -> None:
+        """Add an individual statement, as well as any contained evidence, to the DB
+
+        Note that this function gets used BOTH for loading higher-order assertions
+        AND loading the statements they contain.
+
+        :param tx: neo4j transaction
+        :param statement: va-spec statement
+        """
+        if statement.hasEvidenceLines:
+            for ev_line in statement.hasEvidenceLines:
+                self._add_evidence_line(tx, ev_line)
+
+        proposition = statement.proposition
+        self._add_catvar(tx, proposition.subjectVariant)
+        self._add_gene(tx, proposition.geneContextQualifier)
+        # handle proposition-specific properties
+        if proposition.type == "VariantTherapeuticResponseProposition":
+            self._add_condition(tx, proposition.conditionQualifier)
+            self._add_therapeutic(tx, proposition.objectTherapeutic)
+        elif proposition.type in {
+            "VariantDiagnosticProposition",
+            "VariantPrognosticProposition",
+        }:
+            self._add_condition(tx, proposition.objectCondition)
+        else:
+            raise NotImplementedError(proposition)
+        if statement.reportedIn:
+            for document in statement.reportedIn:
+                if isinstance(document, Document):
+                    self._add_document(tx, document)
+
+        if isinstance(statement.specifiedBy.reportedIn, Document):
+            self._add_document(tx, statement.specifiedBy.reportedIn)
+        self._add_strength(tx, statement.strength)
+        self._add_method(tx, statement.specifiedBy)
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
                 statement_node = TherapeuticResponseStatementNode.from_gks(statement)
@@ -326,35 +390,35 @@ class Neo4jRepository(AbstractRepository):
             statement=statement_node.model_dump(mode="json"),
         )
 
-    def load_statement(self, statement: Statement) -> None:
-        """Load individual statement, and contained entities, into DB
+    def _recursive_delete_ev_line(self, tx: Transaction, ev_line: EvidenceLine) -> None:
+        """Delete an evidence line and any evidence lines that it contains
 
-        :param statement: statement to load
+        This saves us the effort of manually moving edges around when evidence structure
+        changes. Recursivity means it needs to be factored out into its own method.
+
+        :param tx: neo4j transaction
+        :param assertion:
+        """
+        if not ev_line.hasEvidenceItems:
+            _logger.error(
+                "No evidence items under evidence line (%s)-- something has gone wrong",
+                ev_line,
+            )
+            raise ValueError
+        for item in ev_line.hasEvidenceItems:
+            if isinstance(item, EvidenceLine):
+                self._recursive_delete_ev_line(tx, item)
+        tx.run(queries_catalog.delete_evidence_line(), evidence_line_id=ev_line.id)
+
+    def load_assertion(self, assertion: Statement) -> None:
+        """Add or update a complete assertion object to the DB
+
+        :param assertion: metakb assertion
         """
         with self.session.begin_transaction() as tx:
-            proposition = statement.proposition
-            self.add_catvar(tx, proposition.subjectVariant)
-            self.add_gene(tx, proposition.geneContextQualifier)
-            # handle proposition-specific properties
-            if proposition.type == "VariantTherapeuticResponseProposition":
-                self.add_condition(tx, proposition.conditionQualifier)
-                self.add_therapeutic(tx, proposition.objectTherapeutic)
-            elif proposition.type in {
-                "VariantDiagnosticProposition",
-                "VariantPrognosticProposition",
-            }:
-                self.add_condition(tx, proposition.objectCondition)
-            else:
-                raise NotImplementedError(proposition)
-            if statement.reportedIn:
-                for document in statement.reportedIn:
-                    if isinstance(document, Document):
-                        self.add_document(tx, document)
-
-            if isinstance(statement.specifiedBy.reportedIn, Document):
-                self.add_document(tx, statement.specifiedBy.reportedIn)
-            self.add_method(tx, statement.specifiedBy)
-            self.add_statement(tx, statement)
+            for line in assertion.hasEvidenceLines:
+                self._recursive_delete_ev_line(tx, line)
+            self._add_statement(tx, assertion)
 
     @staticmethod
     def _make_allele_node(
@@ -499,42 +563,113 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
+    def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
         :return: complete statement if available
         """
-        results = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=1,
+        results = self._execute_statement_search(
+            [], [], [], [], [statement_id], 0, CYPHER_PAGE_LIMIT
         )
-        if not results:
+        if len(results) == 0:
             return None
-        processed_results = self._get_statements_from_results(results)
-        if len(processed_results) != 1:
-            _logger.error(
-                "Unexpected quantity of statements in processed results list: %s",
-                processed_results,
+        if len(results) > 1:
+            raise ValueError
+        return self._get_statement_node_from_result(results[0]).to_gks()
+
+    @staticmethod
+    def _renest_evidence_line_chains(chains: list[dict]) -> list[dict]:
+        """Reconstruct nested evidence lines from flattened root-to-leaf chains.
+
+        An individual chain looks like this:
+
+        ```yaml
+        - chain
+          - <evidence_line>
+          - <evidence_line>
+        - root_id
+        ```
+
+        This method will reattach individual chains to the lines referenced by their `root_id`
+
+        :param chains: objects returned by cypher query -- ie an array of associations
+            between evidence lines
+        :return: properly-nested evidence lines
+        """
+        roots: dict[str, dict] = {}
+
+        for entry in chains or []:
+            chain = entry.get("chain", [])
+            if not chain:
+                continue
+
+            root_vals = chain[0]
+            root = roots.setdefault(
+                root_vals["id"], {**root_vals, "has_evidence_items": []}
             )
-            raise RuntimeError
-        return processed_results[0]
+            current = root
+
+            for line_vals in chain[1:]:
+                existing = next(
+                    (
+                        child
+                        for child in current["has_evidence_items"]
+                        if isinstance(child, dict)
+                        and child.get("id") == line_vals["id"]
+                    ),
+                    None,
+                )
+                if existing is None:
+                    existing = {**line_vals, "has_evidence_items": []}
+                    current["has_evidence_items"].append(existing)
+                current = existing
+
+            current["has_evidence_items"] = chain[-1].get("has_evidence_items", [])
+
+        return list(roots.values())
+
+    def _build_evidence_line_node(self, ev_line: dict) -> EvidenceLineNode:
+        """Convert nested evidence line dict into an EvidenceLineNode.
+
+        Nothing really needs to get moved around, but this method will reconstruct
+        dicts received from the database into propery Node classes so that they
+        can be converted back to GKS objects
+        """
+        item_nodes = []
+
+        for item in ev_line.get("has_evidence_items", []):
+            if "chain" in item:
+                # defensive only; ideally these should already be re-nested
+                msg = "Unexpected flattened evidence chain during conversion"
+                raise ValueError(msg)
+            if isinstance(item, Record) and "s" in item.keys():  # noqa: SIM118
+                # fetched Neo4j record-like mapping for a statement
+                item_nodes.append(self._get_statement_node_from_result(item))
+            elif isinstance(item, dict):
+                # nested evidence line dict
+                item_nodes.append(self._build_evidence_line_node(item))
+            else:
+                _logger.error(
+                    "Encountered unexpected evidence item: %s of type %s",
+                    item,
+                    type(item),
+                )
+                msg = f"Unexpected evidence item type: {type(item)!r}"
+                raise ValueError(msg)
+        return EvidenceLineNode(
+            id=ev_line["id"],
+            direction=ev_line["direction"],
+            has_evidence_items=item_nodes,
+            has_strength=StrengthNode(**ev_line["has_strength"]),
+            extensions=ev_line.get("extensions", []),
+            evidence_outcome=ev_line["evidence_outcome"],
+        )
+
+    def _build_evidence_line_nodes(self, chains: list[dict]) -> list[EvidenceLineNode]:
+        """Convert flattened evidence-line chains into nested EvidenceLineNodes."""
+        nested_lines = self._renest_evidence_line_chains(chains)
+        return [self._build_evidence_line_node(line) for line in nested_lines]
 
     def _get_statement_node_from_result(
         self, record: Record
@@ -563,7 +698,7 @@ class Neo4jRepository(AbstractRepository):
                 has_feature_context=feature_context_node, **record["constraint"]
             )
         else:
-            raise ValueError
+            constraint_node = None
         member_nodes = [
             self._make_allele_node(m["allele"], m["location"], m["state"])
             for m in record["members"]
@@ -591,20 +726,7 @@ class Neo4jRepository(AbstractRepository):
         )
         document_nodes = [DocumentNode(**d) for d in record["documents"]]
         strength_node = StrengthNode(**record["str"])
-        evidence_line_nodes = [
-            EvidenceLineNode(
-                id=record_line["direction"],
-                direction=record_line["direction"],
-                has_evidence_items=[
-                    self._get_evidence_line_statement_node(statement_id)
-                    for statement_id in record_line["evidence_item_ids"]
-                ],
-                strength_of_evidence_provided=record_line[
-                    "strength_of_evidence_provided"
-                ],
-            )
-            for record_line in record["evidence_lines"]
-        ]
+        evidence_line_nodes = self._build_evidence_line_nodes(record["evidence_lines"])
         classification_node = (
             ClassificationNode(**record["classification"])
             if record["classification"]
@@ -656,42 +778,6 @@ class Neo4jRepository(AbstractRepository):
                 raise ValueError(msg)
         return statement
 
-    def _get_evidence_line_statement_node(
-        self, statement_id: str
-    ) -> (
-        TherapeuticResponseStatementNode
-        | DiagnosticStatementNode
-        | PrognosticStatementNode
-        | None
-    ):
-        """Get the DB node model for a statement ID, to be attached to an Evidence Line.
-
-        This gives us a single level of recursion for statements that are supported by
-        evidence lines.
-
-        :param statement_id: ID of statement to fetch
-        :return: Node model containing all parts of the statement
-        """
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            variation_ids=[],
-            therapy_ids=[],
-            condition_ids=[],
-            gene_ids=[],
-            statement_ids=[statement_id],
-            start=0,
-            limit=9999,
-        )
-        if len(result) == 0:
-            # TODO warning or error?
-            return None
-        if len(result) >= 2:  # noqa: PLR2004
-            # should be impossible due to uniqueness constraint, how to log?
-            raise RuntimeError
-        return self._get_statement_node_from_result(result[0])
-
     def _get_statements_from_results(self, records: list[Record]) -> list[Statement]:
         """Craft a list of GKS-compliant Statement objects given the results of a Neo4j cypher lookup
 
@@ -708,6 +794,102 @@ class Neo4jRepository(AbstractRepository):
             statements.append(statement.to_gks())
         return statements
 
+    def _execute_statement_search(
+        self,
+        variation_ids: list[str],
+        gene_ids: list[str],
+        therapy_ids: list[str],
+        disease_ids: list[str],
+        statement_ids: list[str],
+        start: int,
+        limit: int,
+    ) -> list[Record]:
+        """Run a statement search query for a level of a "statement tree" of arbitrary depth
+
+        This method is factored out from the public method to support recursion
+
+        The IDs args MUST be lists -- can't be null or the Cypher query will error out
+        """
+        search_results = self.session.execute_read(
+            lambda tx, **kwargs: list(
+                tx.run(queries_catalog.search_statements(), **kwargs)
+            ),
+            statement_ids=statement_ids,
+            variation_ids=variation_ids,
+            condition_ids=disease_ids,
+            gene_ids=gene_ids,
+            therapy_ids=therapy_ids,
+            start=start,
+            limit=limit,
+        )
+        pending_statement_ids = self._get_pending_statement_ids(search_results)
+        if pending_statement_ids:
+            fetched = self._execute_statement_search(
+                variation_ids=[],
+                gene_ids=[],
+                therapy_ids=[],
+                disease_ids=[],
+                statement_ids=pending_statement_ids,
+                start=0,
+                limit=CYPHER_PAGE_LIMIT,
+            )
+            self._resolve_pending_statement_refs(search_results, fetched)
+
+        return search_results
+
+    @staticmethod
+    def _get_pending_statement_ids(results: list[Record]) -> list[str]:
+        """Collect unique unresolved statement IDs from evidence line chains."""
+        pending_ids: list[str] = []
+
+        for record in results:
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+                pending_ids.extend(
+                    item
+                    for item in chain[-1]["has_evidence_items"]
+                    if isinstance(item, str)
+                )
+
+        return list(dict.fromkeys(pending_ids))
+
+    @staticmethod
+    def _fill_evidence_item_refs(
+        results: list[Record], fetched_map: dict[str, Record]
+    ) -> None:
+        """Replace leaf statement ID refs in evidence line chains with fetched records."""
+        for record in results:
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+
+                leaf_items = chain[-1].get("has_evidence_items", [])
+                for i, item in enumerate(leaf_items):
+                    if isinstance(item, str) and item in fetched_map:
+                        leaf_items[i] = fetched_map[item]
+
+    def _resolve_pending_statement_refs(
+        self, search_results: list[Record], fetched: list[Record]
+    ) -> None:
+        """Fill in pending statement refs in evidence lines with newly-fetched Records
+
+        :param search_results: initial search results from user-query, updated in-place
+        :param fetched: just-fetched statements to resolve pending statement references
+        """
+        fetched_map = {r["s"]["id"]: r for r in fetched}
+        for record in search_results:
+            for ev_chain in record["evidence_lines"]:
+                chain = ev_chain.get("chain", [])
+                if not chain:
+                    continue
+                leaf_items = chain[-1].get("has_evidence_items", [])
+                for i, item in enumerate(leaf_items):
+                    if isinstance(item, str) and item in fetched_map:
+                        leaf_items[i] = fetched_map[item]
+
     def search_statements(
         self,
         variation_ids: list[str] | None = None,
@@ -717,12 +899,7 @@ class Neo4jRepository(AbstractRepository):
         statement_ids: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
+    ) -> list[Statement]:
         """Perform entity-based search over all statements.
 
         Return all statements matching any item within a given list of entity IDs.
@@ -747,20 +924,18 @@ class Neo4jRepository(AbstractRepository):
         """
         if limit is None:
             limit = CYPHER_PAGE_LIMIT
-        # IDs args MUST be lists -- can't be null or the Cypher query will error out
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
-            statement_ids=statement_ids or [],
-            variation_ids=variation_ids or [],
-            condition_ids=disease_ids or [],
-            gene_ids=gene_ids or [],
-            therapy_ids=therapy_ids or [],
-            start=start,
-            limit=limit,
+
+        search_results = self._execute_statement_search(
+            variation_ids or [],
+            gene_ids or [],
+            therapy_ids or [],
+            disease_ids or [],
+            statement_ids or [],
+            start,
+            limit,
         )
-        return self._get_statements_from_results(result)
+
+        return self._get_statements_from_results(search_results)
 
     def get_stats(self) -> RepositoryStats:
         """Fetch counts for entities
@@ -784,3 +959,10 @@ class Neo4jRepository(AbstractRepository):
         with self.session.begin_transaction() as tx:
             for query in queries_catalog.teardown():
                 tx.run(query)
+
+    def get_all_assertion_ids(self) -> list[str]:
+        """Return all assertion IDs"""
+        result = self.session.execute_read(
+            lambda tx: list(tx.run(queries_catalog.get_all_assertion_ids()))
+        )
+        return [r["s.id"] for r in result]

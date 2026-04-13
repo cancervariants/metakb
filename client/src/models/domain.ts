@@ -126,17 +126,17 @@ export type Condition = ConditionSet | MappableConcept
  */
 export type MembershipOperator = 'AND' | 'OR'
 /**
- * Define constraints for diagnostic predicate
+ * The relationship the Proposition describes between the subject variant and object Condition. MUST be one of 'isDiagnosticInclusionCriterionFor' or 'isDiagnosticExclusionCriterionFor'.
  */
 export type DiagnosticPredicate =
   | 'isDiagnosticInclusionCriterionFor'
   | 'isDiagnosticExclusionCriterionFor'
 /**
- * Define constraints for prognostic predicate
+ * The relationship the Proposition describes between the subject variant and object Condition. MUST be one of 'associatedWithBetterOutcomeFor' or 'associatedWithWorseOutcomeFor'.
  */
 export type PrognosticPredicate = 'associatedWithBetterOutcomeFor' | 'associatedWithWorseOutcomeFor'
 /**
- * Define constraints for therapeutic response predicate
+ * The relationship the Proposition describes between the subject variant and object theapeutic. MUST be one of 'predictsSensitivityTo' or 'predictsResistanceTo'.
  */
 export type TherapeuticResponsePredicate = 'predictsSensitivityTo' | 'predictsResistanceTo'
 /**
@@ -516,7 +516,7 @@ export interface CategoricalVariant {
   /**
    * A primary name for the entity.
    */
-  name?: string | null
+  name: string
   /**
    * A free-text description of the Entity.
    */
@@ -530,7 +530,7 @@ export interface CategoricalVariant {
    */
   extensions?: Extension[] | null
   /**
-   * A non-exhaustive list of VRS variation Constraints that satisfy the constraints of this categorical variant.
+   * A non-exhaustive list of VRS Variations that satisfy the constraints of this categorical variant.
    */
   members?: (Variation | IriReference)[] | null
   constraints?: Constraint[] | null
@@ -1109,7 +1109,7 @@ export interface ClinicalVariantProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
 }
@@ -1152,7 +1152,7 @@ export interface CohortAlleleFrequencyStudyResult {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
   /**
    * The dataset from which the CohortAlleleFrequencyStudyResult was reported.
    */
@@ -1276,7 +1276,7 @@ export interface Document {
   /**
    * A [PubMed unique identifier](https://en.wikipedia.org/wiki/PubMed#PubMed_identifier) for the document.
    */
-  pmid?: number | null
+  pmid?: string | null
 }
 /**
  * An action taken by an agent in contributing to the creation, modification,
@@ -1481,7 +1481,7 @@ export interface EvidenceLine {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
   /**
    * The possible fact against which evidence items contained in an Evidence Line were collectively evaluated, in determining the overall strength and direction of support they provide. For example, in an ACMG Guideline-based assessment of variant pathogenicity, the support provided by distinct lines of evidence are assessed against a target proposition that the variant is pathogenic for a specific disease.
    */
@@ -1586,9 +1586,9 @@ export interface ExperimentalVariantFunctionalImpactProposition {
    */
   subjectVariant: MolecularVariation | CategoricalVariant | IriReference
   /**
-   * The relationship the Proposition describes between the subject variant and object sequence feature whose function it may alter.
+   * The relationship the Proposition describes between the subject variant and object sequence feature whose function it may alter. MUST be 'impactsFunctionOf'.
    */
-  predicate?: string
+  predicate?: 'impactsFunctionOf'
   /**
    * The sequence feature (typically a gene or gene product) on whose function the impact of the subject variant is reported.
    */
@@ -1641,10 +1641,13 @@ export interface VariantPathogenicityProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
-  predicate?: string
+  /**
+   * The relationship the Proposition describes between the subject variant and object condition. MUST be 'isCausalFor'.
+   */
+  predicate?: 'isCausalFor'
   /**
    * The Condition for which the variant impact is stated.
    */
@@ -1659,9 +1662,10 @@ export interface VariantPathogenicityProposition {
   modeOfInheritanceQualifier?: MappableConcept | null
 }
 /**
- * A set of conditions (diseases, phenotypes, traits).
- * A set of two or more conditions that co-occur in the same patient/subject, or are
- * manifest individually in a different subset of participants in a research study.
+ * A set of conditions (diseases, phenotypes, traits) that occur together or are
+ * related, depending on the membership operator, and may manifest together in the
+ * same patient or individually in a different subset of participants in a research
+ * study.
  */
 export interface ConditionSet {
   /**
@@ -1673,11 +1677,15 @@ export interface ConditionSet {
    */
   extensions?: Extension[] | null
   /**
-   * A list of conditions (diseases, phenotypes, traits) that are co-occurring.
+   * A list of conditions (diseases, phenotypes, traits) that are co-occurring or related, depending on the membership operator.
    *
    * @minItems 2
    */
-  conditions: [MappableConcept, MappableConcept, ...MappableConcept[]]
+  conditions: [
+    MappableConcept | ConditionSet,
+    MappableConcept | ConditionSet,
+    ...(MappableConcept | ConditionSet)[],
+  ]
   membershipOperator: MembershipOperator
 }
 /**
@@ -1718,7 +1726,7 @@ export interface VariantDiagnosticProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
   predicate: DiagnosticPredicate
@@ -1764,7 +1772,7 @@ export interface VariantPrognosticProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
   predicate: PrognosticPredicate
@@ -1810,10 +1818,13 @@ export interface VariantOncogenicityProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
-  predicate?: string
+  /**
+   * The relationship the Proposition describes between the subject variant and object tumor type. MUST be 'isOncogenicFor'.
+   */
+  predicate?: 'isOncogenicFor'
   /**
    * The tumor type for which the variant impact is evaluated.
    */
@@ -1857,7 +1868,7 @@ export interface VariantTherapeuticResponseProposition {
    */
   geneContextQualifier?: MappableConcept | IriReference | null
   /**
-   * Reports whether the Proposition should be interpreted in the context of an inherited (germline) variant, an acquired (somatic) mutation, or another more nuanced concept. Consider using terms or codes from community terminologies here, e.g. terms from the 'allele origin' branch of the GENO ontology such as GENO:0000882 (somatic allele origin).
+   * Reports whether the Proposition should be interpreted in the context of a heritable 'germline' variant, an acquired 'somatic' variant in a tumor,  post-zygotic 'mosaic' variant. While these are the most commonly reported allele origins, other more nuanced concepts can be captured  (e.g. 'maternal' vs 'paternal' allele origin'). In practice, populating this field may be complicated by the fact that some sources report allele origin based on the type of tissue that was sequenced to identify the variant, and others use it more generally to specify a category of variant for which the proposition holds. The stated intent of this attribute is the latter. However, if an implementer is not sure about which is reported in their data, it may be safer to create an Extension to hold this information, where they can explicitly acknowledge this ambiguity.
    */
   alleleOriginQualifier?: MappableConcept | IriReference | null
   predicate: TherapeuticResponsePredicate
@@ -1931,7 +1942,7 @@ export interface ExperimentalVariantFunctionalImpactStudyResult {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
   /**
    * The full data set that provided the reported the functional impact score.
    */
@@ -1998,7 +2009,7 @@ export interface InformationEntity {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
 }
 /**
  * A claim of purported truth as made by a particular agent, on a particular
@@ -2042,7 +2053,7 @@ export interface Statement {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
   /**
    * A possible fact, the validity of which is assessed and reported by the Statement. A Statement can put forth the proposition as being true, false, or uncertain, and may provide an assessment of the level of confidence/evidence supporting this claim.
    */
@@ -2151,7 +2162,7 @@ export interface TumorVariantFrequencyStudyResult {
   /**
    * A document in which the the Information Entity is reported.
    */
-  reportedIn?: Document[] | IriReference | null
+  reportedIn?: (Document | IriReference)[] | null
   /**
    * The dataset from which data in the Tumor Variant Frequency Study Result was taken.
    */

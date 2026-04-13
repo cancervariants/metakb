@@ -1,5 +1,8 @@
 """Test Neo4j repository implementation."""
 
+import json
+from pathlib import Path
+
 import pytest
 from ga4gh.va_spec.base import Statement
 
@@ -21,112 +24,188 @@ def repository():
     driver.close()
 
 
-@pytest.mark.ci_only
-def test_basic_statement_roundtrip(
-    repository: Neo4jRepository, civic_eid2997_study_stmt: dict
-):
-    """Test roundtripping of a pretty standard statement, CIViC EID 2997
-
-    * subject variant has a DefiningAlleleConstraint
-    """
-    statement = Statement(**civic_eid2997_study_stmt)
-    repository.load_statement(statement)
-
-    eid_result = repository.search_statements(statement_ids=["civic.eid:2997"])
-    assert len(eid_result) == 1
-    assert eid_result[0].id == "civic.eid:2997"
-    assert eid_result[0].proposition.subjectVariant.id == "civic.mpid:33"
-    assert eid_result[0].proposition.objectTherapeutic.root.id == "civic.tid:146"
-    assert eid_result[0].proposition.conditionQualifier.root.id == "civic.did:8"
-    assert eid_result[0].proposition.geneContextQualifier.id == "civic.gid:19"
-
-    therapy_result = repository.search_statements(therapy_ids=["rxcui:1430438"])
-    assert therapy_result == eid_result
-
-    gene_result = repository.search_statements(gene_ids=["hgnc:3236"])
-    assert gene_result == eid_result
-
-    disease_result = repository.search_statements(disease_ids=["ncit:C2926"])
-    assert disease_result == eid_result
-
-    var_result = repository.search_statements(
-        variation_ids=["ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"]
-    )
-    assert var_result == eid_result
-
-    all_combo_result = repository.search_statements(
-        therapy_ids=["rxcui:1430438"],
-        gene_ids=["hgnc:3236"],
-        disease_ids=["ncit:C2926"],
-        variation_ids=["ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"],
-        statement_ids=["civic.eid:2997"],
-    )
-    assert all_combo_result == eid_result
-
-    entity_combo_result = repository.search_statements(
-        therapy_ids=["rxcui:1430438"],
-        gene_ids=["hgnc:3236"],
-        disease_ids=["ncit:C2926"],
-        variation_ids=["ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"],
-    )
-    assert entity_combo_result == eid_result
-
-    partial_combo_result = repository.search_statements(
-        therapy_ids=["rxcui:1430438"],
-        gene_ids=["hgnc:3236"],
-        disease_ids=["ncit:C2926"],
-    )
-    assert partial_combo_result == eid_result
+@pytest.fixture
+def assertions(test_data_dir: Path):
+    with (test_data_dir / "repository" / "assertions.json").open() as f:
+        data = json.load(f)
+        return {k: Statement(**v) for k, v in data.items()}
 
 
 @pytest.mark.ci_only
-def test_feature_context_statement_roundtrip(
-    repository: Neo4jRepository, moa_aid120_study_stmt: dict
+def test_add_additional_assertion(repository: Neo4jRepository, assertions: dict):
+    """Test adding a civic-based assertion, then a MOA-based assertion for the same proposition"""
+    assertion = assertions["metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi_civic"]
+    repository.load_assertion(assertion)
+
+    assertion_id = "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi"
+    catvar_id = "metakb.cv:PSQ.VA.pfWn9x9oFBRzGda1xXcOrE-BrX0R__N8"
+    disease_id = "metakb.disease:ncit_C3224"
+    gene_id = "metakb.gene:hgnc_1097"
+    therapy_id = "metakb.therapy:rxcui_1425098"
+
+    search_result = repository.search_statements(statement_ids=[assertion_id])
+    assert len(search_result) == 1
+    assert search_result[0].id == assertion_id
+    assert search_result[0].proposition.subjectVariant.id == catvar_id
+    assert search_result[0].proposition.objectTherapeutic.root.id == therapy_id
+    assert search_result[0].proposition.conditionQualifier.root.id == disease_id
+    assert search_result[0].proposition.geneContextQualifier.id == gene_id
+    assert [
+        ext.value["primaryCoding"]["code"]
+        for ext in search_result[0].extensions
+        if ext.name == "metakb_star_rating"
+    ] == ["1_star"]
+    assert search_result[0].direction == "supports"
+    assert search_result[0].strength.id == "vicc:e000005"
+    assert len(search_result[0].hasEvidenceLines) == 1
+    assert len(search_result[0].hasEvidenceLines[0].hasEvidenceItems) == 1
+    assert (
+        search_result[0].hasEvidenceLines[0].hasEvidenceItems[0].id == "civic.eid:2506"
+    )
+
+    # now load a MOA item for the same assertion
+    assertion = assertions["metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi_moa"]
+    repository.load_assertion(assertion)
+
+    # check that aggregate values update
+    search_result = repository.search_statements(statement_ids=[assertion_id])
+    assert len(search_result) == 1
+    assert search_result[0].id == assertion_id
+    assert [
+        ext.value["primaryCoding"]["code"]
+        for ext in search_result[0].extensions
+        if ext.name == "metakb_star_rating"
+    ] == ["4_star"]
+    assert search_result[0].direction == "supports"
+    assert search_result[0].strength.id == "vicc:e000002"
+    assert len(search_result[0].hasEvidenceLines) == 2
+
+
+@pytest.mark.ci_only
+def test_feature_context_assertion_roundtrip(
+    repository: Neo4jRepository, assertions: dict
 ):
     """Test roundtripping of a statement that uses a gene mutation subject: MOA assertion 120
 
-    * prognostic proposition
-    * subject variant has a FeatureContextConstraint ("ARID1A mutation")
+    * therapeutic response proposition
+    * subject variant has a FeatureContextConstraint ("BRAF mutation")
+    * combo therapy
     """
-    statement = Statement(**moa_aid120_study_stmt)
-    repository.load_statement(statement)
+    assertion = assertions["BRAF mutation"]
+    repository.load_assertion(assertion)
 
-    eid_result = repository.search_statements(statement_ids=["moa.assertion:120"])
-    assert len(eid_result) == 1
-    assert eid_result[0].id == "moa.assertion:120"
-    assert eid_result[0].proposition.subjectVariant.id == "moa.variant:120"
+    assertion_id = "metakb.assertion:RXgu1CLSyUKNM3c7-YfTF_lh5meCOnSM"
+    catvar_id = "metakb.cv:FC.metakb.gene_hgnc_1097"
+    disease_id = "metakb.disease:ncit_C3224"
+    gene_id = "metakb.gene:hgnc_1097"
+    therapy_id = "metakb.tg:JgptHcUAwUcXajKEtKy7elEoRLldjZN3"
+
+    assertion_id_result = repository.search_statements(statement_ids=[assertion_id])
+    assert len(assertion_id_result) == 1
+    assert assertion_id_result[0].id == assertion_id
+    assert assertion_id_result[0].proposition.subjectVariant.id == catvar_id
+    assert assertion_id_result[0].proposition.objectTherapeutic.root.id == therapy_id
+    assert assertion_id_result[0].proposition.conditionQualifier.root.id == disease_id
+    assert assertion_id_result[0].proposition.geneContextQualifier.id == gene_id
+    assert [
+        ext.value["primaryCoding"]["code"]
+        for ext in assertion_id_result[0].extensions
+        if ext.name == "metakb_star_rating"
+    ] == ["1_star"]
+    assert assertion_id_result[0].direction == "supports"
+    assert assertion_id_result[0].strength.id == "vicc:e000009"
+    assert len(assertion_id_result[0].hasEvidenceLines) == 1
+    assert len(assertion_id_result[0].hasEvidenceLines[0].hasEvidenceItems) == 1
     assert (
-        eid_result[0].proposition.objectCondition.root.id
-        == "moa.normalize.disease.ncit:C8294"
-    )
-    assert (
-        eid_result[0].proposition.geneContextQualifier.id
-        == "moa.normalize.gene.hgnc:11110"
+        assertion_id_result[0].hasEvidenceLines[0].hasEvidenceItems[0].id
+        == "moa.assertion:166"
     )
 
-    gene_result = repository.search_statements(gene_ids=["hgnc:11110"])
-    assert gene_result == eid_result
+    therapy_result = repository.search_statements(therapy_ids=[therapy_id])
+    assert therapy_result == assertion_id_result
 
-    disease_result = repository.search_statements(disease_ids=["ncit:C8294"])
-    assert disease_result == eid_result
+    gene_result = repository.search_statements(gene_ids=[gene_id])
+    assert [r for r in gene_result if r.id == assertion_id] == assertion_id_result
+
+    disease_result = repository.search_statements(disease_ids=[disease_id])
+    assert [r for r in disease_result if r.id == assertion_id] == assertion_id_result
 
     all_combo_result = repository.search_statements(
-        gene_ids=["hgnc:11110"],
-        disease_ids=["ncit:C8294"],
-        statement_ids=["moa.assertion:120"],
+        therapy_ids=[therapy_id],
+        gene_ids=[gene_id],
+        disease_ids=[disease_id],
+        variation_ids=[],
+        statement_ids=[assertion_id],
     )
-    assert all_combo_result == eid_result
+    assert all_combo_result == assertion_id_result
 
     entity_combo_result = repository.search_statements(
-        gene_ids=["hgnc:11110"],
-        disease_ids=["ncit:C8294"],
+        therapy_ids=[therapy_id],
+        gene_ids=[gene_id],
+        disease_ids=[disease_id],
+        variation_ids=[],
     )
-    assert entity_combo_result == eid_result
+    assert entity_combo_result == assertion_id_result
+
+    partial_combo_result = repository.search_statements(
+        therapy_ids=[therapy_id],
+        gene_ids=[gene_id],
+        disease_ids=[disease_id],
+    )
+    assert partial_combo_result == assertion_id_result
+
+
+@pytest.mark.ci_only
+def test_assertion_update(repository: Neo4jRepository, assertions: dict):
+    """Test an assertion update that alters the evidence line structure
+
+    Ideally just find two 1-star pieces of evidence so that merging them creates a grouped ev line
+    """
+    # TODO
+
+
+@pytest.mark.ci_only
+def test_diagnostic_assertion(repository: Neo4jRepository, assertions: dict):
+    assertion_id = "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz"
+    assertion = assertions[assertion_id]
+    repository.load_assertion(assertion)
+
+    assertion_id_result = repository.search_statements(statement_ids=[assertion_id])
+    assert len(assertion_id_result) == 1
+    assert assertion_id_result[0].id == assertion_id
+    assert (
+        assertion_id_result[0].proposition.subjectVariant.id
+        == "metakb.cv:PSQ.VA.UAquUsb5z-WfBxmE_eqEu3txfseQoRqU"
+    )
+    assert (
+        assertion_id_result[0].proposition.geneContextQualifier.id
+        == "metakb.gene:hgnc_1092"
+    )
+    assert (
+        assertion_id_result[0].proposition.objectCondition.root.id
+        == "metakb.disease:ncit_C4862"
+    )
+    assert len(assertion_id_result[0].hasEvidenceLines) == 1
+    assert (
+        assertion_id_result[0].hasEvidenceLines[0].hasEvidenceItems[0].id
+        == "civic.eid:6034"
+    )
 
 
 @pytest.mark.ci_only
 def test_get_stats(repository: Neo4jRepository):
-    """If we had a robust test dataset, we could check for specific expected counts, but for now this just checks that they're nonzero"""
+    # If we had a robust test dataset, we could meaningfully check for specific expected counts
+    # for now this just checks that they respond
     stats = repository.get_stats()
     for k, v in stats.model_dump().items():
         assert v, f"Count of {k} is {v}"
+
+
+@pytest.mark.ci_only
+def test_get_all_assertion_ids(repository: Neo4jRepository):
+    all_ids = repository.get_all_assertion_ids()
+    assert set(all_ids) == {
+        "metakb.assertion:RXgu1CLSyUKNM3c7-YfTF_lh5meCOnSM",
+        "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi",
+        "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz",
+    }

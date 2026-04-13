@@ -3,274 +3,61 @@
 import datetime
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
-from enum import Enum
 from pathlib import Path
-from typing import ClassVar, TypeVar
+from typing import TypeVar
 
-from disease.schemas import (
-    NamespacePrefix as DiseaseNamespacePrefix,
-)
-from disease.schemas import (
-    NormalizationService as NormalizedDisease,
-)
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.cat_vrs.recipes import ProteinSequenceConsequence
-from ga4gh.core import sha512t24u
-from ga4gh.core.models import (
-    Coding,
-    ConceptMapping,
-    Extension,
-    MappableConcept,
-    Relation,
-    iriReference,
-)
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
+    Condition,
     ConditionSet,
-    Document,
-    Method,
     Statement,
+    Therapeutic,
     TherapyGroup,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+    VariantTherapeuticResponseProposition,
 )
-from ga4gh.vrs.models import Allele
-from gene.schemas import (
-    NamespacePrefix as GeneNamespacePrefix,
-)
-from gene.schemas import (
-    NormalizeService as NormalizedGene,
-)
-from pydantic import BaseModel, Field, StrictStr
-from therapy.schemas import (
-    NamespacePrefix as TherapyNamespacePrefix,
-)
-from therapy.schemas import (
-    NormalizationService as NormalizedTherapy,
-)
+from pydantic import BaseModel
 
 from metakb import DATE_FMT
 from metakb.config import get_config
 from metakb.harvesters.base import _HarvestedData
-from metakb.normalizers import (
-    ViccNormalizers,
+from metakb.normalizers import ViccNormalizers
+from metakb.transformers.identifiers import (
+    compute_assertion_id,
+    compute_combo_id,
+)
+from metakb.transformers.methodology import (
+    add_evidence_to_assertion,
+    initialize_assertion,
 )
 
-logger = logging.getLogger(__name__)
-
-# Normalizer response type to attribute name
-NORMALIZER_INSTANCE_TO_ATTR = {
-    NormalizedDisease: "disease",
-    NormalizedTherapy: "therapy",
-    NormalizedGene: "gene",
-}
-
-_CacheType = TypeVar("_CacheType", bound="_TransformedRecordsCache")
-
-
-def _sanitize_name(name: str) -> str:
-    """Trim leading and trailing whitespace and replace whitespace characters with
-    underscores
-
-    :param name: Name to sanitize
-    :return: Sanitized string with whitespace characters replaced by underscores
-    """
-    return re.sub(r"\s+", "_", name.strip())
-
-
-class NormalizerExtensionName(str, Enum):
-    """Define constraints for normalizer extension names"""
-
-    PRIORITY = "vicc_normalizer_priority"  # concept mapping is merged concept ID
-    FAILURE = "vicc_normalizer_failure"  # normalizer failed or is not supported
-
-
-class EcoLevel(str, Enum):
-    """Define constraints for Evidence Ontology levels"""
-
-    EVIDENCE = "ECO:0000000"
-    CLINICAL_STUDY_EVIDENCE = "ECO:0000180"
-
-
-class MethodId(str, Enum):
-    """Create method id constants"""
-
-    CIVIC_EID_SOP = "civic.method:2019"
-    MOA_ASSERTION_BIORXIV = "moa.method:2021"
-
-
-class CivicEvidenceLevel(str, Enum):
-    """Define constraints for CIViC evidence levels"""
-
-    A = "A"
-    B = "B"
-    C = "C"
-    D = "D"
-    E = "E"
-
-
-class MoaEvidenceLevel(str, Enum):
-    """Define constraints MOAlmanac evidence levels"""
-
-    FDA_APPROVED = "FDA-Approved"
-    GUIDELINE = "Guideline"
-    CLINICAL_TRIAL = "Clinical trial"
-    CLINICAL_EVIDENCE = "Clinical evidence"
-    PRECLINICAL = "Preclinical evidence"
-    INFERENTIAL = "Inferential evidence"
-
-
-class ViccConceptVocab(BaseModel):
-    """Define VICC Concept Vocab model"""
-
-    id: StrictStr
-    domain: StrictStr
-    term: StrictStr
-    parents: list[StrictStr] = []
-    exact_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    definition: StrictStr
-
-
-class _TransformedRecordsCache(BaseModel):
-    """Define model for caching transformed records"""
-
-    therapies: ClassVar[dict[str, MappableConcept]] = {}
-    conditions: ClassVar[dict[str, MappableConcept]] = {}
-    genes: ClassVar[dict[str, MappableConcept]] = {}
+_logger = logging.getLogger(__name__)
 
 
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    statements_evidence: list[Statement] = Field(
-        [], description="Statement objects for evidence records"
-    )
-    statements_assertions: list[
-        VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = Field([], description="Statement objects for assertion records")
-    categorical_variants: list[CategoricalVariant | ProteinSequenceConsequence] = []
-    variations: list[Allele] = []
-    genes: list[MappableConcept] = []
-    therapies: list[MappableConcept] = []
-    therapy_groups: list[TherapyGroup] = []
-    conditions: list[MappableConcept] = []
-    condition_sets: list[ConditionSet] = []
-    methods: list[Method] = []
-    documents: list[Document | iriReference] = []
+    evidence: list[Statement] = []
+    assertions: list[Statement] = []
+
+
+# TypeVar constrained to the specific Proposition subclasses.
+# This is used to indicate that a function operates on a single concrete
+# proposition type and returns the *same* type, rather than a generic union.
+# It preserves the relationship between input and output types for static typing.
+PropositionType = TypeVar(
+    "PropositionType",
+    VariantTherapeuticResponseProposition,
+    VariantDiagnosticProposition,
+    VariantPrognosticProposition,
+)
 
 
 class Transformer(ABC):
     """A base class for transforming harvester data."""
-
-    _methods: ClassVar[list[Method]] = [
-        Method(
-            id=MethodId.MOA_ASSERTION_BIORXIV,
-            name="MOAlmanac (2021)",
-            reportedIn=Document(
-                name="Reardon, B., Moore, N.D., Moore, N.S. et al.",
-                title="Integrating molecular profiles into clinical frameworks through the Molecular Oncology Almanac to prospectively guide precision oncology",
-                doi="10.1038/s43018-021-00243-3",
-                pmid="35121878",
-            ),
-        ),
-    ]
-    methods_mapping: ClassVar[dict[MethodId, Method]] = {m.id: m for m in _methods}
-    _vicc_concept_vocabs: ClassVar[list[ViccConceptVocab]] = [
-        ViccConceptVocab(
-            id="vicc:e000000",
-            domain="EvidenceStrength",
-            term="evidence",
-            parents=[],
-            exact_mappings={EcoLevel.EVIDENCE},
-            definition="A type of information that is used to support statements.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000001",
-            domain="EvidenceStrength",
-            term="authoritative evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.A},
-            definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000002",
-            domain="EvidenceStrength",
-            term="FDA recognized evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.FDA_APPROVED},
-            definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000003",
-            domain="EvidenceStrength",
-            term="professional guideline evidence",
-            parents=["vicc:e000001"],
-            exact_mappings={MoaEvidenceLevel.GUIDELINE},
-            definition="Evidence derived from statements by professional society guidelines",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000004",
-            domain="EvidenceStrength",
-            term="clinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-            definition="Evidence derived from clinical research studies",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000005",
-            domain="EvidenceStrength",
-            term="clinical cohort evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.B},
-            definition="Evidence derived from the clinical study of a participant cohort",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000006",
-            domain="EvidenceStrength",
-            term="interventional study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-            definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000007",
-            domain="EvidenceStrength",
-            term="observational study evidence",
-            parents=["vicc:e000005"],
-            exact_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-            definition="Evidence derived from observational studies of clinical cohorts",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000008",
-            domain="EvidenceStrength",
-            term="case study evidence",
-            parents=["vicc:e000004"],
-            exact_mappings={CivicEvidenceLevel.C},
-            definition="Evidence derived from clinical study of a single participant",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000009",
-            domain="EvidenceStrength",
-            term="preclinical evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-            definition="Evidence derived from the study of model organisms",
-        ),
-        ViccConceptVocab(
-            id="vicc:e000010",
-            domain="EvidenceStrength",
-            term="inferential evidence",
-            parents=["vicc:e000000"],
-            exact_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-            definition="Evidence derived by inference",
-        ),
-    ]
 
     def __init__(
         self,
@@ -285,7 +72,6 @@ class Transformer(ABC):
         :param harvester_path: Path to previously harvested data
         :param normalizers: normalizer collection instance
         """
-        self._cache = self._create_cache()
         self.name = self.__class__.__name__.lower().split("transformer")[0]
         if data_dir:
             self.data_dir = data_dir
@@ -295,10 +81,9 @@ class Transformer(ABC):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
-        self.processed_data = TransformedData()
-        self.evidence_level_to_vicc_concept_mapping = (
-            self._evidence_level_to_vicc_concept_mapping()
-        )
+        self.processed_data = None
+
+    ### Basic/public behavior
 
     @abstractmethod
     async def transform(self, *args, **kwargs) -> None:
@@ -307,14 +92,11 @@ class Transformer(ABC):
         :param harvested_data: Source harvested data
         """
 
-    @abstractmethod
-    def _create_cache() -> _CacheType:
-        """Create cache for transformed records"""
-
     def extract_harvested_data(self) -> _HarvestedData:
         """Get harvested data from file.
 
         :return: Harvested data
+        :raise FileNotFoundError: harvest file not found
         """
         if self.harvester_path is None:
             today = datetime.datetime.strftime(
@@ -334,299 +116,18 @@ class Transformer(ABC):
             _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
             return _harvested_data_child(**json.load(f))
 
-    def _evidence_level_to_vicc_concept_mapping(
-        self,
-    ) -> dict[MoaEvidenceLevel | CivicEvidenceLevel, list[ConceptMapping]]:
-        """Get mapping of source evidence level to vicc concept vocab
-
-        :return: Dictionary containing mapping from source evidence level (key)
-            to corresponding vicc concept vocab (value) represented as a list of
-            ConceptMapping
-        """
-        concept_mappings: dict[str, list[ConceptMapping]] = {}
-        for item in self._vicc_concept_vocabs:
-            for exact_mapping in item.exact_mappings:
-                concept_mappings[exact_mapping] = [
-                    ConceptMapping(
-                        coding=Coding(
-                            system="https://go.osu.edu/evidence-codes",
-                            code=item.id.split("vicc:")[-1],
-                            name=item.term,
-                        ),
-                        relation=Relation.EXACT_MATCH,
-                    )
-                ]
-        return concept_mappings
-
-    @staticmethod
-    def _get_digest_for_str_lists(str_list: list[str]) -> str:
-        """Create digest for a list of strings
-
-        :param str_list: List of strings to get digest for
-        :return: Digest
-        """
-        str_list.sort()
-        blob = json.dumps(str_list, separators=(",", ":"), sort_keys=True).encode(
-            "ascii"
-        )
-        return sha512t24u(blob)
-
-    @staticmethod
-    def _get_vicc_normalizer_failure_ext() -> Extension:
-        """Return extension for a VICC normalizer failure
-
-        :return: Extension for VICC normalizer failure
-        """
-        return Extension(name=NormalizerExtensionName.FAILURE.value, value=True)
-
-    @staticmethod
-    def _get_vicc_normalizer_mappings(
-        normalized_id: str,
-        normalizer_resp: NormalizedDisease | NormalizedTherapy | NormalizedGene,
-    ) -> list[ConceptMapping]:
-        """Get VICC Normalizer mappable concept
-
-        :param normalized_id: Normalized ID from VICC normalizer
-        :param normalizer_resp: Response from VICC normalizer
-        :return: List of VICC Normalizer data represented as mappable concept
-        """
-
-        def _update_mapping(
-            mapping: ConceptMapping,
-            normalized_id: str,
-            normalizer_label: str,
-            match_on_coding_id: bool = True,
-        ) -> Extension:
-            """Update ``mapping`` to include extension on whether ``mapping`` contains
-            code that matches the merged record's primary identifier.
-
-            :param mapping: ConceptMapping from vicc normalizer. This will be mutated.
-                Extensions will be added. Label will be added if mapping identifier
-                matches normalized merged identifier.
-            :param normalized_id: Concept ID from normalized record
-            :param normalizer_label: Label from normalized record
-            :param match_on_coding_id: Whether to match on ``coding.id`` or
-                ``coding.code`` (MONDO is represented differently)
-            :return: ConceptMapping with normalizer extension added as well as name (
-                if mapping id matches normalized merged id)
-            """
-            is_priority = (
-                normalized_id == mapping.coding.id
-                if match_on_coding_id
-                else normalized_id == mapping.coding.code.root.lower()
-            )
-
-            merged_id_ext = Extension(
-                name=NormalizerExtensionName.PRIORITY.value, value=is_priority
-            )
-            if mapping.extensions:
-                mapping.extensions.append(merged_id_ext)
-            else:
-                mapping.extensions = [merged_id_ext]
-
-            if is_priority:
-                mapping.coding.name = normalizer_label
-
-            return mapping
-
-        mappings: list[ConceptMapping] = []
-        attr_name = NORMALIZER_INSTANCE_TO_ATTR[type(normalizer_resp)]
-        normalizer_resp_obj = getattr(normalizer_resp, attr_name)
-        normalizer_label = normalizer_resp_obj.name
-        is_disease = isinstance(normalizer_resp, NormalizedDisease)
-        is_gene = isinstance(normalizer_resp, NormalizedGene)
-        is_therapy = isinstance(normalizer_resp, NormalizedTherapy)
-
-        normalizer_mappings = [
-            ConceptMapping(
-                coding=normalizer_resp_obj.primaryCoding,
-                relation=Relation.EXACT_MATCH,
-            ),
-        ]
-        if normalizer_resp_obj.mappings:
-            normalizer_mappings.extend(normalizer_resp_obj.mappings)
-
-        for mapping in normalizer_mappings:
-            if normalized_id == mapping.coding.id:
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-            elif is_disease and mapping.coding.code.root.lower().startswith(
-                DiseaseNamespacePrefix.MONDO.value
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=False,
-                    )
-                )
-            elif (
-                (
-                    is_gene
-                    and mapping.coding.id.startswith(
-                        (
-                            GeneNamespacePrefix.NCBI.value,
-                            GeneNamespacePrefix.HGNC.value,
-                        )
-                    )
-                )
-                or (
-                    is_disease
-                    and mapping.coding.id.startswith(DiseaseNamespacePrefix.DOID.value)
-                )
-                or (
-                    is_therapy
-                    and mapping.coding.id.startswith(TherapyNamespacePrefix.NCIT.value)
-                )
-            ):
-                mappings.append(
-                    _update_mapping(
-                        mapping,
-                        normalized_id,
-                        normalizer_label,
-                        match_on_coding_id=True,
-                    )
-                )
-        return mappings
-
-    def _merge_mappings(
-        self,
-        source_mappings: list[ConceptMapping],
-        normalizer_mappings: list[ConceptMapping],
-    ) -> list[ConceptMapping]:
-        """Merge source and normalizer concept mappings
-
-        Source mappings will be annotated with source annotation extension to retain
-        provenance of original source mapping.
-
-        :param source_mappings: List of concept mappings directly from a source
-        :param normalizer_mappings: List of concept mappings from VICC normalizer
-        :return: A list of merged concept mappings
-        """
-        merged_mappings = normalizer_mappings.copy()
-        code_to_idx = {m.coding.code.root: idx for idx, m in enumerate(merged_mappings)}
-        source_anno_exts = [Extension(name=f"{self.name}_annotation", value=True)]
-
-        for source_mapping in source_mappings:
-            code = source_mapping.coding.code.root
-            idx = code_to_idx.get(code)
-
-            base_mapping = merged_mappings[idx] if idx is not None else source_mapping
-            extensions = (base_mapping.extensions or []) + source_anno_exts
-
-            updated_mapping = base_mapping.model_copy(update={"extensions": extensions})
-
-            if idx is not None:
-                merged_mappings[idx] = updated_mapping
-            else:
-                code_to_idx[code] = len(merged_mappings)
-                merged_mappings.append(updated_mapping)
-        return merged_mappings
-
-    def get_normalized_protein_consequence_name(self, allele: Allele) -> str:
-        """Return normalized protein consequence name for a VRS Allele.
-
-        The output format is ``"<gene name> <REF><POS><ALT>"``.
-
-        :param allele: VRS Allele
-        :raises ValueError: If allele does not appear to be on a protein sequence, or
-            if a gene association cannot be determined
-        :raises NotImplementedError: If normalization for this allele is unsupported.
-            For now, this includes alleles lacking ``location.sequence`` and edit types
-            where ``len(location.sequence) != len(state.sequence)``.
-        :return: Normalized protein consequence string
-        """
-        location_seq = allele.location.sequence
-        if location_seq is None:
-            msg = (
-                "Protein consequence normalization requires location.sequence to be "
-                "present on the input allele."
-            )
-            raise NotImplementedError(msg)
-
-        ref = getattr(location_seq, "root", location_seq)
-        if not hasattr(allele.state, "sequence"):
-            msg = (
-                "Protein consequence normalization currently supports sequence-based "
-                "Allele states only."
-            )
-            raise NotImplementedError(msg)
-        alt = getattr(allele.state.sequence, "root", allele.state.sequence)
-        if len(ref) != len(alt):
-            msg = (
-                "Protein consequence normalization currently supports SNP-like edits "
-                "only (equal ref/alt lengths)."
-            )
-            raise NotImplementedError(msg)
-
-        seqrepo_access = self.vicc_normalizers.variation_normalizer.seqrepo_access
-        refget_accession = getattr(
-            allele.location.sequenceReference.refgetAccession,
-            "root",
-            allele.location.sequenceReference.refgetAccession,
-        )
-        alias_candidates: set[str] = set()
-        for query in (f"ga4gh:{refget_accession}", refget_accession):
-            aliases, _ = seqrepo_access.translate_alias(query)
-            alias_candidates.update(aliases)
-            identifiers, _ = seqrepo_access.translate_identifier(query)
-            alias_candidates.update(identifiers)
-
-        def _is_protein_alias(alias: str) -> bool:
-            if seqrepo_access.extract_sequence_type(alias) == "p":
-                return True
-            accession = alias.split(":", 1)[1] if ":" in alias else alias
-            return accession.startswith(("NP_", "XP_", "ENSP"))
-
-        protein_aliases = [
-            alias for alias in alias_candidates if _is_protein_alias(alias)
-        ]
-        if not protein_aliases:
-            msg = (
-                f"Allele {allele.id} sequence reference {refget_accession} is not a "
-                "protein sequence."
-            )
-            raise ValueError(msg)
-
-        gene_name = None
-        transcript_mappings = self.vicc_normalizers.variation_normalizer.gnomad_vcf_to_protein_handler.mane_transcript.transcript_mappings
-        for protein_alias in protein_aliases:
-            accession = (
-                protein_alias.split(":", 1)[1]
-                if ":" in protein_alias
-                else protein_alias
-            )
-            gene_symbol = transcript_mappings.get_gene_symbol_from_refeq_protein(
-                accession
-            ) or transcript_mappings.get_gene_symbol_from_ensembl_protein(accession)
-            if gene_symbol:
-                gene_name = gene_symbol
-                break
-
-        if not gene_name:
-            msg = f"Unable to determine gene association for allele {allele.id}"
-            raise ValueError(msg)
-
-        # VRS SequenceLocation uses inter-residue coordinates, so convert to residue.
-        pos = allele.location.start + 1
-        return f"{gene_name} {ref}{pos}{alt}"
-
     def create_json(self, cdm_filepath: Path | None = None) -> None:
         """Create a composite JSON for transformed data.
 
-        :param cdm_filepath: Path to the JSON file location at which the CDM output will be
+        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
             saved. If not provided, will use the default path of
             ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
             where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
             See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
+        :raise ValueError: if data variable hasn't been populated by transform method yet
         """
+        if self.processed_data is None:
+            raise ValueError
         if not cdm_filepath:
             transformers_dir = self.data_dir / "transformers"
             transformers_dir.mkdir(exist_ok=True, parents=True)
@@ -639,3 +140,291 @@ class Transformer(ABC):
 
         with cdm_filepath.open("w+") as f:
             json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+
+    ### Entity normalization
+
+    @staticmethod
+    def _get_mappableconcept_queries(concept: MappableConcept) -> list[str]:
+        """Get queries to submit to normalizer for a given entity concept
+
+        Note the assumption that aliases live in an extension named ``"Aliases"``
+
+        :param concept: gene/drug/disease object
+        :return: list of relevant queries for normalization
+        :raise ValueError: if Aliases extension doesn't contain a list for its value
+        """
+        queries = []
+        if concept.id:
+            queries.append(concept.id)
+        if concept.name:
+            queries.append(concept.name)
+        if concept.mappings:
+            queries += [str(m.coding.code) for m in concept.mappings]
+        if concept.extensions:
+            for ext in concept.extensions:
+                if ext.name == "Aliases":
+                    if isinstance(ext.value, list):
+                        queries += ext.value
+                    else:
+                        raise ValueError
+        return queries
+
+    def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
+        """Retrieve normalized disease concept
+
+        :param disease: source-derived disease concept
+        :return: either a successful normalized object, or ``None`` if unsuccessful
+        """
+        for query in self._get_mappableconcept_queries(disease):
+            result = self.vicc_normalizers.normalize_disease(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy(deep=True)
+            if result.disease:
+                normalized_disease = result.disease
+                normalized_disease.id = normalized_disease.id.replace(":", "_")
+                normalized_disease.id = normalized_disease.id.replace(
+                    "normalize.disease.", "metakb.disease:"
+                )
+                normalized_disease.mappings = None
+                normalized_disease.extensions = None
+                return normalized_disease
+        return None
+
+    def _resolve_condition_set(
+        self, condition_set: ConditionSet
+    ) -> ConditionSet | None:
+        """Return normalized equivalent of ConditionSet
+
+        :param condition_set: source-derived ConditionSet
+        :return: concept set with normalized equivalents of all inputs, or ``None`` if unsuccessful
+        :raise ValueError: if unrecognized concept type
+        :raise TypeError: if a member isn't a conditionset or mappableconcept
+        """
+        members: list[MappableConcept | ConditionSet] = []
+        for condition in condition_set.conditions:
+            if isinstance(condition, MappableConcept):
+                if condition.conceptType == "Phenotype":
+                    members.append(condition)
+                elif condition.conceptType == "Disease":
+                    normalized_disease = self._normalize_disease(condition)
+                    if not normalized_disease:
+                        return None
+                    members.append(normalized_disease)
+                else:
+                    raise ValueError
+            elif isinstance(condition, ConditionSet):
+                normalized_condition_set = self._resolve_condition_set(condition)
+                if not normalized_condition_set:
+                    return None
+                members.append(normalized_condition_set)
+            else:
+                raise TypeError
+        return ConditionSet(
+            conditions=members,
+            membershipOperator=condition_set.membershipOperator,
+            id=compute_combo_id(
+                "metakb",
+                ConditionSet,
+                condition_set.membershipOperator,
+                [c.id for c in members],
+            ),
+        )
+
+    def _normalize_condition(self, condition: Condition) -> Condition | None:
+        """Attempt full normalization of source Condition.
+
+        Treat phenotypes as "normalized" and copy them up to the normalized object. In
+        the future, we might want to be more careful about this, maybe check for a
+        preferred namespace or try to map over to HPO.
+
+        Note that `condition.root` might be a `ConditionSet` of arbitrary depth, so
+        the calls to `_resolve_condition_set` can be recursive.
+
+        :param condition: source Condition object
+        :return: normalized equivalent, if available
+        :raise ValueError: if concept has an unrecognized concept type
+        """
+        if isinstance(condition.root, ConditionSet):
+            normalized_condition_set = self._resolve_condition_set(condition.root)
+            if normalized_condition_set:
+                return Condition(root=normalized_condition_set)
+            return None
+        if condition.root.conceptType == "Phenotype":
+            return condition
+        if condition.root.conceptType == "Disease":
+            normalized_disease = self._normalize_disease(condition.root)
+            if normalized_disease:
+                return Condition(root=normalized_disease)
+            return None
+        raise ValueError
+
+    def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
+        """Attempt normalization of a source Gene
+
+        :param gene: source-derived gene object
+        :return: normalized equivalent if successful, else ``None``
+        """
+        # the gene context in a proposition is often None, eg in a fusion
+        # we don't know how to model this for now so we'll just skip it
+        if gene is None:
+            return None
+        for query in self._get_mappableconcept_queries(gene):
+            result = self.vicc_normalizers.normalize_gene(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy(deep=True)
+            if result.gene:
+                normalized_gene = result.gene
+                normalized_gene.id = normalized_gene.id.replace(":", "_")
+                normalized_gene.id = normalized_gene.id.replace(
+                    "normalize.gene.", "metakb.gene:"
+                )
+                normalized_gene.mappings = None
+                normalized_gene.extensions = None
+                return normalized_gene
+        return None
+
+    def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
+        """Attempt normalization of a drug
+
+        :param drug: source drug object
+        :return: normalized drug, if successful
+        """
+        for query in self._get_mappableconcept_queries(drug):
+            result = self.vicc_normalizers.normalize_therapy(query)[0]
+            # deepcopying creates some redundant work, but avoids non idempotent strangeness
+            result = result.model_copy(deep=True)
+            if result.therapy:
+                normalized_drug = result.therapy
+                normalized_drug.id = normalized_drug.id.replace(":", "_")
+                normalized_drug.id = normalized_drug.id.replace(
+                    "normalize.therapy.", "metakb.therapy:"
+                )
+                normalized_drug.mappings = None
+                normalized_drug.extensions = None
+                return normalized_drug
+        return None
+
+    def _normalize_therapeutic(self, therapeutic: Therapeutic) -> Therapeutic | None:
+        """Attempt normalization of a Therapeutic (drug or drug combo)
+
+        :param therapeutic: source entity
+        :return: normalized equivalent, if successful
+        """
+        if isinstance(therapeutic.root, MappableConcept):
+            drug_result = self._normalize_drug(therapeutic.root)
+            if drug_result:
+                return Therapeutic(root=drug_result)
+            return None
+        normalized_members = [
+            self._normalize_drug(drug) for drug in therapeutic.root.therapies
+        ]
+        if all(normalized_members):
+            return Therapeutic(
+                root=TherapyGroup(
+                    id=compute_combo_id(
+                        "metakb",
+                        TherapyGroup,
+                        therapeutic.root.membershipOperator,
+                        [d.id for d in normalized_members],
+                    ),
+                    therapies=normalized_members,
+                    membershipOperator=therapeutic.root.membershipOperator,
+                )
+            )
+        return None
+
+    @abstractmethod
+    async def _normalize_variant(
+        self, variant: CategoricalVariant
+    ) -> CategoricalVariant | None:
+        """Attempt normalization of a source variant object.
+
+        It's tricky to build universal normalization techniques that grab the right
+        data from each source, so for now, we'll require each source transformer
+        to reimplement it. It's plausible that it could be made generic in the future.
+
+        :param variant: incoming source variant object
+        :return: either a normalized CatVar, or None
+        """
+
+    ### evidence/assertion construction
+
+    async def _get_normalized_proposition(
+        self, proposition: PropositionType
+    ) -> PropositionType | None:
+        """Attempt to construct normalized equivalent of evidence item proposition.
+
+        :param proposition: original evidence item proposition
+        """
+        prop_kwargs = {
+            "geneContextQualifier": self._normalize_gene(
+                proposition.geneContextQualifier
+            ),
+            "subjectVariant": await self._normalize_variant(proposition.subjectVariant),
+        }
+
+        if isinstance(proposition, VariantTherapeuticResponseProposition):
+            normalized_therapeutic = self._normalize_therapeutic(
+                proposition.objectTherapeutic
+            )
+            normalized_condition = self._normalize_condition(
+                proposition.conditionQualifier
+            )
+            prop_kwargs["objectTherapeutic"] = normalized_therapeutic
+            prop_kwargs["conditionQualifier"] = normalized_condition
+        else:
+            normalized_condition = self._normalize_condition(
+                proposition.objectCondition
+            )
+            prop_kwargs["objectCondition"] = normalized_condition
+
+        # Collect failures for logging
+        failures = []
+        for key, value in prop_kwargs.items():
+            if not value:
+                original = getattr(proposition, key)
+                failures.append((key, original))
+
+        if failures:
+            _logger.debug(
+                "Failed to normalize proposition components: %s | predicate=%s",
+                ", ".join(f"{k}={v}" for k, v in failures),
+                proposition.predicate,
+            )
+            return None
+
+        return type(proposition)(
+            predicate=proposition.predicate,
+            alleleOriginQualifier=proposition.alleleOriginQualifier,
+            **prop_kwargs,
+        )
+
+    async def _upsert_assertion_from_evidence(
+        self, evidence_item: Statement, assertions_map: dict[str, Statement]
+    ) -> None:
+        """Create or update an assertion from a single evidence item.
+
+        The transformer workflow's assertions tracker is borrowed and updated in-place.
+
+        If the proposition cannot be normalized, no assertion is created.
+
+        :param evidence_item: source statement to incorporate as evidence
+        :param assertions_map: mapping of assertion_id -> Statement, updated in place
+        """
+        normalized_proposition = await self._get_normalized_proposition(
+            evidence_item.proposition
+        )
+        if not normalized_proposition:
+            _logger.debug(
+                "Unable to normalize all proposition terms for ev item %s",
+                evidence_item.id,
+            )
+            return
+        assertion_id = compute_assertion_id(normalized_proposition)
+        if assertion := assertions_map.get(assertion_id):
+            assertion = add_evidence_to_assertion(assertion, evidence_item)
+        else:
+            assertion = initialize_assertion(
+                assertion_id, normalized_proposition, evidence_item
+            )
+        assertions_map[assertion_id] = assertion

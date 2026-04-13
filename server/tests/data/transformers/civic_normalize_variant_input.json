@@ -1,0 +1,399 @@
+{
+  "civic.mpid:17": {
+    "id": "civic.mpid:17",
+    "type": "CategoricalVariant",
+    "name": "BRAF V600",
+    "description": "BRAF mutations of the valine 600 residue have been shown to be recurrent in many cancer types. Of the V600 mutations, V600E is the most widely researched. V600 mutations as a whole have been correlated to poorer prognosis in colorectal and papilarry thyroid cancers. V600 mutations have also been shown to confer sensitivity to the BRAF inhibitor dabrafenib. For a more detailed summary, click the individual mutations.",
+    "aliases": ["VAL600"],
+    "extensions": [
+      { "name": "CIViC Molecular Profile Score", "value": 460.0 },
+      {
+        "name": "CIViC representative coordinate",
+        "value": {
+          "chromosome": "7",
+          "start": 140453136,
+          "stop": 140453137,
+          "reference_bases": null,
+          "variant_bases": null,
+          "ensembl_version": 75,
+          "representative_transcript": "ENST00000288602.6",
+          "reference_build": "GRCh37",
+          "type": "coordinates"
+        }
+      }
+    ],
+    "mappings": [
+      {
+        "coding": {
+          "id": "civic.mpid:17",
+          "system": "https://civicdb.org/links/molecular_profile/",
+          "code": "17"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "id": "civic.vid:17",
+          "extensions": [
+            { "name": "subtype", "value": "gene_variant" },
+            {
+              "name": "variant_types",
+              "value": [
+                {
+                  "id": null,
+                  "extensions": null,
+                  "coding": {
+                    "id": "civic.variant_type:103",
+                    "extensions": null,
+                    "name": "Protein Altering Variant",
+                    "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                    "systemVersion": null,
+                    "code": "SO:0001818",
+                    "iris": null
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          ],
+          "name": "V600",
+          "system": "https://civicdb.org/links/variant/",
+          "code": "17"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "13961"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "44815"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "376288"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "40389"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "376289"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "44816"
+        },
+        "relation": "relatedMatch"
+      }
+    ]
+  },
+  "civic.mpid:332": {
+    "id": "civic.mpid:332",
+    "type": "CategoricalVariant",
+    "name": "KRAS Mutation",
+    "extensions": [
+      { "name": "CIViC Molecular Profile Score", "value": 545.5 },
+      {
+        "name": "CIViC representative coordinate",
+        "value": {
+          "chromosome": "12",
+          "start": 25362365,
+          "stop": 25403737,
+          "reference_bases": null,
+          "variant_bases": null,
+          "ensembl_version": 75,
+          "representative_transcript": "ENST00000256078.4",
+          "reference_build": "GRCh37",
+          "type": "coordinates"
+        }
+      }
+    ],
+    "mappings": [
+      {
+        "coding": {
+          "id": "civic.mpid:332",
+          "system": "https://civicdb.org/links/molecular_profile/",
+          "code": "332"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "id": "civic.vid:336",
+          "extensions": [
+            { "name": "subtype", "value": "gene_variant" },
+            {
+              "name": "variant_types",
+              "value": [
+                {
+                  "id": null,
+                  "extensions": null,
+                  "coding": {
+                    "id": "civic.variant_type:103",
+                    "extensions": null,
+                    "name": "Protein Altering Variant",
+                    "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                    "systemVersion": null,
+                    "code": "SO:0001818",
+                    "iris": null
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          ],
+          "name": "Mutation",
+          "system": "https://civicdb.org/links/variant/",
+          "code": "336"
+        },
+        "relation": "exactMatch"
+      }
+    ]
+  },
+  "civic.mpid:85": {
+    "id": "civic.mpid:85",
+    "type": "CategoricalVariant",
+    "name": "MGMT Promoter Methylation",
+    "description": "MGMT promoter methylation has been observed to impact tumor progression in glioblastoma multiforme. In patients exhibiting promoter methylation, the akylating agent carmustine has shown efficacy. In patients lacking methylation, combining carmustine with the MGMT inhibitor O(6)-benzylguanine may be effective, but more experiments are required. Clinical trials have also shown selective sensitivity of promoter methylation-positive patients to temozolomide, making a case for wider methylation screening in GBM patients.",
+    "extensions": [
+      { "name": "CIViC Molecular Profile Score", "value": 136.0 },
+      {
+        "name": "CIViC representative coordinate",
+        "value": {
+          "chromosome": "10",
+          "start": 131264495,
+          "stop": 131265656,
+          "reference_bases": null,
+          "variant_bases": null,
+          "ensembl_version": 75,
+          "representative_transcript": "ENST00000306010.7",
+          "reference_build": "GRCh37",
+          "type": "coordinates"
+        }
+      }
+    ],
+    "mappings": [
+      {
+        "coding": {
+          "id": "civic.mpid:85",
+          "system": "https://civicdb.org/links/molecular_profile/",
+          "code": "85"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "id": "civic.vid:85",
+          "extensions": [{ "name": "subtype", "value": "gene_variant" }],
+          "name": "Promoter Methylation",
+          "system": "https://civicdb.org/links/variant/",
+          "code": "85"
+        },
+        "relation": "exactMatch"
+      }
+    ]
+  },
+  "civic.mpid:86": {
+    "id": "civic.mpid:86",
+    "type": "CategoricalVariant",
+    "name": "NPM1 EXON 11 MUTATION",
+    "description": "NPM1 exon 12 mutations are frequently identified in patients with cytogenetically normal acute myeloid leukemia (AML) and often co-occur with FLT3-ITD. FLT3 status should also be evaluated as co-occurence with FLT3-ITD may impact prognosis. Exon 12 mutations have been identified as a predictor of good prognostic outcomes in the absence of FLT3-ITD. Due to their high frequency, NPM1 mutations have been retrospectively analyzed in the context of a number of therapies including variable results following ATRA treatment as well as improved response to high-dose daunorubicin or valproic acid. Additionally, multiple groups have shown increased surface expression of CD33 associated with NPM1 mutation, suggesting these patients may respond to anti-CD33 therapy. Cytoplasmic sequestration of NPM1 (NPM1c) is associated with a good response to induction therapy.",
+    "aliases": ["EXON 12 MUTATION"],
+    "extensions": [
+      { "name": "CIViC Molecular Profile Score", "value": 454.0 },
+      {
+        "name": "CIViC representative coordinate",
+        "value": {
+          "chromosome": "5",
+          "start": 170837531,
+          "stop": 170837569,
+          "reference_bases": null,
+          "variant_bases": null,
+          "ensembl_version": 75,
+          "representative_transcript": "ENST00000517671.1",
+          "reference_build": "GRCh37",
+          "type": "coordinates"
+        }
+      }
+    ],
+    "mappings": [
+      {
+        "coding": {
+          "id": "civic.mpid:86",
+          "system": "https://civicdb.org/links/molecular_profile/",
+          "code": "86"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "id": "civic.vid:86",
+          "extensions": [
+            { "name": "subtype", "value": "gene_variant" },
+            {
+              "name": "variant_types",
+              "value": [
+                {
+                  "id": null,
+                  "extensions": null,
+                  "coding": {
+                    "id": "civic.variant_type:99",
+                    "extensions": null,
+                    "name": "Exon Variant",
+                    "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                    "systemVersion": null,
+                    "code": "SO:0001791",
+                    "iris": null
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          ],
+          "name": "EXON 11 MUTATION",
+          "system": "https://civicdb.org/links/variant/",
+          "code": "86"
+        },
+        "relation": "exactMatch"
+      }
+    ]
+  },
+  "civic.mpid:34": {
+    "id": "civic.mpid:34",
+    "type": "CategoricalVariant",
+    "name": "EGFR T790M",
+    "description": "EGFR T790M was one of the very first mutations recognized to confer resistance to targeted therapies in non-small cell lung cancer. While successful in amplified EGFR, the efficacy of the first and second generation TKI\\'s (erlotinib, gefitinib, neratinib) in treating patients harboring this mutation before treatment is notably lower. This lack of efficacy can likely be to blame for the poorer prognosis for patients with this mutation as compared to patients with wildtype EGFR or other types of EGFR mutations. Approximately half of EGFR mutant tumors with acquired resistance to TKI inhibition have been shown to harbor this mutation, implicating it as a mechanism of acquired therapy resistence. A third generation TKI (osimertinib) has been approved for the treatment of EGFR T790M mutant NSCLC. Patients positive for T790M in a plasma-based test have similar outcomes like those with tumor biopsy testing.",
+    "aliases": ["THR790MET"],
+    "extensions": [
+      { "name": "CIViC Molecular Profile Score", "value": 406.25 },
+      {
+        "name": "expressions",
+        "value": [
+          {
+            "id": null,
+            "extensions": null,
+            "syntax": "hgvs.c",
+            "value": "ENST00000275493.2:c.2369C>T",
+            "syntax_version": null
+          },
+          {
+            "id": null,
+            "extensions": null,
+            "syntax": "hgvs.g",
+            "value": "NC_000007.13:g.55249071C>T",
+            "syntax_version": null
+          },
+          {
+            "id": null,
+            "extensions": null,
+            "syntax": "hgvs.c",
+            "value": "NM_005228.4:c.2369C>T",
+            "syntax_version": null
+          },
+          {
+            "id": null,
+            "extensions": null,
+            "syntax": "hgvs.p",
+            "value": "NP_005219.2:p.Thr790Met",
+            "syntax_version": null
+          }
+        ]
+      },
+      {
+        "name": "CIViC representative coordinate",
+        "value": {
+          "chromosome": "7",
+          "start": 55249071,
+          "stop": 55249071,
+          "reference_bases": "C",
+          "variant_bases": "T",
+          "ensembl_version": 75,
+          "representative_transcript": "ENST00000275493.2",
+          "reference_build": "GRCh37",
+          "type": "coordinates"
+        }
+      }
+    ],
+    "mappings": [
+      {
+        "coding": {
+          "id": "civic.mpid:34",
+          "system": "https://civicdb.org/links/molecular_profile/",
+          "code": "34"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "id": "civic.vid:34",
+          "extensions": [
+            { "name": "subtype", "value": "gene_variant" },
+            {
+              "name": "variant_types",
+              "value": [
+                {
+                  "id": null,
+                  "extensions": null,
+                  "coding": {
+                    "id": "civic.variant_type:47",
+                    "extensions": null,
+                    "name": "Missense Variant",
+                    "system": "http://www.sequenceontology.org/browser/current_svn/term/",
+                    "systemVersion": null,
+                    "code": "SO:0001583",
+                    "iris": null
+                  },
+                  "relation": "exactMatch"
+                }
+              ]
+            }
+          ],
+          "name": "T790M",
+          "system": "https://civicdb.org/links/variant/",
+          "code": "34"
+        },
+        "relation": "exactMatch"
+      },
+      {
+        "coding": {
+          "system": "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid=",
+          "code": "CA090928"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/clinvar/variation/",
+          "code": "16613"
+        },
+        "relation": "relatedMatch"
+      },
+      {
+        "coding": {
+          "system": "https://www.ncbi.nlm.nih.gov/snp/",
+          "code": "rs121434569"
+        },
+        "relation": "relatedMatch"
+      }
+    ]
+  }
+}

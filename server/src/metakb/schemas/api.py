@@ -7,11 +7,6 @@ from ga4gh.cat_vrs import CATVRS_VERSION
 from ga4gh.cat_vrs import __version__ as cat_vrs_python_version
 from ga4gh.va_spec import VASPEC_VERSION
 from ga4gh.va_spec import __version__ as va_spec_python_version
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
 from ga4gh.va_spec.base import Statement
 from ga4gh.vrs import VRS_VERSION
 from ga4gh.vrs import (
@@ -135,12 +130,7 @@ class SearchResult(BaseModel):
     """
 
     search_terms: list[SearchTerm]
-    statements: list[
-        Statement
-        | VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = []
+    statements: list[Statement] = []
     start: int = 0
     limit: int | None = None
 
@@ -161,16 +151,9 @@ class SearchStatementsResponse(BaseModel):
     query: SearchStatementsQuery
     start: int
     limit: int | None
-    statement_ids: list[str]
-    therapeutic_statements: dict[
-        str, list[VariantTherapeuticResponseStudyStatement | Statement]
-    ] = {}
-    diagnostic_statements: dict[
-        str, list[VariantDiagnosticStudyStatement | Statement]
-    ] = {}
-    prognostic_statements: dict[
-        str, list[VariantPrognosticStudyStatement | Statement]
-    ] = {}
+    prognostic_statements: list[Statement]
+    diagnostic_statements: list[Statement]
+    therapeutic_response_statements: list[Statement]
     duration_s: float
     service_meta_: ServiceMeta
 
@@ -181,11 +164,6 @@ class BatchSearchStatementsResponse(BaseModel):
     search_terms: list[SearchTerm]
     start: int
     limit: int | None
-    statements: list[
-        Statement
-        | VariantTherapeuticResponseStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantDiagnosticStudyStatement
-    ] = []
+    statements: list[Statement] = []
     duration_s: float
     service_meta_: ServiceMeta

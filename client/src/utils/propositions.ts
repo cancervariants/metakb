@@ -113,6 +113,13 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   return []
 }
 
+const getNamedValue = (value: unknown): string => {
+  if (value && typeof value === 'object' && 'name' in value && typeof value.name === 'string') {
+    return value.name
+  }
+  return 'N/A'
+}
+
 /**
  * Extracts human-readable condition names from a Condition object.
  *
@@ -126,17 +133,11 @@ function getConditionNames(condition: string | Condition | undefined): string[] 
     return [condition]
   }
 
-  // If it's a MappableConcept
-  if ('name' in condition) {
-    return [condition.name ?? 'N/A']
-  }
-
-  // If it's a ConditionSet
   if ('conditions' in condition) {
-    return condition.conditions.map((c) => c.name ?? 'N/A')
+    return condition.conditions.map(getNamedValue)
   }
 
-  return ['N/A']
+  return [getNamedValue(condition)]
 }
 
 /**

@@ -12,7 +12,7 @@
  * to handle UI interactions or derived values.
  */
 
-import { NormalizedResult } from '../../utils'
+import { AssertionResult } from '../../utils'
 
 /**
  * Union of all supported column field keys for the results table.
@@ -23,7 +23,7 @@ import { NormalizedResult } from '../../utils'
  *   - `resultCount`: Derived column for showing evidence record counts
  */
 type ColumnField =
-  | Exclude<keyof NormalizedResult, 'grouped_evidence'>
+  | Exclude<keyof AssertionResult, 'grouped_evidence'>
   | 'expandRow'
   | 'evidence_summary'
 
@@ -41,5 +41,5 @@ export interface ResultColumn {
    * Optional render function to customize cell rendering.
    * Receives the full `NormalizedResult` for the row.
    */
-  render?: (value: NormalizedResult) => React.ReactNode
+  render?: (value: AssertionResult) => React.ReactNode
 }

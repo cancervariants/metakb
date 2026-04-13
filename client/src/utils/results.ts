@@ -13,8 +13,14 @@
  *
  */
 
-import { Statement } from '../models/domain'
-import { normalizeEvidenceLevelFromStrength } from './normalization'
+import {
+  EvidenceLine,
+  MappableConcept,
+  Statement,
+  VariantDiagnosticProposition,
+  VariantPrognosticProposition,
+  VariantTherapeuticResponseProposition,
+} from '../models/domain'
 import {
   getDiseaseFromProposition,
   getTherapyFromProposition,
@@ -44,11 +50,35 @@ export interface NormalizedTherapy {
   therapyInteractionType: TherapyInteractionType
 }
 
+export interface StarRating {
+  starRating: number
+  ratingReason: string
+}
+
+type SupportedAssertionProposition =
+  | VariantDiagnosticProposition
+  | VariantPrognosticProposition
+  | VariantTherapeuticResponseProposition
+
+const isSupportedAssertionProposition = (
+  proposition: Statement['proposition'] | null | undefined,
+): proposition is SupportedAssertionProposition => {
+  if (!proposition || typeof proposition !== 'object') return false
+
+  return (
+    proposition.type === 'VariantDiagnosticProposition' ||
+    proposition.type === 'VariantPrognosticProposition' ||
+    proposition.type === 'VariantTherapeuticResponseProposition'
+  )
+}
+
 /**
- * Represents a single normalized row of evidence results, aggregating evidence
+ * Represents a single row for a MetaKB assertion, aggregating evidence
  * from one or more `Statement` objects into a single table row.
  */
-export interface NormalizedResult {
+export interface AssertionResult {
+  /** Proposition defining the assertion */
+  proposition: SupportedAssertionProposition
   /** Human-readable variant name (normalized for display) */
   variant_name: string
   /** Highest evidence level among grouped evidence */
@@ -59,10 +89,11 @@ export interface NormalizedResult {
   therapy: NormalizedTherapy
   /** Clinical significance string */
   significance: string
-  /** All evidence statements grouped into this row */
-  grouped_evidence: Statement[]
+  /** Lines of evidence (incl statements) grouped into this row */
+  grouped_evidence: EvidenceLine[]
   /** Sources (databases) that contributed evidence to this row */
   sources: string[]
+  star_rating: StarRating
 }
 
 /**
@@ -119,49 +150,121 @@ export const evidenceOrder: Record<string, number> = {
   'N/A': 999,
 }
 
+export const isStatement = (item: unknown): item is Statement =>
+  typeof item === 'object' &&
+  item !== null &&
+  'type' in item &&
+  (item as { type?: unknown }).type === 'Statement'
+
+export const isEvidenceLine = (item: unknown): item is EvidenceLine =>
+  typeof item === 'object' &&
+  item !== null &&
+  'directionOfEvidenceProvided' in item &&
+  'hasEvidenceItems' in item
+
+const getTerminalEvidenceLines = (assertion?: Statement | null): EvidenceLine[] => {
+  const results: EvidenceLine[] = []
+
+  const walk = (line: EvidenceLine): void => {
+    const items = line.hasEvidenceItems ?? []
+
+    const hasDirectStatementChild = items.some(isStatement)
+    if (hasDirectStatementChild) {
+      results.push(line)
+      return
+    }
+
+    items.forEach((item) => {
+      if (isEvidenceLine(item)) {
+        walk(item)
+      }
+    })
+  }
+
+  ;(assertion?.hasEvidenceLines ?? []).forEach((line) => {
+    if (isEvidenceLine(line)) {
+      walk(line)
+    }
+  })
+
+  return results
+}
+
+const getStarRatingValue = (value: unknown): number => {
+  if (!value || typeof value !== 'object' || !('primaryCoding' in value)) return 1
+
+  const primaryCoding = value.primaryCoding
+  if (!primaryCoding || typeof primaryCoding !== 'object' || !('code' in primaryCoding)) {
+    return 1
+  }
+
+  if (typeof primaryCoding.code !== 'string') return 1
+
+  const match = primaryCoding.code.match(/^(\d+)_star$/)
+  return match ? Number(match[1]) : 1
+}
+
 /**
- * Normalizes raw evidence statements into `NormalizedResult` rows
+ * Normalizes raw assertion statements into `NormalizedResult` rows
  * suitable for display in the results table.
  *
- * Each entry in the input `data` represents a group of `Statement[]`
- * (evidence records) associated with a single variant/disease/therapy context.
+ * Each entry in the input `data` represents a single MetaKB assertion.
  * This function:
- *  - Flattens grouped evidence into rows
  *  - Extracts display metadata (variant name, disease(s), therapy, significance)
- *  - Computes the "highest" evidence level using `evidenceOrder`
- *  - Collects all source databases referenced by the evidence
- *  - Preserves the full set of underlying `Statement`s in `grouped_evidence`
+ *  - Collects all source databases referenced by terminal evidence statements
+ *  - Preserves the terminal evidence lines in `grouped_evidence`
  *
- * @param data - A record mapping keys to arrays of `Statement` objects
+ * Terminal evidence lines are the deepest evidence lines under the MetaKB
+ * assertion that directly contain evidence item `Statement`s. The traversal
+ * does not recurse into those statements, even if they themselves contain
+ * evidence lines.
+ *
+ * @param data - A record mapping keys to assertion `Statement` objects
  *               returned from the API.
- * @returns Array of `NormalizedResult` objects, one per evidence grouping.
+ * @returns Array of `NormalizedResult` objects, one per assertion.
  *          Returns an empty array if the input is empty or invalid.
  */
-export const normalizeResults = (data: Record<string, Statement[]>): NormalizedResult[] => {
+export const normalizeResults = (data: Record<string, Statement>): AssertionResult[] => {
   if (!data || Object.keys(data).length === 0) return []
-  return Object.values(data).flatMap((arr) => {
-    if (!Array.isArray(arr) || arr.length === 0) return []
 
-    const first = arr[0] // use first item for metadata
+  return Object.values(data).flatMap((assertion) => {
+    if (!assertion || !isSupportedAssertionProposition(assertion.proposition)) return []
 
-    // get highest evidence level for display
-    const highestEvidenceLevel = arr.reduce((highest, item) => {
-      const level = normalizeEvidenceLevelFromStrength(item.strength)
-      const rank = evidenceOrder[level] ?? 999
-      const bestRank = evidenceOrder[highest] ?? 999
-      return rank < bestRank ? level : highest
-    }, 'N/A')
+    const groupedEvidence = getTerminalEvidenceLines(assertion)
+    const groupedStatements = groupedEvidence
+      .flatMap((line) => line.hasEvidenceItems ?? [])
+      .filter(isStatement)
+
+    const extensions = assertion.extensions
+    let starRating: StarRating = {
+      starRating: 1,
+      ratingReason: 'Does not meet other criteria',
+    }
+
+    if (extensions) {
+      const ratingExt = extensions.find((ext) => ext.name === 'metakb_star_rating')?.value
+      const reasonExt = extensions.find((ext) => ext.name === 'metakb_star_rating_reason')?.value
+
+      const rating = getStarRatingValue(ratingExt)
+
+      starRating = {
+        starRating: rating,
+        ratingReason: typeof reasonExt === 'string' ? reasonExt : starRating.ratingReason,
+      }
+    }
     return [
       {
-        variant_name: getVariantNameFromProposition(first?.proposition),
-        evidence_level: highestEvidenceLevel,
-        disease: getDiseaseFromProposition(first?.proposition),
-        therapy: getTherapyFromProposition(first?.proposition),
-        significance: first?.proposition?.predicate
-          ? formatSignificance(first?.proposition?.predicate)
+        proposition: assertion.proposition,
+        variant_name: getVariantNameFromProposition(assertion.proposition),
+        evidence_level: getEvidenceGrade(assertion.strength),
+        disease: getDiseaseFromProposition(assertion.proposition),
+        therapy: getTherapyFromProposition(assertion.proposition),
+        significance: assertion.proposition?.predicate
+          ? formatSignificance(assertion.proposition.predicate)
           : 'N/A',
-        sources: getSources(arr),
-        grouped_evidence: arr,
+        sources: getSources(groupedStatements),
+        grouped_evidence: groupedEvidence,
+        star_rating: starRating,
       },
     ]
   })
@@ -253,7 +356,7 @@ export interface VisxHeatmapData {
  * @returns
  */
 export function buildVariantDiseaseMatrix(
-  results: NormalizedResult[],
+  results: AssertionResult[],
   limitRows?: number,
   limitCols?: number,
 ): VisxHeatmapData {
@@ -321,4 +424,21 @@ export function buildVariantDiseaseMatrix(
   }))
 
   return { columns, variants, diseases }
+}
+
+/**
+ * Transform an evidence strength concept to a simple A–D grade for display.
+ *
+ * @param strength - Evidence strength concept object or null/undefined.
+ * @returns Evidence grade (`"A"`, `"B"`, `"C"`, `"D"`) or an empty string if
+ * the grade cannot be determined.
+ */
+export function getEvidenceGrade(strength?: MappableConcept | null): string {
+  if (!strength || !Array.isArray(strength.extensions)) return ''
+
+  const displayExtension = strength.extensions.find(
+    (ext) => typeof ext === 'object' && ext !== null && ext.name === 'metakb_display_value',
+  )
+
+  return typeof displayExtension?.value === 'string' ? displayExtension.value : ''
 }
