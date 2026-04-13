@@ -6,7 +6,7 @@
  * and counts for the sidebar UI.
  */
 
-import { NormalizedResult } from './results'
+import { AssertionResult } from './results'
 
 /**
  * Builds a frequency map of values from a list of results.
@@ -43,9 +43,10 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
  * selected filter criteria.
  *
  * Each filter category (variants, diseases, therapies, evidenceLevels,
- * significance, sources) is optional — if no values are selected in a
- * category, all items pass that category. Otherwise, an item must match
- * at least one of the selected values for each active category.
+ * starRatings, significance, sources) is optional — if no values are
+ * selected in a category, all items pass that category. Otherwise, an
+ * item must match at least one of the selected values for each active
+ * category.
  *
  * @param items - Array of `NormalizedResult` rows to filter.
  * @param selected - Object containing the active filter selections.
@@ -53,22 +54,24 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
  *   - `diseases`: Disease names to match (checks against all diseases in a row - in case of a ConditionSet).
  *   - `therapies`: Therapies to match.
  *   - `evidenceLevels`: Evidence levels to match.
+ *   - `starRatings`: Star ratings to match.
  *   - `significance`: Clinical significance values to match.
  *   - `sources`: Evidence sources to match (checks if row contains any selected source).
  *
  * @returns Array of `NormalizedResult` rows that satisfy all active filters.
  */
 export const applyFilters = (
-  items: NormalizedResult[],
+  items: AssertionResult[],
   selected: {
     variants: string[]
     diseases: string[]
     therapies: string[]
     evidenceLevels: string[]
+    starRatings: string[]
     significance: string[]
     sources: string[]
   },
-): NormalizedResult[] => {
+): AssertionResult[] => {
   return items.filter((r) => {
     const variantMatch =
       selected.variants.length === 0 || selected.variants.includes(r.variant_name)
@@ -80,6 +83,9 @@ export const applyFilters = (
       r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
     const levelMatch =
       selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
+    const starRatingMatch =
+      selected.starRatings.length === 0 ||
+      selected.starRatings.includes(String(r.star_rating.starRating))
     const significanceMatch =
       selected.significance.length === 0 || selected.significance.includes(r.significance)
 
@@ -87,7 +93,13 @@ export const applyFilters = (
       selected.sources.length === 0 || selected.sources.some((s) => r.sources.includes(s))
 
     return (
-      variantMatch && diseaseMatch && therapyMatch && levelMatch && significanceMatch && sourceMatch
+      variantMatch &&
+      diseaseMatch &&
+      therapyMatch &&
+      levelMatch &&
+      starRatingMatch &&
+      significanceMatch &&
+      sourceMatch
     )
   })
 }
@@ -108,8 +120,8 @@ export const applyFilters = (
  *          sorted from most frequent to least frequent.
  */
 export const buildFilterOptions = (
-  results: NormalizedResult[],
-  key: keyof NormalizedResult,
+  results: AssertionResult[],
+  key: keyof AssertionResult,
 ): string[] => {
   const counts = buildCountMap(results, key)
 

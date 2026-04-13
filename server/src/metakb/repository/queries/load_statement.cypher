@@ -1,25 +1,25 @@
-// create statement
+// create or update statement and its properties
 MERGE (statement:Statement {id: $statement.id})
-  ON CREATE SET
-    statement +=
-      {
-        url: $statement.url,
-        description: $statement.description,
-        predicate: $statement.predicate,
-        proposition_type: $statement.proposition_type,
-        allele_origin_qualifier: $statement.allele_origin_qualifier,
-        direction: $statement.direction
-      }
+SET
+  statement +=
+    {
+      url: $statement.url,
+      description: $statement.description,
+      extensions: $statement.extensions,
+      predicate: $statement.predicate,
+      proposition_type: $statement.proposition_type,
+      allele_origin_qualifier: $statement.allele_origin_qualifier,
+      direction: $statement.direction
+    }
 
-// add strength node and connect it
+// sever edge to an existing strength node, and make edge to strength node
+// this query gets used to both create AND update statements, so we'll just eat the cost
+// of redundant queries to make things simpler
+WITH statement
+OPTIONAL MATCH (statement)-[old_rel:HAS_STRENGTH]->(:Strength)
+DELETE old_rel
+WITH statement
 MERGE (strength:Strength {id: $statement.has_strength.id})
-  ON CREATE SET
-    strength +=
-      {
-        name: $statement.has_strength.name,
-        mappings: $statement.has_strength.mappings,
-        primary_coding: $statement.has_strength.primary_coding
-      }
 MERGE (statement)-[:HAS_STRENGTH]->(strength)
 
 // add classification node and connect it
@@ -64,7 +64,7 @@ CALL {
     WHERE conditionInput.conditions IS NOT NULL
 
     MERGE (conditionSet:ConditionSet {id: conditionInput.id})
-      SET conditionSet.membershipOperator = conditionInput.membershipOperator
+    SET conditionSet.membershipOperator = conditionInput.membershipOperator
 
     WITH conditionSet, conditionInput
     UNWIND conditionInput.conditions AS childInput
@@ -76,11 +76,11 @@ CALL {
       WHERE childInput.conditions IS NOT NULL
 
       MERGE (childConditionSet:ConditionSet {id: childInput.id})
-        SET childConditionSet.membershipOperator = childInput.membershipOperator
+      SET childConditionSet.membershipOperator = childInput.membershipOperator
 
       RETURN childConditionSet AS childNode
 
-      UNION
+        UNION
 
       // child condition
       WITH childInput
@@ -88,7 +88,7 @@ CALL {
       WHERE childInput.conditions IS NULL
 
       MERGE (childCondition:Condition {id: childInput.id})
-        SET childCondition += childInput
+      SET childCondition += childInput
 
       RETURN childCondition AS childNode
     }
@@ -96,7 +96,7 @@ CALL {
     MERGE (conditionSet)-[:HAS_CONDITION]->(childNode)
     RETURN conditionSet AS builtCondition
 
-    UNION
+      UNION
 
     // Condition case
     WITH conditionInput
@@ -104,7 +104,7 @@ CALL {
     WHERE conditionInput.conditions IS NULL
 
     MERGE (condition:Condition {id: conditionInput.id})
-      SET condition += conditionInput
+    SET condition += conditionInput
 
     RETURN condition AS builtCondition
   }
@@ -113,7 +113,11 @@ CALL {
 }
 
 WITH statement, builtCondition
-FOREACH (_ IN CASE WHEN builtCondition IS NOT NULL THEN [1] ELSE [] END |
+FOREACH (_ IN
+CASE
+  WHEN builtCondition IS NOT NULL THEN [1]
+  ELSE []
+END |
   MERGE (statement)-[:HAS_TUMOR_TYPE]->(builtCondition)
 )
 
@@ -133,20 +137,11 @@ CALL {
   RETURN count(*) AS _docs
 }
 
-// add evidence lines and edges to statements
+// add edges to contained evidence lines
 CALL {
   WITH statement
   WITH statement, coalesce($statement.has_evidence_lines, []) AS ev_lines
   UNWIND ev_lines AS ev_line
-  MERGE (el:EvidenceLine {id: ev_line.id})
-    ON CREATE SET el += {direction: ev_line.direction, strength_of_evidence_provided: ev_line.strength_of_evidence_provided}
+  MATCH (el:EvidenceLine {id: ev_line.id})
   MERGE (statement)-[:HAS_EVIDENCE_LINE]->(el)
-
-  WITH statement, el, ev_line
-  UNWIND coalesce(ev_line.has_evidence_items, []) AS ev_item
-  MERGE (item:Statement {id: ev_item.id})
-  MERGE (el)-[:HAS_EVIDENCE_ITEM]->(item)
-  RETURN count(*) AS _ev
 }
-
-RETURN 1

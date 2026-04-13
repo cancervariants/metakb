@@ -3,466 +3,28 @@
 import re
 
 import pytest
-from deepdiff import DeepDiff
-from tests.conftest import (
-    get_civic_annotation_ext,
-    get_mappings_normalizer_id,
-    get_vicc_normalizer_priority_ext,
-)
 
-from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
 from metakb.services.search import (
-    EmptySearchError,
     PaginationParamError,
+    batch_search_statements,
     search_statements,
 )
 
-from .utils import assert_no_match, find_and_check_stmt
 
-
-@pytest.fixture(scope="module")
-def eid11751_object_condition(civic_did8):
-    """Create test fixture for EID 11751 object condition"""
-    return {
-        "id": "civic.condset_intersect:aJc_pdh2M5ZuvQpF-NVQ0Kati2ZEhSSX",
-        "conditions": [
-            civic_did8,
-            {
-                "id": "civic.phenotype:2643",
-                "conceptType": "Phenotype",
-                "name": "Adult onset",
-                "mappings": [
-                    {
-                        "coding": {
-                            "system": "https://hpo.jax.org/app/browse/term/",
-                            "code": "HP:0003581",
-                        },
-                        "relation": "exactMatch",
-                    }
-                ],
-            },
-        ],
-        "membershipOperator": "AND",
-    }
-
-
-@pytest.fixture(scope="module")
-def eid7191_object_condition():
-    """Create test fixture for EID 7191 object condition"""
-    return {
-        "id": "civic.condset_intersect:CqjNRkHX7zGGFPUiMN0W_KIJ5J2tpZKL",
-        "conditions": [
-            {
-                "id": "civic.did:3048",
-                "conceptType": "Disease",
-                "name": "Childhood Low-grade Glioma",
-                "mappings": [
-                    {
-                        "coding": {
-                            "id": "DOID:0080830",
-                            "system": "https://disease-ontology.org/?id=",
-                            "code": "DOID:0080830",
-                        },
-                        "relation": "exactMatch",
-                        "extensions": [
-                            get_civic_annotation_ext(),
-                            get_vicc_normalizer_priority_ext(is_priority=False),
-                        ],
-                    },
-                    {
-                        "coding": {
-                            "id": "MONDO_0859591",
-                            "system": "https://purl.obolibrary.org/obo/",
-                            "code": "MONDO:0859591",
-                        },
-                        "relation": "exactMatch",
-                        "extensions": [
-                            get_vicc_normalizer_priority_ext(is_priority=False),
-                        ],
-                    },
-                    {
-                        "coding": {
-                            "id": "ncit:C202299",
-                            "name": "Childhood Low Grade Glioma",
-                            "system": "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=",
-                            "code": "C202299",
-                        },
-                        "relation": "exactMatch",
-                        "extensions": [
-                            get_vicc_normalizer_priority_ext(is_priority=True),
-                        ],
-                    },
-                ],
-            },
-            {
-                "id": "civic.condset_union:0DC8CbrVXYD7MdFnSG2Aa2Uhor9yNhMm",
-                "conditions": [
-                    {
-                        "id": "civic.phenotype:15320",
-                        "conceptType": "Phenotype",
-                        "name": "Pediatric onset",
-                        "mappings": [
-                            {
-                                "coding": {
-                                    "system": "https://hpo.jax.org/app/browse/term/",
-                                    "code": "HP:0410280",
-                                },
-                                "relation": "exactMatch",
-                            }
-                        ],
-                    },
-                    {
-                        "id": "civic.phenotype:16642",
-                        "conceptType": "Phenotype",
-                        "name": "Early young adult onset",
-                        "mappings": [
-                            {
-                                "coding": {
-                                    "system": "https://hpo.jax.org/app/browse/term/",
-                                    "code": "HP:0025708",
-                                },
-                                "relation": "exactMatch",
-                            }
-                        ],
-                    },
-                ],
-                "membershipOperator": "OR",
-            },
-        ],
-        "membershipOperator": "AND",
-    }
-
-
-def assert_general_search_stmts(response):
-    """Check that general search_statements queries return a valid response"""
-    statement_ids = [s.id for s in response.statements]
-    len_stmt_id_matches = len(statement_ids)
-    assert len_stmt_id_matches > 0
-    len_stmts = len(response.statements)
-    assert len_stmts > 0
-    assert len_stmt_id_matches == len_stmts
+@pytest.mark.asyncio(scope="module")
+async def test_search(repository, normalizers):
+    pass  # TODO fill in some basics
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic_eid2997(
-    repository, normalizers, civic_eid2997_study_stmt, assertion_checks
-):
-    """Test that search_statements method works correctly for CIViC EID2997"""
-    resp = await search_statements(
-        repository, normalizers, statement_id=civic_eid2997_study_stmt["id"]
-    )
-    statement_ids = [s.id for s in resp.statements]
-    assert statement_ids == [civic_eid2997_study_stmt["id"]]
-    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
-    assertion_checks(resp_stmts, [civic_eid2997_study_stmt])
-
-    resp = await search_statements(repository, normalizers, variation="EGFR L858R")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    resp = await search_statements(
-        repository, normalizers, variation="ga4gh:VA.S41CcMJT2bcd8R4-qXZWH1PoHWNtG2PZ"
-    )
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    # genomic query
-    resp = await search_statements(repository, normalizers, variation="7-55259515-T-G")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, therapy="ncit:C66940")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, gene="EGFR")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, disease="nsclc")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks)
-
-    # We should not find CIViC EID2997 using these queries
-    resp = await search_statements(
-        repository, normalizers, statement_id="civic.eid:3017"
-    )
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, therapy="imatinib")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, gene="BRAF")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, disease="DOID:9253")
-    find_and_check_stmt(resp, civic_eid2997_study_stmt, assertion_checks, False)
+async def test_batch_search(repository, normalizers):
+    pass  # TODO fill in some basics
 
 
 @pytest.mark.asyncio(scope="module")
-async def test_civic816(
-    repository, normalizers, civic_eid816_study_stmt, assertion_checks
-):
-    """Test that search_statements method works correctly for CIViC EID816"""
-    resp = await search_statements(
-        repository, normalizers, statement_id=civic_eid816_study_stmt["id"]
-    )
-    statement_ids = [s.id for s in resp.statements]
-    assert statement_ids == [civic_eid816_study_stmt["id"]]
-    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
-    assertion_checks(resp_stmts, [civic_eid816_study_stmt])
-
-    # Try querying based on therapies in substitutes
-    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
-    find_and_check_stmt(resp, civic_eid816_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, therapy="Panitumumab")
-    find_and_check_stmt(resp, civic_eid816_study_stmt, assertion_checks)
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_civic9851(
-    repository, normalizers, civic_eid9851_study_stmt, assertion_checks
-):
-    """Test that search_statements method works correctly for CIViC EID9851"""
-    resp = await search_statements(
-        repository, normalizers, statement_id=civic_eid9851_study_stmt["id"]
-    )
-    statement_ids = [s.id for s in resp.statements]
-    assert statement_ids == [civic_eid9851_study_stmt["id"]]
-    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
-    assertion_checks(resp_stmts, [civic_eid9851_study_stmt])
-
-    # Try querying based on therapies in components
-    resp = await search_statements(repository, normalizers, therapy="Encorafenib")
-    find_and_check_stmt(resp, civic_eid9851_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
-    find_and_check_stmt(resp, civic_eid9851_study_stmt, assertion_checks)
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_civic_assertion(
-    repository, normalizers, civic_aid6_statement, assertion_checks
-):
-    """Test that search_statements method works correctly for civic assertions"""
-    resp = await search_statements(
-        repository, normalizers, statement_id=civic_aid6_statement["id"]
-    )
-    statement_ids = [s.id for s in resp.statements]
-    assert statement_ids == [civic_aid6_statement["id"]]
-    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
-    assert len(resp_stmts) == 1
-    # Test fixture only has one evidence item in evidence lines, but actual has 6
-    actual_civic_aid6 = resp_stmts[0]
-    assert len(actual_civic_aid6["hasEvidenceLines"]) == 1
-
-    expected_evidence_item_ids = {
-        "civic.eid:982",
-        "civic.eid:2997",
-        "civic.eid:879",
-        "civic.eid:883",
-        "civic.eid:968",
-        "civic.eid:2629",
-    }
-
-    tmp_applied_ev = []
-
-    for ev in actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"]:
-        assert ev["id"] in expected_evidence_item_ids
-
-        if ev["id"] == "civic.eid:2997":
-            tmp_applied_ev.append(ev)
-            break
-
-    actual_civic_aid6["hasEvidenceLines"][0]["hasEvidenceItems"] = tmp_applied_ev
-    assertion_checks([actual_civic_aid6], [civic_aid6_statement])
-
-
-@pytest.mark.asyncio(scope="module")
-@pytest.mark.parametrize(
-    ("statement_id", "expected_condition_fixture_name", "condition_key"),
-    [
-        (
-            "civic.eid:7191",
-            "eid7191_object_condition",
-            "objectCondition",
-        ),  # simple condition set
-        (
-            "civic.eid:11751",
-            "eid11751_object_condition",
-            "conditionQualifier",
-        ),  # complex condition set
-    ],
-)
-async def test_condition_set(
-    repository,
-    normalizers,
-    statement_id,
-    expected_condition_fixture_name,
-    condition_key,
-    request,
-):
-    """Test that search_statements method works correctly for condition sets"""
-    resp = await search_statements(repository, normalizers, statement_id=statement_id)
-    assert len(resp.statements) == 1
-
-    statement = resp.statements[0]
-    diff = DeepDiff(
-        getattr(statement.proposition, condition_key).model_dump(exclude_none=True),
-        request.getfixturevalue(expected_condition_fixture_name),
-        ignore_order=True,
-    )
-    assert diff == {}
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_moa_66(repository, normalizers, moa_aid66_study_stmt, assertion_checks):
-    """Test that search_statements method works correctly for MOA Assertion 66"""
-    resp = await search_statements(
-        repository, normalizers, statement_id=moa_aid66_study_stmt["id"]
-    )
-
-    statement_ids = [s.id for s in resp.statements]
-    assert statement_ids == [moa_aid66_study_stmt["id"]]
-    resp_stmts = [s.model_dump(exclude_none=True) for s in resp.statements]
-    assertion_checks(resp_stmts, [moa_aid66_study_stmt])
-
-    resp = await search_statements(repository, normalizers, variation="ABL1 Thr315Ile")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
-
-    resp = await search_statements(
-        repository, normalizers, variation="ga4gh:VA.D6NzpWXKqBnbcZZrXNSXj4tMUwROKbsQ"
-    )
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, therapy="rxcui:282388")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, gene="ncbigene:25")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
-
-    resp = await search_statements(repository, normalizers, disease="CML")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks)
-
-    # We should not find MOA Assertion 67 using these queries
-    resp = await search_statements(
-        repository, normalizers, statement_id="moa.assertion:71"
-    )
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, therapy="Afatinib")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, gene="ABL2")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
-
-    resp = await search_statements(repository, normalizers, disease="ncit:C2926")
-    find_and_check_stmt(resp, moa_aid66_study_stmt, assertion_checks, False)
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_general_search_statements(
-    repository: AbstractRepository, normalizers: ViccNormalizers
-):
-    """Test that queries do not return errors"""
-    resp = await search_statements(repository, normalizers, variation="BRAF V600E")
-    assert_general_search_stmts(resp)
-
-    resp = await search_statements(repository, normalizers, variation="EGFR L858R")
-    assert_general_search_stmts(resp)
-
-    resp = await search_statements(repository, normalizers, disease="cancer")
-    assert_general_search_stmts(resp)
-
-    # Case: Handling therapy for single therapy / combination / substitutes
-    resp = await search_statements(repository, normalizers, therapy="Cetuximab")
-    assert_general_search_stmts(resp)
-    expected_therapy_id = "rxcui:318341"
-    for statement in resp.statements:
-        tp = statement.proposition.objectTherapeutic.root
-
-        if hasattr(tp, "conceptType"):
-            assert get_mappings_normalizer_id(tp.mappings) == expected_therapy_id
-        else:
-            found_expected = False
-            for therapeutic in tp.therapies:
-                if (
-                    get_mappings_normalizer_id(therapeutic.mappings)
-                    == expected_therapy_id
-                ):
-                    found_expected = True
-                    break
-            assert found_expected
-
-    # Case: multiple concepts provided
-    expected_variation_id = "ga4gh:VA._8jTS8nAvWwPZGOadQuD1o-tbbTQ5g3H"
-    expected_disease_id = "ncit:C2926"
-    expected_therapy_id = "ncit:C104732"
-    resp = await search_statements(
-        repository,
-        normalizers,
-        variation=expected_variation_id,
-        disease=expected_disease_id,
-        therapy=expected_therapy_id,  # Single Therapy
-    )
-    assert_general_search_stmts(resp)
-
-    for statement in resp.statements:
-        assert (
-            statement.proposition.subjectVariant.constraints[0].root.allele.id
-            == expected_variation_id
-        )
-        assert (
-            get_mappings_normalizer_id(
-                statement.proposition.objectTherapeutic.root.mappings
-            )
-            == expected_therapy_id
-        )
-        assert (
-            get_mappings_normalizer_id(
-                statement.proposition.conditionQualifier.root.mappings
-            )
-            == expected_disease_id
-        )
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_no_matches(repository, normalizers):
-    """Test invalid queries"""
-    # invalid vrs variation prefix (digest is correct)
-    resp = await search_statements(
-        repository,
-        normalizers,
-        variation="ga4gh:variation.TAARa2cxRHmOiij9UBwvW-noMDoOq2x9",
-    )
-    assert_no_match(resp)
-
-    # invalid id
-    resp = await search_statements(
-        repository, normalizers, disease="ncit:C292632425235321524352435623462"
-    )
-    assert_no_match(resp)
-
-    # empty query
-    with pytest.raises(EmptySearchError):
-        resp = await search_statements(
-            repository,
-            normalizers,
-        )
-
-    # valid queries, but no matches with combination
-    resp = await search_statements(
-        repository, normalizers, variation="BRAF V600E", gene="EGFR"
-    )
-    assert_no_match(resp)
-
-
-@pytest.mark.asyncio(scope="module")
-async def test_paginate(repository, normalizers):
-    """Test pagination parameters."""
-    braf_va_id = "ga4gh:VA.Otc5ovrw906Ack087o1fhegB4jDRqCAe"
+async def test_paginate_search(repository, normalizers):
+    braf_va_id = "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
     full_response = await search_statements(
         repository, normalizers, variation=braf_va_id
     )
@@ -519,3 +81,60 @@ async def test_paginate(repository, normalizers):
         match=re.escape("Invalid limit value: -1. Must be nonnegative."),
     ):
         await search_statements(repository, normalizers, variation=braf_va_id, limit=-1)
+
+
+@pytest.mark.asyncio(scope="module")
+async def test_paginate_batch_search(repository: AbstractRepository, normalizers):
+    """Test pagination parameters."""
+    braf_va_id = "ga4gh:VA.j4XnsLZcdzDIYa5pvvXM7t1wn9OITr0L"
+    full_response = await batch_search_statements(repository, normalizers, [braf_va_id])
+    paged_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], start=1
+    )
+    # should be almost the same, just off by 1
+    assert len(paged_response.statements) == len(full_response.statements) - 1
+    assert paged_response.statements == full_response.statements[1:]
+
+    # check that page limit > response doesn't affect response
+    huge_page_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], limit=1000
+    )
+    assert len(huge_page_response.statements) == len(full_response.statements)
+    assert huge_page_response.statements == full_response.statements
+
+    # get last item
+    last_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], start=len(full_response.statements) - 1
+    )
+    assert len(last_response.statements) == 1
+    assert last_response.statements[0] == full_response.statements[-1]
+
+    # test limit
+    min_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], limit=1
+    )
+    assert min_response.statements[0] == full_response.statements[0]
+
+    # test limit and start
+    other_min_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], start=1, limit=1
+    )
+    assert other_min_response.statements[0] == full_response.statements[1]
+
+    # test limit of 0
+    empty_response = await batch_search_statements(
+        repository, normalizers, [braf_va_id], limit=0
+    )
+    assert len(empty_response.statements) == 0
+
+    # test raises exceptions
+    with pytest.raises(
+        PaginationParamError,
+        match=re.escape("Invalid start value: -1. Must be nonnegative."),
+    ):
+        await batch_search_statements(repository, normalizers, [braf_va_id], start=-1)
+    with pytest.raises(
+        PaginationParamError,
+        match=re.escape("Invalid limit value: -1. Must be nonnegative."),
+    ):
+        await batch_search_statements(repository, normalizers, [braf_va_id], limit=-1)

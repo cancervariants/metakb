@@ -2,6 +2,8 @@ import { useState, MouseEvent, FC } from 'react'
 import {
   Box,
   IconButton,
+  Rating,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -21,8 +23,8 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
-import { NormalizedResult, TherapyInteractionType } from '../../utils'
-import { normalizeEvidenceLevelFromStrength } from '../../utils/normalization'
+import { AssertionResult, TherapyInteractionType } from '../../utils'
+import { getEvidenceGrade } from '../../utils/results'
 import { EvidenceLevel } from '../../models/codings'
 import { PieChart, Pie, Cell } from 'recharts'
 import theme from '../../theme'
@@ -84,7 +86,7 @@ function TablePaginationActions(props: TablePaginationActionsProps) {
 
 interface ResultTableProps {
   // list of results
-  results: NormalizedResult[]
+  results: AssertionResult[]
   // result type - used for determining which columns to show
   resultType: 'therapeutic' | 'prognostic' | 'diagnostic'
 }
@@ -108,20 +110,46 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
 
   let columns: ResultColumn[] = [
     {
+      field: 'star_rating',
+      headerName: 'Star Rating',
+      width: 100,
+      render: (value: AssertionResult) => {
+        const rating = value.star_rating.starRating
+        const reason = value.star_rating.ratingReason
+        return (
+          <Tooltip
+            arrow
+            title={reason || 'No rating explanation available'}
+            slotProps={{
+              tooltip: {
+                sx: {
+                  fontSize: theme.typography.pxToRem(14),
+                },
+              },
+            }}
+          >
+            <Stack component="span" sx={{ display: 'inline-flex' }}>
+              <Rating name="half-rating" value={rating} precision={1} readOnly max={4} />
+            </Stack>
+          </Tooltip>
+        )
+      },
+    },
+    {
       field: 'variant_name',
       headerName: 'Variant',
       width: 150,
-      render: (value: NormalizedResult) => value?.variant_name,
+      render: (value: AssertionResult) => value?.variant_name,
     },
     {
       field: 'evidence_summary',
       headerName: 'Evidence Summary',
       width: 100,
-      render: (value: NormalizedResult) => {
+      render: (value: AssertionResult) => {
         const supportingEvidence = value.grouped_evidence
         // get array of normalized codes from supporting evidence
         const codeGroups = supportingEvidence.map((evidence) =>
-          normalizeEvidenceLevelFromStrength(evidence.strength),
+          getEvidenceGrade(evidence.strengthOfEvidenceProvided),
         )
 
         // format into object with counts
@@ -212,13 +240,13 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       field: 'disease',
       headerName: 'Disease',
       width: 150,
-      render: (value: NormalizedResult) => value?.disease,
+      render: (value: AssertionResult) => value?.disease,
     },
     {
       field: 'significance',
       headerName: 'Significance',
       width: 100,
-      render: (value: NormalizedResult) => value?.significance,
+      render: (value: AssertionResult) => value?.significance,
     },
     {
       field: 'expandRow',
@@ -242,7 +270,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
         field: 'therapy',
         headerName: 'Therapy',
         width: 150,
-        render: (value: NormalizedResult) => {
+        render: (value: AssertionResult) => {
           const therapyData = value?.therapy
           if (!therapyData) return ''
 

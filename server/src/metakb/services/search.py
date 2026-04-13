@@ -25,6 +25,8 @@ def _get_normalized_disease(normalizer: ViccNormalizers, disease: str) -> Search
     :return: A normalized disease concept if it exists
     """
     _, disease_id = normalizer.normalize_disease(disease)
+    if disease_id:
+        disease_id = f"metakb.disease:{disease_id.replace(':', '_')}"
     return SearchTerm(
         term=disease, term_type=SearchTermType.DISEASE, resolved_id=disease_id
     )
@@ -38,6 +40,8 @@ def _get_normalized_gene(normalizer: ViccNormalizers, gene: str) -> SearchTerm:
     :return: A normalized gene concept if it exists
     """
     _, gene_id = normalizer.normalize_gene(gene)
+    if gene_id:
+        gene_id = f"metakb.gene:{gene_id.replace(':', '_')}"
     return SearchTerm(term=gene, term_type=SearchTermType.GENE, resolved_id=gene_id)
 
 
@@ -49,6 +53,8 @@ def _get_normalized_therapy(normalizer: ViccNormalizers, therapy: str) -> Search
     :return: A normalized therapy concept if it exists
     """
     _, therapy_id = normalizer.normalize_therapy(therapy)
+    if therapy_id:
+        therapy_id = f"metakb.drug:{therapy_id.replace(':', '_')}"
     return SearchTerm(
         term=therapy, term_type=SearchTermType.THERAPY, resolved_id=therapy_id
     )

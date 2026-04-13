@@ -17,11 +17,12 @@ class RepositoryStats(BaseModel):
     """Define structure for reporting entity counts from the DB"""
 
     num_genes: int
-    num_therapeutics: int
-    num_conditions: int
+    num_drugs: int
+    num_diseases: int
     num_variations: int
-    num_statements: int
+    num_source_statements: int
     num_documents: int
+    num_metakb_assertions: int
 
 
 class AbstractRepository(abc.ABC):
@@ -35,15 +36,7 @@ class AbstractRepository(abc.ABC):
         """Set up DB schema"""
 
     @abc.abstractmethod
-    def get_statement(
-        self, statement_id: str
-    ) -> (
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-        | None
-    ):
+    def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
@@ -96,12 +89,16 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def load_statement(self, statement: Statement) -> None:
-        """Load individual statement, and contained entities, into DB
+    def load_assertion(self, assertion: Statement) -> None:
+        """Add or update a complete assertion object to the DB
 
-        :param statement: statement to load
+        :param assertion: metakb assertion
         """
 
     @abc.abstractmethod
     def teardown_db(self) -> None:
         """Reset repository storage."""
+
+    @abc.abstractmethod
+    def get_all_assertion_ids(self) -> list[str]:
+        """Return all assertion IDs"""

@@ -15,7 +15,7 @@ import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable/ResultTable'
 import FilterSection from '../../components/FilterSection/FilterSection'
 import {
-  NormalizedResult,
+  AssertionResult,
   buildCountMap,
   evidenceOrder,
   normalizeResults,
@@ -25,15 +25,18 @@ import {
   getEntityMetadataFromProposition,
 } from '../../utils'
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
+import { StarRatingHistogram } from '../../components/StarRatingHistogram/StarRatingHistogram'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
 
 type EvidenceBuckets = {
-  prognostic: NormalizedResult[]
-  diagnostic: NormalizedResult[]
-  therapeutic: NormalizedResult[]
+  prognostic: AssertionResult[]
+  diagnostic: AssertionResult[]
+  therapeutic: AssertionResult[]
 }
+
+const CHART_MIN_WIDTH = 420
 
 const ResultPage = () => {
   const [params] = useSearchParams()
@@ -62,16 +65,25 @@ const ResultPage = () => {
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
+  const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
 
   const { description, aliases, displayName } = useMemo(() => {
     const firstWithQualifier =
-      results.therapeutic[0]?.grouped_evidence?.[0]?.proposition ??
-      results.prognostic[0]?.grouped_evidence?.[0]?.proposition ??
-      results.diagnostic[0]?.grouped_evidence?.[0]?.proposition
+      results.therapeutic[0]?.proposition ??
+      results.prognostic[0]?.proposition ??
+      results.diagnostic[0]?.proposition
 
-    return getEntityMetadataFromProposition(firstWithQualifier, typeFromUrl as 'gene' | 'variation')
+    const tmpResults = getEntityMetadataFromProposition(
+      firstWithQualifier,
+      typeFromUrl as 'gene' | 'variation',
+    )
+    return {
+      displayName: tmpResults.displayName,
+      aliases: ['alias1_placeholder', 'alias2_placeholder'],
+      description: 'description_placeholder',
+    }
   }, [results.diagnostic, results.prognostic, results.therapeutic, typeFromUrl])
 
   const selectedFilters = {
@@ -79,11 +91,12 @@ const ResultPage = () => {
     diseases: selectedDiseases,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
+    starRatings: selectedStarRatings,
     significance: selectedSignificance,
     sources: selectedSources,
   }
 
-  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', NormalizedResult[]> = {
+  const filteredByTab: Record<'therapeutic' | 'diagnostic' | 'prognostic', AssertionResult[]> = {
     therapeutic: applyFilters(results.therapeutic, selectedFilters),
     diagnostic: applyFilters(results.diagnostic, selectedFilters),
     prognostic: applyFilters(results.prognostic, selectedFilters),
@@ -95,6 +108,13 @@ const ResultPage = () => {
     const variantCounts = buildCountMap(filteredResults, 'variant_name')
 
     return [...filteredResults].sort((a, b) => {
+      // star rating (desc)
+      const starA = a.star_rating.starRating
+      const starB = b.star_rating.starRating
+      if (starA !== starB) {
+        return starB - starA
+      }
+
       // variant cluster by total count (desc)
       const countA = variantCounts[a.variant_name] ?? 0
       const countB = variantCounts[b.variant_name] ?? 0
@@ -138,9 +158,10 @@ const ResultPage = () => {
         })
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
+
         const prognostic_data = data.prognostic_statements
         const diagnostic_data = data.diagnostic_statements
-        const therapeutic_data = data.therapeutic_statements
+        const therapeutic_data = data.therapeutic_response_statements
 
         const norm_prog_data = normalizeResults(prognostic_data)
         const norm_diag_data = normalizeResults(diagnostic_data)
@@ -199,6 +220,9 @@ const ResultPage = () => {
   const significanceOptions = Array.from(
     new Set(results[activeTab].map((r) => r.significance).filter(Boolean)),
   )
+  const starRatingOptions = Array.from(
+    new Set(results[activeTab].map((r) => String(r.star_rating.starRating)).filter(Boolean)),
+  ).sort((a, b) => Number(b) - Number(a))
 
   const sourceOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.sources).filter(Boolean)),
@@ -209,6 +233,7 @@ const ResultPage = () => {
     setSelectedDiseases([])
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
+    setSelectedStarRatings([])
     setSelectedSignificance([])
     setSelectedSources([])
   }
@@ -218,6 +243,7 @@ const ResultPage = () => {
     ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
+    ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
     ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
     ...selectedSources.map((src) => ({ type: 'source', value: src })),
   ]
@@ -235,6 +261,9 @@ const ResultPage = () => {
         break
       case 'evidence_level':
         setSelectedEvidenceLevels((prev) => prev.filter((e) => e !== filter.value))
+        break
+      case 'star_rating':
+        setSelectedStarRatings((prev) => prev.filter((s) => s !== filter.value))
         break
       case 'significance':
         setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
@@ -355,6 +384,13 @@ const ResultPage = () => {
                       />
                       <hr></hr>
                       <FilterSection
+                        title="Star Rating"
+                        options={starRatingOptions}
+                        selected={selectedStarRatings}
+                        setSelected={setSelectedStarRatings}
+                      />
+                      <hr></hr>
+                      <FilterSection
                         title="Significance"
                         options={significanceOptions}
                         selected={selectedSignificance}
@@ -372,11 +408,26 @@ const ResultPage = () => {
                   <Box id="results" width="100%" p={2}>
                     {hasFilteredResults ? (
                       <>
-                        <VariantDiseaseHeatmap
-                          data={filteredResults}
-                          limitCols={10}
-                          limitRows={10}
-                        />
+                        <Box
+                          sx={{
+                            display: 'grid',
+                            gridTemplateColumns: `repeat(auto-fit, minmax(${CHART_MIN_WIDTH}px, 1fr))`,
+                            gap: 2,
+                            alignItems: 'start',
+                            mb: 2,
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0, overflow: 'hidden' }}>
+                            <VariantDiseaseHeatmap
+                              data={filteredResults}
+                              limitCols={10}
+                              limitRows={10}
+                            />
+                          </Box>
+                          <Box sx={{ minWidth: 0 }}>
+                            <StarRatingHistogram data={filteredResults} />
+                          </Box>
+                        </Box>
                         <ResultTable results={sortedResults} resultType={activeTab} />
                       </>
                     ) : (

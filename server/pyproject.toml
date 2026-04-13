@@ -29,11 +29,12 @@ dependencies = [
     "ga4gh.vrs>=2.2.0,<3.0",
     "ga4gh.cat_vrs~=0.7.2",
     "ga4gh.va_spec~=0.4.3",
+    "cool-seq-tool ~= 0.16.0",
     "gene-normalizer[etl]~=0.10.2",
-    "variation-normalizer~=0.15.2",
+    "variation-normalizer~=0.15.4",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy==5.1.1",
+    "civicpy~=5.3.0",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",
@@ -46,6 +47,8 @@ dependencies = [
     "asyncclick",
     "jinja2",
     "pandas>=2.3.3, <3.0",
+    "async-lru",
+    "tqdm",
 ]
 
 [project.optional-dependencies]

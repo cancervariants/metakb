@@ -61,6 +61,11 @@ def load_fcc_catvar() -> str:
 
 
 @cache
+def load_text_catvar() -> str:
+    return _load("load_text_catvar.cypher")
+
+
+@cache
 def load_document() -> str:
     return _load("load_document.cypher")
 
@@ -111,10 +116,25 @@ def search_statements() -> str:
 
 
 @cache
-def get_statements() -> str:
-    return _load("get_statements.cypher")
+def get_counts() -> str:
+    return _load("get_counts.cypher")
 
 
 @cache
-def get_counts() -> str:
-    return _load("get_counts.cypher")
+def get_all_assertion_ids() -> str:
+    return _load("get_all_assertion_ids.cypher")
+
+
+@cache
+def delete_evidence_line() -> str:
+    return _load("delete_evidence_line.cypher")
+
+
+@cache
+def load_evidence_line() -> str:
+    return _load("load_evidence_line.cypher")
+
+
+@cache
+def load_strength() -> str:
+    return _load("load_strength.cypher")

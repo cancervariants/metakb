@@ -14,7 +14,6 @@ MERGE (g:Gene {id: $cv.has_constraint.has_feature_context.id})
   ON CREATE SET
     g +=
       {
-        normalized_id: $cv.has_constraint.has_feature_context.normalized_id,
         description: $cv.has_constraint.has_feature_context.description,
         name: $cv.has_constraint.has_feature_context.name,
         aliases: $cv.has_constraint.has_feature_context.aliases,
