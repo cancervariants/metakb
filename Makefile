@@ -50,7 +50,7 @@ typescript-models: $(VENV)/bin/activate
 		pnpm install --workspace-root; \
 	fi
 	@echo "Installing Python codegen dependencies..."
-	cd $(SERVER_DIR) && . .venv/bin/activate && pip install -q .[codegen]
+	cd $(SERVER_DIR) && . .venv/bin/activate && python -m pip install -q .[codegen]
 	@echo "Generating TypeScript models..."
 	PATH=node_modules/.bin:$$PATH cd scripts && . ../server/.venv/bin/activate && python generate_ts_models.py
 	@echo "TypeScript models updated successfully."
