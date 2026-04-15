@@ -163,26 +163,6 @@ class CivicTransformer(Transformer):
             [th.id for th in therapy_group.therapies],
         )
 
-    def _ensure_conditionset_id(self, condition_set: ConditionSet) -> None:
-        """Ensure that a ConditionSet, and everything it contains, has an ID
-
-        Modifies incoming object in-place if necessary.
-
-        :param condition_set: incoming condition set that may or may not have an ID
-        """
-        if condition_set.id:
-            _logger.info("CIViC condition set # %s already has an ID", condition_set.id)
-            return
-        for member in condition_set.conditions:
-            if isinstance(member, ConditionSet):
-                self._ensure_conditionset_id(member)
-        condition_set.id = compute_combo_id(
-            self.name,
-            ConditionSet,
-            condition_set.membershipOperator,
-            [c.id for c in condition_set.conditions],
-        )
-
     def _civic_claim_to_statement(
         self,
         item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,

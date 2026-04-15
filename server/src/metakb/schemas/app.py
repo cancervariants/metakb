@@ -9,7 +9,7 @@ class SourceName(str, Enum):
     CIVIC = "civic"
     MOA = "moa"
     CBIOPORTAL = "cbioportal"
-    FDA_PODA = "fda_poda"
+    FDAPODA = "fdapoda"
 
     def as_print_case(self) -> str:
         """Provide enum value with natural print casing (i.e. value-specific for
@@ -24,7 +24,7 @@ class SourceName(str, Enum):
             return "MOA"
         if self == self.CBIOPORTAL:
             return "cBioPortal"
-        if self == self.FDA_PODA:
+        if self == self.FDAPODA:
             return "FDA PODA"
         raise ValueError
 
