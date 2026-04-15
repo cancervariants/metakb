@@ -36,7 +36,7 @@ fastobo==0.14.1
 ga4gh-cat-vrs==0.7.2
 ga4gh-va-spec==0.4.3
 ga4gh-vrs==2.3.1
-gene-normalizer==0.10.3
+gene-normalizer==0.11.2
 gffutils==0.13
 h11==0.16.0
 hgvs==1.5.6
