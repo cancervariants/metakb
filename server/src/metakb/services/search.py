@@ -54,7 +54,7 @@ def _get_normalized_therapy(normalizer: ViccNormalizers, therapy: str) -> Search
     """
     _, therapy_id = normalizer.normalize_therapy(therapy)
     if therapy_id:
-        therapy_id = f"metakb.drug:{therapy_id.replace(':', '_')}"
+        therapy_id = f"metakb.therapy:{therapy_id.replace(':', '_')}"
     return SearchTerm(
         term=therapy, term_type=SearchTermType.THERAPY, resolved_id=therapy_id
     )
