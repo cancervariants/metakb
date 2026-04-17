@@ -228,7 +228,7 @@ def cli() -> None:
     load MetaKB data:
 
     \b
-        $ metakb clear-graph
+        $ metakb clear-db
         $ metakb check-normalizers || metakb load-normalizers
         $ metakb update --refresh_source_caches
 
@@ -461,21 +461,23 @@ def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, N
 
 @cli.command()
 @click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-def clear_graph(db_url: str) -> None:
-    """Wipe graph DB.
+def clear_db(db_url: str) -> None:
+    """Clear graph DB.
 
-        $ metakb clear-graph
+        $ metakb clear-db
 
     Note that the Neo4j database URL, username, and password can either be set by a CLI
     options, or by the environment variable METAKB_DB_URL. For example:
 
-        $ metakb clear-graph --db_url=bolt://username:password@localhost:7687
+        $ metakb clear-db --db_url=bolt://username:password@localhost:7687
 
     \f
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
     repository = next(_get_repository(db_url))
+    click.echo("Clearing MetaKB DB...")
     repository.teardown_db()
+    click.echo("Finishing clearing MetaKB DB.")
 
 
 @cli.command()
