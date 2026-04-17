@@ -70,7 +70,6 @@ export function getEvidenceLabelUrl(evidenceIdentifier: string): {
  * @returns Source name if recognized, otherwise null
  */
 export function getEvidenceSource(evidenceIdentifier: string): SourceName | null {
-  console.log(evidenceIdentifier)
   if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Moalmanac)) {
     return SourceName.Moalmanac
   } else if (
