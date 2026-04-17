@@ -8,7 +8,7 @@ import asyncclick as click
 from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
-from metakb.transformers.base import TransformedData
+from metakb.schemas.data import TransformedData
 from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)

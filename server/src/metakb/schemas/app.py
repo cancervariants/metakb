@@ -1,15 +1,15 @@
 """Module containing app schemas and enums"""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class SourceName(str, Enum):
+class SourceName(StrEnum):
     """Define enum for sources that are supported"""
 
     CIVIC = "civic"
     MOA = "moa"
     CBIOPORTAL = "cbioportal"
-    FDAPODA = "fdapoda"
+    FDA_PODA = "fda_poda"
 
     def as_print_case(self) -> str:
         """Provide enum value with natural print casing (i.e. value-specific for
@@ -24,7 +24,7 @@ class SourceName(str, Enum):
             return "MOA"
         if self == self.CBIOPORTAL:
             return "cBioPortal"
-        if self == self.FDAPODA:
+        if self == self.FDA_PODA:
             return "FDA PODA"
         raise ValueError
 

@@ -1,8 +1,10 @@
 """Transform data from the FDA Pediatric Oncology Drug Approvals curation to be imported into MetaKB"""
 
 import hashlib
+import json
 import logging
 import re
+from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import Coding, Extension, MappableConcept, code
@@ -17,8 +19,10 @@ from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
 from metakb.harvesters.fda_poda import FdaPodaHarvestedData
+from metakb.schemas.app import SourceName
+from metakb.schemas.data import TransformedData
 from metakb.transformers import catvars as build_catvars
-from metakb.transformers.base import TransformedData, Transformer
+from metakb.transformers.base import Transformer
 from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
@@ -117,7 +121,11 @@ ADULT_ONSET = MappableConcept(
 class FdaPodaTransformer(Transformer):
     """Transform curated FDA PODA statements into MetaKB data model, including assertion grouping"""
 
-    async def transform(self, harvested_data: FdaPodaHarvestedData) -> None:
+    def get_src_name(self) -> str:
+        """Return source name for use in contexts like file naming"""
+        return SourceName.FDA_PODA.value
+
+    async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform MOA harvested JSON to common data model.
 
         Will store transformed results in ``processed_data`` instance variable.
@@ -130,6 +138,8 @@ class FdaPodaTransformer(Transformer):
 
         :param harvested_data: MOA harvested data
         """
+        with harvested_data_path.open() as f:
+            harvested_data = FdaPodaHarvestedData(**json.load(f))
         statements: list[Statement] = []
         assertions: dict[str, Statement] = {}
         for ev_item in tqdm(harvested_data.statements):
@@ -143,14 +153,21 @@ class FdaPodaTransformer(Transformer):
             therapeutic = ev_item.proposition.objectTherapeutic
             if isinstance(therapeutic.root, TherapyGroup):
                 therapeutic.root.id = compute_combo_id(
-                    self.name,
+                    self.src_name,
                     TherapyGroup,
                     therapeutic.root.membershipOperator,
                     [c.id for c in therapeutic.root.therapies],
                 )
+
+            ev_item.strength.extensions = [
+                Extension(
+                    name="metakb_display_value",
+                    value="A",
+                )
+            ]
             statements.append(ev_item)
             await self._upsert_assertion_from_evidence(ev_item, assertions)
-        self.processed_data = TransformedData(
+        return TransformedData(
             evidence=statements, assertions=list(assertions.values())
         )
 

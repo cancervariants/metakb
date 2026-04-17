@@ -1,4 +1,4 @@
-"""Provide miscellaneous helper utilities."""
+"""Initialize logging"""
 
 import logging
 

@@ -2,6 +2,7 @@
 
 import logging
 import re
+from pathlib import Path
 from uuid import uuid4
 
 from civicpy import civic as civicpy
@@ -24,7 +25,8 @@ from ga4gh.vrs.models import Allele, CopyNumberChange
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
 
-from metakb.transformers.base import TransformedData, Transformer
+from metakb.schemas.data import TransformedData
+from metakb.transformers.base import Transformer
 from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
@@ -99,7 +101,7 @@ class CivicTransformer(Transformer):
             for approval in (getattr(item, "approvals", None) or [])
         )
 
-    async def transform(self) -> None:
+    async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform CIViC evidence and assertions to common data model.
 
         Store result in ``transformed_data`` instance variable.
@@ -110,6 +112,7 @@ class CivicTransformer(Transformer):
         * If they all normalize, also build the aggregate statement, supported by
           an evidence line to the base statement
         """
+        civicpy.load_cache(str(harvested_data_path.absolute().as_uri()))
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
@@ -128,7 +131,7 @@ class CivicTransformer(Transformer):
             await self._upsert_assertion_from_evidence(
                 transformed_statement, assertions
             )
-        self.processed_data = TransformedData(
+        return TransformedData(
             evidence=statements, assertions=list(assertions.values())
         )
 
@@ -157,7 +160,7 @@ class CivicTransformer(Transformer):
             _logger.info("CIViC therapy group # %s already has an ID", therapy_group.id)
             return
         therapy_group.id = compute_combo_id(
-            self.name,
+            self.get_src_name(),
             TherapyGroup,
             therapy_group.membershipOperator,
             [th.id for th in therapy_group.therapies],

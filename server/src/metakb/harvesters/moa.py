@@ -2,39 +2,35 @@
 
 import logging
 from http import HTTPStatus
+from pathlib import Path
 
 import requests
 import requests_cache
 
-from metakb.harvesters.base import Harvester, _HarvestedData
+from metakb.harvesters.base import FetchMode, Harvester
+from metakb.schemas.data import MoaHarvestedData
 
 logger = logging.getLogger(__name__)
-
-
-class MoaHarvestedData(_HarvestedData):
-    """Define output for harvested data from MOA"""
-
-    genes: list[str]
-    assertions: list[dict]
-    sources: list[dict]
 
 
 class MoaHarvester(Harvester):
     """A class for the Molecular Oncology Almanac harvester."""
 
-    def harvest(self) -> MoaHarvestedData:
-        """Get MOAlmanac assertion, source, variant, and gene data
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:  # noqa: ARG002
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :return: MOA assertions, sources, variants, and genes
+        :param fetch_mode: set data caching/fetching behavior. Ignored; this harvester always fetches.
+        :return: Location of performed data harvest
         """
         assertion_resp = self._get_all_assertions()
         sources = self._harvest_sources(assertion_resp)
         variants, variants_list = self.harvest_variants()
         assertions = self.harvest_assertions(assertion_resp, variants_list)
         genes = self._harvest_genes()
-        return MoaHarvestedData(
+        harvested_data = MoaHarvestedData(
             assertions=assertions, sources=sources, variants=variants, genes=genes
         )
+        return self.src_data_dir.save_harvested_data(harvested_data)
 
     @staticmethod
     def _harvest_genes() -> list[str]:

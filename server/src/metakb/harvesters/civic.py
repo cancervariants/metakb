@@ -1,43 +1,23 @@
 """A module for the CIViC harvester."""
 
-import logging
+from pathlib import Path
 
 from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
 
-from metakb.harvesters.base import Harvester
-
-_logger = logging.getLogger(__name__)
+from metakb.harvesters.base import FetchMode, Harvester
 
 
-class CivicHarvester(Harvester[None]):
+class CivicHarvester(Harvester):
     """A class for the CIViC harvester."""
 
-    def __init__(
-        self,
-        local_cache_path: str = LOCAL_CACHE_PATH,
-    ) -> None:
-        """Initialize CivicHarvester class.
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :param local_cache_path: A filepath destination for the retrieved remote
-            cache. This parameter defaults to LOCAL_CACHE_PATH from civicpy.
+        :param fetch_mode: set data caching/fetching behavior.
+        :return: Location of performed data harvest
         """
-        self.local_cache_path = local_cache_path
-
-    def harvest(
-        self, update_cache: bool = False, update_from_remote: bool = True
-    ) -> None:
-        """Harvest CIViC data
-
-        :param update_cache: ``True`` if civicpy cache should be updated. Note
-            this will take several minutes. ``False`` if to use local cache.
-        :param update_from_remote: If set to ``True``, civicpy.update_cache will first
-            download the remote cache designated by REMOTE_CACHE_URL, store it
-            to LOCAL_CACHE_PATH, and then load the downloaded cache into memory.
-            This parameter defaults to ``True``.
-        """
-        if update_cache:
-            civicpy.update_cache(from_remote_cache=update_from_remote)
-
-        civicpy.load_cache(self.local_cache_path, on_stale="ignore")
-        _logger.info("Harvested data from %s", self.local_cache_path)
+        if fetch_mode == FetchMode.FORCE_REFRESH:
+            civicpy.update_cache()
+        civicpy_cache_path = Path(LOCAL_CACHE_PATH)
+        return self.src_data_dir.save_harvested_file(civicpy_cache_path)

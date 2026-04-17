@@ -8,13 +8,11 @@ from pathlib import Path
 from typing import NamedTuple
 
 import pandas as pd
-from wags_tails.base_source import (
-    UnversionedDataSource,
-    get_latest_local_file,
-)
+from pydantic import BaseModel
+from wags_tails.base_source import UnversionedDataSource, get_latest_local_file
 from wags_tails.utils.downloads import download_http
 
-from metakb.harvesters.base import Harvester, _HarvestedData
+from metakb.harvesters.base import FetchMode, Harvester
 
 _logger = logging.getLogger(__name__)
 
@@ -143,7 +141,7 @@ class CBioPortalDataSource(UnversionedDataSource):
         return file_paths, ""
 
 
-class CBioPortalHarvestedData(_HarvestedData):
+class CBioPortalHarvestedStudyData(BaseModel):
     """Provide harvested data for a cBioPortal study"""
 
     study_name: CBioPortalStudyName
@@ -153,31 +151,48 @@ class CBioPortalHarvestedData(_HarvestedData):
     metadata: list[dict]
 
 
+class CBioPortalHarvestedData(BaseModel):
+    """Provide harvested data for all cbioportal studies"""
+
+    studies: list[CBioPortalHarvestedStudyData]
+
+
 class CBioPortalHarvester(Harvester):
     """Acquire and restructure cBioPortal study data to prepare for GKS transformation."""
 
-    def harvest(
-        self, study_name: CBioPortalStudyName | None = None
-    ) -> list[CBioPortalHarvestedData]:
-        """Harvest all cBioPortal study data of interest.
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :param study_name: (optional) a specific study to harvest
-        :return: a list of all study data
+        :param fetch_mode: set data caching/fetching behavior.
+        :return: Location of performed data harvest
         """
-        if study_name:
-            return [self._harvest_one(study_name)]
-        return [self._harvest_one(study) for study in CBioPortalStudyName]
+        data = CBioPortalHarvestedData(
+            studies=[
+                self._harvest_one(study, fetch_mode) for study in CBioPortalStudyName
+            ]
+        )
+        return self.src_data_dir.save_harvested_data(data)
 
-    def _harvest_one(self, study: CBioPortalStudyName) -> CBioPortalHarvestedData:
+    def _harvest_one(
+        self, study: CBioPortalStudyName, fetch_mode: FetchMode
+    ) -> CBioPortalHarvestedStudyData:
         """Harvest a single study
 
         * Acquire data files if they aren't already available locally
         * Copy them into a Pydantic object
 
         :param study: name of study to harvest
+        :param fetch_mode: data fetching behavior setting
         :return: variant, sample, and patient data for a single study
         """
-        files, _ = CBioPortalDataSource(study_name=study).get_latest()
+        from_local, force_refresh = False, False
+        if fetch_mode == FetchMode.FORCE_REFRESH:
+            force_refresh = True
+        elif fetch_mode == FetchMode.USE_LOCAL:
+            from_local = True
+        files, _ = CBioPortalDataSource(study_name=study).get_latest(
+            from_local, force_refresh
+        )
         # some study variant files have fewer header rows that need to be skipped
         variant_skiprow_studies = {
             CBioPortalStudyName.PANCAN_MAPPYACTS_2022,
@@ -223,7 +238,7 @@ class CBioPortalHarvester(Harvester):
             low_memory=False,
         ).to_dict(orient="records")
 
-        return CBioPortalHarvestedData(
+        return CBioPortalHarvestedStudyData(
             study_name=study,
             variants=variants,
             patients=patients,
