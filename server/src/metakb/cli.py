@@ -536,9 +536,8 @@ def load_cdm(
     if cdm_files:
         for file in cdm_files:
             load_from_json(file, repository, silent=False)
-    else:
-        version = _retrieve_s3_cdms() if from_s3 else "*"
-
+    elif from_s3:
+        version = _retrieve_s3_cdms()
         for src in sorted([s.value for s in SourceName]):
             if src == SourceName.CBIOPORTAL:
                 continue  # TODO implement in GH issue #729
@@ -552,6 +551,13 @@ def load_cdm(
                 raise FileNotFoundError(msg) from e
 
             load_from_json(path, repository, silent=False)
+    else:
+        for src in sorted(SourceName):
+            if src == SourceName.CBIOPORTAL:
+                continue  # TODO implement in GH issue #729
+            src_data = SourceDataStore(src_name=src)
+            cdm_file = src_data.get_latest_transformed_file()
+            load_from_json(cdm_file, repository, silent=False)
 
     end = timer()
     _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
