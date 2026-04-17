@@ -1,4 +1,8 @@
-"""Provide the ``SourceDataStore`` class for managing data acquired and transformed from sources"""
+"""Provide the ``SourceDataStore`` class for managing data acquired and transformed from sources
+
+This class is useful across different parts of the ingest pipeline for standardizing
+how files are saved, where they're located, etc.
+"""
 
 from datetime import UTC, datetime
 from pathlib import Path

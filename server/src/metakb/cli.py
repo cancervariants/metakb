@@ -29,6 +29,7 @@ from metakb.harvesters import (
     MoaHarvester,
 )
 from metakb.harvesters.base import FetchMode, Harvester
+from metakb.log_config import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
     IllegalUpdateError,
@@ -48,7 +49,6 @@ from metakb.services.load_data import load_from_json
 from metakb.source_data import SourceDataStore
 from metakb.transformers import CivicTransformer, MoaTransformer
 from metakb.transformers.fda_poda import FdaPodaTransformer
-from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
 

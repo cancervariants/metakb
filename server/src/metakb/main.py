@@ -14,6 +14,7 @@ from fastapi.templating import Jinja2Templates
 
 from metakb import __version__
 from metakb.config import get_config
+from metakb.log_config import configure_logs
 from metakb.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.repository.neo4j_repository import get_driver
@@ -25,7 +26,6 @@ from metakb.schemas.api import (
     ServiceOrganization,
     ServiceType,
 )
-from metakb.utils import configure_logs
 
 _logger = logging.getLogger(__name__)
 
