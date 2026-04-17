@@ -55,7 +55,6 @@ from metakb.repository.neo4j_models import (
     TherapyGroupNode,
 )
 from metakb.repository.queries import catalog as queries_catalog
-from metakb.schemas.api import ServiceEnvironment
 
 _logger = logging.getLogger(__name__)
 
@@ -122,31 +121,6 @@ def get_driver(
     :raises Neo4jCredentialsError: If no valid connection URL can be resolved
     """
     configs = get_config()
-
-    # log overrides in deployed environments
-    if configs.env in (
-        ServiceEnvironment.PROD,
-        ServiceEnvironment.STAGING,
-        ServiceEnvironment.DEV,
-    ):
-        if url:
-            _logger.warning(
-                "Overriding DB connection string from `url` param because %s environment is declared",
-                configs.env,
-            )
-        elif configs.db_url:
-            _logger.warning(
-                "Overriding DB connection string from env variable because %s environment is declared",
-                configs.env,
-            )
-        else:
-            _logger.error(
-                "No DB connection URL provided in %s environment; "
-                "METAKB_DB_URL is expected to be set",
-                configs.env,
-            )
-
-    # determine connection url
     if url:
         resolved_url = url
     elif configs.db_url:
