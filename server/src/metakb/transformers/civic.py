@@ -112,7 +112,7 @@ class CivicTransformer(Transformer):
         * If they all normalize, also build the aggregate statement, supported by
           an evidence line to the base statement
         """
-        civicpy.load_cache(str(harvested_data_path))
+        civicpy.load_cache(str(harvested_data_path), on_stale="ignore")
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
