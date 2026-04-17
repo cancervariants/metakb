@@ -310,7 +310,7 @@ class Transformer(ABC):
             if isinstance(member, ConditionSet):
                 self._ensure_conditionset_id(member)
         condition_set.id = compute_combo_id(
-            self.get_src_name(),
+            self.src_data_store.src_name,
             ConditionSet,
             condition_set.membershipOperator,
             [c.id for c in condition_set.conditions],

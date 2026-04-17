@@ -373,7 +373,7 @@ class MoaTransformer(Transformer):
         return Therapeutic(
             root=TherapyGroup(
                 id=compute_combo_id(
-                    self.get_src_name(),
+                    self.src_data_store.src_name,
                     TherapyGroup,
                     operator,
                     [d.id for d in moa_drugs],

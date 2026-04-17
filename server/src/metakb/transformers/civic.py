@@ -112,7 +112,7 @@ class CivicTransformer(Transformer):
         * If they all normalize, also build the aggregate statement, supported by
           an evidence line to the base statement
         """
-        civicpy.load_cache(str(harvested_data_path.absolute().as_uri()))
+        civicpy.load_cache(str(harvested_data_path))
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
@@ -160,7 +160,7 @@ class CivicTransformer(Transformer):
             _logger.info("CIViC therapy group # %s already has an ID", therapy_group.id)
             return
         therapy_group.id = compute_combo_id(
-            self.get_src_name(),
+            self.src_data_store.src_name,
             TherapyGroup,
             therapy_group.membershipOperator,
             [th.id for th in therapy_group.therapies],

@@ -19,7 +19,6 @@ from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
 from metakb.harvesters.fda_poda import FdaPodaHarvestedData
-from metakb.schemas.app import SourceName
 from metakb.schemas.data import TransformedData
 from metakb.transformers import catvars as build_catvars
 from metakb.transformers.base import Transformer
@@ -121,10 +120,6 @@ ADULT_ONSET = MappableConcept(
 class FdaPodaTransformer(Transformer):
     """Transform curated FDA PODA statements into MetaKB data model, including assertion grouping"""
 
-    def get_src_name(self) -> str:
-        """Return source name for use in contexts like file naming"""
-        return SourceName.FDA_PODA.value
-
     async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform MOA harvested JSON to common data model.
 
@@ -153,7 +148,7 @@ class FdaPodaTransformer(Transformer):
             therapeutic = ev_item.proposition.objectTherapeutic
             if isinstance(therapeutic.root, TherapyGroup):
                 therapeutic.root.id = compute_combo_id(
-                    self.src_name,
+                    self.src_data_store.src_name,
                     TherapyGroup,
                     therapeutic.root.membershipOperator,
                     [c.id for c in therapeutic.root.therapies],
