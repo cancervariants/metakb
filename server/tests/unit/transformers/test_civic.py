@@ -1,18 +1,23 @@
 import json
 from pathlib import Path
 
-import civicpy.civic as civicpy
 import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.va_spec.base import ConditionSet, TherapyGroup
 
+from metakb.schemas.app import SourceName
+from metakb.source_data import SourceDataStore
 from metakb.transformers.civic import CivicTransformer
 
 
 # this needs to be scoped for each function, for reasons relating to the ALRU cache and pytest event loops
 @pytest.fixture
-def civic_transformer() -> CivicTransformer:
-    return CivicTransformer()
+def civic_transformer(tmp_path: Path) -> CivicTransformer:
+    return CivicTransformer(
+        src_data_store=SourceDataStore(
+            src_name=SourceName.CIVIC, harvested_dir=tmp_path
+        )
+    )
 
 
 @pytest.fixture(scope="session")
@@ -125,11 +130,9 @@ def test_civic_ensure_conditionset_id(
 async def test_transform(test_data_dir: Path, civic_transformer: CivicTransformer):
     # load test cache and manually inject it before running test
     cache_pkl_path = test_data_dir / "transformers" / "civicpy_transformer_cache.pkl"
-    civicpy.load_cache(str(cache_pkl_path), on_stale="ignore")
-    await civic_transformer.transform()
+    result = await civic_transformer.transform(cache_pkl_path)
 
-    assert civic_transformer.processed_data.evidence[0].id == "civic.eid:238"
+    assert result.evidence[0].id == "civic.eid:238"
     assert (
-        civic_transformer.processed_data.assertions[0].id
-        == "metakb.assertion:tHdOs_zg6VUmJFoY3h97EmtVZC_tq7_k"
+        result.assertions[0].id == "metakb.assertion:tHdOs_zg6VUmJFoY3h97EmtVZC_tq7_k"
     )
