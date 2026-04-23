@@ -32,7 +32,7 @@ class FdaPodaTransformer(Transformer):
     """Transform curated FDA PODA statements into MetaKB data model, including assertion grouping"""
 
     async def transform(self, harvested_data_path: Path) -> TransformedData:
-        """Transform MOA harvested JSON to common data model.
+        """Transform FDA-PODA harvested JSON to common data model.
 
         Will store transformed results in ``processed_data`` instance variable.
 
@@ -42,7 +42,8 @@ class FdaPodaTransformer(Transformer):
         * If they all normalize, also build the aggregate statement, supported by
           an evidence line to the base statement
 
-        :param harvested_data: MOA harvested data
+        :param harvested_data: FDA-PODA harvested data
+        :return: transformed statements
         """
         with harvested_data_path.open() as f:
             harvested_data = FdaPodaHarvestedData(**json.load(f))
