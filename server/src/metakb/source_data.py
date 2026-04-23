@@ -26,6 +26,22 @@ class SourceDataStore(BaseModel):
     harvested_dir: Path | None = None
     transformed_dir: Path | None = None
 
+    def model_post_init(self, __context) -> None:  # noqa: ANN001
+        """Ensure path existence/validity after pydantic validation happens"""
+        base = get_config().data_dir / self.src_name
+
+        if self.harvested_dir is None:
+            self.harvested_dir = base / "harvested"
+
+        if self.transformed_dir is None:
+            self.transformed_dir = base / "transformed"
+
+        for path in (self.harvested_dir, self.transformed_dir):
+            if path.exists() and not path.is_dir():
+                msg = f"{path} is not a directory"
+                raise ValueError(msg)
+            path.mkdir(exist_ok=True, parents=True)
+
     def _get_harvested_dir(self) -> Path:
         """Get directory for harvested data"""
         if self.harvested_dir:
