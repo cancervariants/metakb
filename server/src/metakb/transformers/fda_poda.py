@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Coding, Extension, MappableConcept, code
+from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -21,100 +21,11 @@ from tqdm import tqdm
 from metakb.harvesters.fda_poda import FdaPodaHarvestedData
 from metakb.schemas.data import TransformedData
 from metakb.transformers import catvars as build_catvars
+from metakb.transformers import phenotypes
 from metakb.transformers.base import Transformer
 from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
-
-PEDIATRIC_ONSET = MappableConcept(
-    id="HP:0410280",
-    name="Pediatric onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/",
-        code=code("HP:0410280"),
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of disease manifestations before adulthood, defined here as before the age of 16 years, but excluding neonatal or congenital onset.",
-        )
-    ],
-    conceptType="Phenotype",
-)
-NEONATAL_ONSET = MappableConcept(
-    id="HP:0003623",
-    name="Neonatal onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/",
-        code=code("HP:0003623"),
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of signs or symptoms of disease within the first 28 days of life.",
-        )
-    ],
-    conceptType="Phenotype",
-)
-CHILDHOOD_ONSET = MappableConcept(
-    id="HP:0011463",
-    name="Childhood onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/",
-        code=code("HP:0011463"),
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of disease at the age of between 1 and 5 years.",
-        )
-    ],
-    conceptType="Phenotype",
-)
-INFANTILE_ONSET = MappableConcept(
-    id="HP:0003593",
-    name="Infantile onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/", code=code("HP:0003593")
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of signs or symptoms of disease between 28 days to one year of life.",
-        )
-    ],
-    conceptType="Phenotype",
-)
-JUVENILE_ONSET = MappableConcept(
-    id="HP:0003621",
-    name="Juvenile onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/",
-        code=code("HP:0003621"),
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of signs or symptoms of disease between the age of 5 and 15 years.",
-        )
-    ],
-    conceptType="Phenotype",
-)
-ADULT_ONSET = MappableConcept(
-    id="HP:0003581",
-    name="Adult onset",
-    primaryCoding=Coding(
-        system="https://hpo.jax.org/app/browse/term/",
-        code=code("HP:0003581"),
-    ),
-    extensions=[
-        Extension(
-            name="definition",
-            value="Onset of disease manifestations in adulthood, defined here as at the age of 16 years or later.",
-        )
-    ],
-    conceptType="Phenotype",
-)
 
 
 class FdaPodaTransformer(Transformer):
@@ -212,15 +123,15 @@ class FdaPodaTransformer(Transformer):
         if phenotype.name == "Pediatric":
             # this is a weird case -- going with the safest match for now, but
             # could be worth revisiting in the future
-            return PEDIATRIC_ONSET
+            return phenotypes.PEDIATRIC_ONSET
         operator = MembershipOperator.OR
         conditions = []
         if phenotype.name == "0 years and older":
             conditions = [
-                NEONATAL_ONSET,
-                CHILDHOOD_ONSET,
-                JUVENILE_ONSET,
-                ADULT_ONSET,
+                phenotypes.NEONATAL_ONSET,
+                phenotypes.CHILDHOOD_ONSET,
+                phenotypes.JUVENILE_ONSET,
+                phenotypes.ADULT_ONSET,
             ]
         elif phenotype.name in {
             "1 month and older",
@@ -228,9 +139,13 @@ class FdaPodaTransformer(Transformer):
             "1 year and older",
             "2 years and older",
         }:
-            conditions = [CHILDHOOD_ONSET, JUVENILE_ONSET, ADULT_ONSET]
+            conditions = [
+                phenotypes.CHILDHOOD_ONSET,
+                phenotypes.JUVENILE_ONSET,
+                phenotypes.ADULT_ONSET,
+            ]
         if phenotype.name == "12 years and older":
-            conditions = [JUVENILE_ONSET, ADULT_ONSET]
+            conditions = [phenotypes.JUVENILE_ONSET, phenotypes.ADULT_ONSET]
         if conditions:
             return ConditionSet(
                 id=compute_combo_id(
