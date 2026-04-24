@@ -16,6 +16,7 @@ import { Statement } from '../models/domain'
 export enum SourceName {
   Civic = 'CIViC',
   Moalmanac = 'MOAlmanac',
+  FdaPoda = 'FDA',
 }
 
 /**
@@ -24,6 +25,7 @@ export enum SourceName {
 export enum SourceNamespacePrefix {
   Civic = 'civic',
   Moalmanac = 'moa',
+  FdaPoda = 'fda_poda',
 }
 
 /**
@@ -42,14 +44,18 @@ export function getEvidenceLabelUrl(evidenceIdentifier: string): {
   let evidenceLabel = ''
   let evidenceUrl = ''
   if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Moalmanac)) {
-    evidenceLabel = `${SourceName.Moalmanac} AID:${recordId}`
+    evidenceLabel = `${SourceName.Moalmanac} Assertion ID${recordId}`
     evidenceUrl = `https://moalmanac.org/assertion/${recordId}`
   } else if (evidenceIdentifier.startsWith(`${SourceNamespacePrefix.Civic}.eid`)) {
-    evidenceLabel = `${SourceName.Civic}  EID:${recordId}`
+    evidenceLabel = `${SourceName.Civic} EID${recordId}`
     evidenceUrl = `https://civicdb.org/evidence/${recordId}/summary`
   } else if (evidenceIdentifier.startsWith(`${SourceNamespacePrefix.Civic}.aid`)) {
-    evidenceLabel = `${SourceName.Civic} AID:${recordId}`
+    evidenceLabel = `${SourceName.Civic} AID${recordId}`
     evidenceUrl = `https://civicdb.org/assertions/${recordId}/summary`
+  } else if (evidenceIdentifier.startsWith(SourceNamespacePrefix.FdaPoda)) {
+    evidenceLabel = `${SourceName.FdaPoda}`
+    evidenceUrl =
+      'https://www.fda.gov/about-fda/oncology-center-excellence/pediatric-oncology-drug-approvals'
   }
   return {
     evidenceLabel: evidenceLabel,
@@ -71,6 +77,8 @@ export function getEvidenceSource(evidenceIdentifier: string): SourceName | null
     evidenceIdentifier.startsWith(`${SourceNamespacePrefix.Civic}.aid`)
   ) {
     return SourceName.Civic
+  } else if (evidenceIdentifier.startsWith(SourceNamespacePrefix.FdaPoda)) {
+    return SourceName.FdaPoda
   }
   return null
 }

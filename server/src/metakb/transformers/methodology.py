@@ -48,6 +48,7 @@ METAKB_METHOD = Method(
 ECO_SYSTEM = "http://purl.obolibrary.org/obo/eco.owl"
 CIVIC_SYSTEM = "https://civic.readthedocs.io/en/latest/model/evidence/level.html"
 MOA_SYSTEM = "https://moalmanac.org/about"
+FDA_SYSTEM = "https://www.fda.gov"
 VICC_EVIDENCE_CODE_SYSTEM = "https://go.osu.edu/evidence-codes"
 
 
@@ -296,6 +297,8 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
             case _:
                 raise ValueError
+    elif strength.primaryCoding.system == FDA_SYSTEM:
+        vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000002"]
     else:
         if strength.primaryCoding.system == CIVIC_SYSTEM:
             src_level = CivicEvidenceLevel(strength.primaryCoding.code.root)

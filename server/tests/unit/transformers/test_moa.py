@@ -13,13 +13,14 @@ from ga4gh.core.models import (
 )
 from ga4gh.va_spec.base import MembershipOperator, Therapeutic, TherapyGroup
 
-from metakb.harvesters.moa import MoaHarvestedData
+from metakb.schemas.app import SourceName
+from metakb.source_data import SourceDataStore
 from metakb.transformers.moa import MoaTransformer
 
 
 @pytest.fixture
 def transformer() -> MoaTransformer:
-    return MoaTransformer()
+    return MoaTransformer(src_data_store=SourceDataStore(src_name=SourceName.MOA))
 
 
 @pytest.fixture(scope="session")
@@ -40,16 +41,17 @@ def moa_catvars(test_data_dir: Path) -> dict[str, CategoricalVariant]:
 
 
 @pytest.fixture(scope="session")
-def moa_harvested_data(test_data_dir: Path) -> MoaHarvestedData:
-    with (test_data_dir / "transformers" / "moa_harvested_data.json").open() as f:
-        data = json.load(f)
-        return MoaHarvestedData(genes=[], variants=[], **data)
+def moa_harvested_data_path(test_data_dir: Path) -> Path:
+    return test_data_dir / "transformers" / "moa_harvested_data.json"
 
 
 @pytest.mark.ci_ok
 def test_create_moa_variant(moa_variants: dict[str, dict]):
     # yes this is a type error -- we want to inhibit construction of the normalizers
-    transformer = MoaTransformer(normalizers="dummy_value_to_block_normalizers")
+    transformer = MoaTransformer(
+        src_data_store=SourceDataStore(src_name=SourceName.MOA),
+        normalizers="dummy_value_to_block_normalizers",
+    )
     result = transformer._create_moa_variant(moa_variants["1"])
     assert result == CategoricalVariant(
         id="moa.variant:1",
@@ -203,11 +205,8 @@ def test_create_moa_therapeutic(transformer: MoaTransformer):
 
 
 @pytest.mark.asyncio
-async def test_transform(
-    transformer: MoaTransformer, moa_harvested_data: MoaHarvestedData
-):
-    await transformer.transform(moa_harvested_data)
-    result = transformer.processed_data
+async def test_transform(transformer: MoaTransformer, moa_harvested_data_path: Path):
+    result = await transformer.transform(moa_harvested_data_path)
 
     statement = next(s for s in result.evidence if s.id == "moa.assertion:66")
     assert statement

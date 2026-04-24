@@ -3,42 +3,21 @@
 import logging
 import shutil
 import tarfile
-from enum import StrEnum
 from pathlib import Path
 from typing import NamedTuple
 
 import pandas as pd
-from wags_tails.base_source import (
-    UnversionedDataSource,
-    get_latest_local_file,
-)
+from wags_tails.base_source import UnversionedDataSource, get_latest_local_file
 from wags_tails.utils.downloads import download_http
 
-from metakb.harvesters.base import Harvester, _HarvestedData
+from metakb.harvesters.base import FetchMode, Harvester
+from metakb.schemas.data import (
+    CBioPortalHarvestedData,
+    CBioPortalHarvestedStudyData,
+    CBioPortalStudyName,
+)
 
 _logger = logging.getLogger(__name__)
-
-
-class CBioPortalStudyName(StrEnum):
-    """Enumerate supported study names"""
-
-    PPTC_2019 = "pptc_2019"
-    ALL_PHASE2_TARGET_2018_PUB = "all_phase2_target_2018_pub"
-    RT_TARGET_2018_PUB = "rt_target_2018_pub"
-    WT_TARGET_2018_PUB = "wt_target_2018_pub"
-    AML_TARGET_2018_PUB = "aml_target_2018_pub"
-    NBL_TARGET_2018_PUB = "nbl_target_2018_pub"
-    PEDIATRIC_DKFZ_2017 = "pediatric_dkfz_2017"
-    MIXED_PIPSEQ_2017 = "mixed_pipseq_2017"
-    ALL_STJUDE_2016 = "all_stjude_2016"
-    ALL_STJUDE_2015 = "all_stjude_2015"
-    ES_DFARBER_BROAD_2014 = "es_dfarber_broad_2014"
-    ES_IOCURIE_2014 = "es_iocurie_2014"
-    MBL_PCGP = "mbl_pcgp"
-    PANCAN_MAPPYACTS_2022 = "pancan_mappyacts_2022"
-    CHL_SCCC_2023 = "chl_sccc_2023"
-    PANCAN_PDX_UTHSA_2023 = "pancan_pdx_uthsa_2023"
-    LGG_CTF_SYNODOS_2025 = "lgg_ctf_synodos_2025"
 
 
 class CBioPortalStudyDataPaths(NamedTuple):
@@ -143,41 +122,42 @@ class CBioPortalDataSource(UnversionedDataSource):
         return file_paths, ""
 
 
-class CBioPortalHarvestedData(_HarvestedData):
-    """Provide harvested data for a cBioPortal study"""
-
-    study_name: CBioPortalStudyName
-    variants: list[dict]
-    patients: list[dict]
-    samples: list[dict]
-    metadata: list[dict]
-
-
 class CBioPortalHarvester(Harvester):
     """Acquire and restructure cBioPortal study data to prepare for GKS transformation."""
 
-    def harvest(
-        self, study_name: CBioPortalStudyName | None = None
-    ) -> list[CBioPortalHarvestedData]:
-        """Harvest all cBioPortal study data of interest.
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :param study_name: (optional) a specific study to harvest
-        :return: a list of all study data
+        :param fetch_mode: set data caching/fetching behavior.
+        :return: Location of performed data harvest
         """
-        if study_name:
-            return [self._harvest_one(study_name)]
-        return [self._harvest_one(study) for study in CBioPortalStudyName]
+        data = CBioPortalHarvestedData(
+            studies=[
+                self._harvest_one(study, fetch_mode) for study in CBioPortalStudyName
+            ]
+        )
+        return self.src_data_dir.save_harvested_data(data)
 
-    def _harvest_one(self, study: CBioPortalStudyName) -> CBioPortalHarvestedData:
+    def _harvest_one(
+        self, study: CBioPortalStudyName, fetch_mode: FetchMode
+    ) -> CBioPortalHarvestedStudyData:
         """Harvest a single study
 
         * Acquire data files if they aren't already available locally
         * Copy them into a Pydantic object
 
         :param study: name of study to harvest
+        :param fetch_mode: data fetching behavior setting
         :return: variant, sample, and patient data for a single study
         """
-        files, _ = CBioPortalDataSource(study_name=study).get_latest()
+        from_local, force_refresh = False, False
+        if fetch_mode == FetchMode.FORCE_REFRESH:
+            force_refresh = True
+        elif fetch_mode == FetchMode.USE_LOCAL:
+            from_local = True
+        files, _ = CBioPortalDataSource(study_name=study).get_latest(
+            from_local, force_refresh
+        )
         # some study variant files have fewer header rows that need to be skipped
         variant_skiprow_studies = {
             CBioPortalStudyName.PANCAN_MAPPYACTS_2022,
@@ -223,7 +203,7 @@ class CBioPortalHarvester(Harvester):
             low_memory=False,
         ).to_dict(orient="records")
 
-        return CBioPortalHarvestedData(
+        return CBioPortalHarvestedStudyData(
             study_name=study,
             variants=variants,
             patients=patients,

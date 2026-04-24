@@ -1,91 +1,41 @@
 """A module for the Harvester base class"""
 
-import datetime
-import json
 import logging
 from abc import ABC, abstractmethod
+from enum import StrEnum
 from pathlib import Path
-from typing import Generic, TypeVar
 
-from pydantic import BaseModel
+from metakb.source_data import SourceDataStore
 
-from metakb import DATE_FMT
-from metakb.config import get_config
-
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
-T = TypeVar("T")
+class FetchMode(StrEnum):
+    """Define options for fetching data"""
+
+    FORCE_REFRESH = "force_refresh"  # always hit remote
+    CHECK_STALE = "check_stale"  # conditional refresh
+    USE_LOCAL = "use_local"  # never hit remote
 
 
-class _HarvestedData(BaseModel):
-    """Define output for harvested data from a source"""
-
-    variants: list[dict]
-
-    @classmethod
-    def get_subclass_by_prefix(
-        cls: type["_HarvestedData"], prefix: str
-    ) -> type["_HarvestedData"]:
-        """Get subclass whose name starts with provided prefix
-
-        :param prefix: Prefix to search for in subclass names
-        :raises ValueError: If no subclasses defined or if no subclass found with prefix
-        :return: Matching subclass with given prefix, if found
-        """
-        subclasses = cls.__subclasses__()
-        if not subclasses:
-            msg = "No subclasses have been defined"
-            raise ValueError(msg)
-
-        for subclass in subclasses:
-            if subclass.__name__.lower().startswith(prefix):
-                return subclass
-
-        msg = f"No subclass starting with '{prefix}' found"
-        raise ValueError(msg)
-
-
-class Harvester(ABC, Generic[T]):
+class Harvester(ABC):
     """A base class for content harvesters."""
 
+    def __init__(self, src_data_dir: SourceDataStore):
+        """Initialize harvester class
+
+        :param src_data_dir: container for MetaKB-managed data for this source
+        """
+        _logger.info(
+            "Initializing %s with data dir {%s}", self.__class__.__name__, src_data_dir
+        )
+        self.src_data_dir = src_data_dir
+
     @abstractmethod
-    def harvest(self) -> T:
-        """Get source harvester data
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :return: Harvested data, if applicable
+        :param fetch_mode: set data caching/fetching behavior. Not evenly used across sources.
+        :return: Location of performed data harvest
         """
-
-    def save_harvested_data_to_file(
-        self, harvested_data: T, harvested_filepath: Path | None = None
-    ) -> bool:
-        """Save harvested data to JSON file.
-
-        :param harvested_data: harvested data from a source
-        :param harvested_filepath: Path to the JSON file location where the harvested data
-            will be stored. If not provided, will use the default path of
-            ``<METAKB_DATA_DIR>/<src_name>/harvester/<src_name>_harvester_YYYYMMDD.json``,
-            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
-            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
-        :return: ``True`` if JSON creation was successful. ``False`` otherwise.
-        """
-        src_name = self.__class__.__name__.lower().split("harvest")[0]
-
-        if not harvested_filepath:
-            harvester_dir = get_config().data_dir / src_name / "harvester"
-            harvester_dir.mkdir(exist_ok=True, parents=True)
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            harvested_filepath = harvester_dir / f"{src_name}_harvester_{today}.json"
-
-        try:
-            with (harvested_filepath).open("w+") as f:
-                if isinstance(harvested_data, list):
-                    json.dump([h.model_dump() for h in harvested_data], f, indent=2)
-                else:
-                    json.dump(harvested_data.model_dump(), f, indent=2)
-        except Exception:
-            logger.exception("Error creating %s harvester JSON", src_name)
-            return False
-        return True
+        raise NotImplementedError

@@ -1,7 +1,9 @@
 """A module to convert MOA resources to common data model"""
 
+import json
 import logging
 import re
+from pathlib import Path
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import (
@@ -29,12 +31,9 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
-from metakb.harvesters.moa import MoaHarvestedData
+from metakb.schemas.data import MoaHarvestedData, TransformedData
 from metakb.transformers import catvars as build_catvars
-from metakb.transformers.base import (
-    TransformedData,
-    Transformer,
-)
+from metakb.transformers.base import Transformer
 from metakb.transformers.identifiers import compute_combo_id
 from metakb.transformers.methodology import (
     VICC_CODE_EXACT_MAPPING_INDEX,
@@ -64,7 +63,7 @@ class MoaTransformer(Transformer):
             ),
         )
 
-    async def transform(self, harvested_data: MoaHarvestedData) -> None:
+    async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform MOA harvested JSON to common data model.
 
         Will store transformed results in ``processed_data`` instance variable.
@@ -75,8 +74,10 @@ class MoaTransformer(Transformer):
         * If they all normalize, also build the aggregate statement, supported by
           an evidence line to the base statement
 
-        :param harvested_data: MOA harvested data
+        :param harvested_data_path: path to MOA harvested data
         """
+        with harvested_data_path.open() as f:
+            harvested_data = MoaHarvestedData(**json.load(f))
         docs_map = {}
         for source in harvested_data.sources:
             source_doc = self._create_document(source)
@@ -98,7 +99,7 @@ class MoaTransformer(Transformer):
             await self._upsert_assertion_from_evidence(
                 transformed_statement, assertions
             )
-        self.processed_data = TransformedData(
+        return TransformedData(
             evidence=statements, assertions=list(assertions.values())
         )
 
@@ -372,7 +373,10 @@ class MoaTransformer(Transformer):
         return Therapeutic(
             root=TherapyGroup(
                 id=compute_combo_id(
-                    self.name, TherapyGroup, operator, [d.id for d in moa_drugs]
+                    self.src_data_store.src_name,
+                    TherapyGroup,
+                    operator,
+                    [d.id for d in moa_drugs],
                 ),
                 membershipOperator=operator,
                 therapies=moa_drugs,
