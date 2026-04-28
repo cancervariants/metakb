@@ -9,20 +9,20 @@ from pathlib import Path
 
 import requests
 from ga4gh.va_spec.base import Statement
+from pydantic import BaseModel
 from wags_tails.base_source import DataSource
 from wags_tails.utils.downloads import HTTPS_REQUEST_TIMEOUT, download_http
 
-from metakb.harvesters.base import Harvester, _HarvestedData
+from metakb.harvesters.base import FetchMode, Harvester
 
 
-class FdaPodaHarvestedData(_HarvestedData):
+class FdaPodaHarvestedData(BaseModel):
     """Hold statements and variants grabbed from FDA PODA data"""
 
     statements: list[Statement]
-    variants: list[dict]
 
 
-class _FdaPodaData(DataSource):
+class _FdaPodaDataFetcher(DataSource):
     _src_name = "fda_poda"
     _filetype = "json"
 
@@ -47,19 +47,27 @@ class _FdaPodaData(DataSource):
 class FdaPodaHarvester(Harvester):
     """Harvest FDA PODA data"""
 
-    def _get_fda_poda_data(self) -> dict:
+    def _get_fda_poda_data(self, fetch_mode: FetchMode) -> dict:
         """Fetch raw data
 
+        :param fetch_mode: behavior for fetching/caching data
         :return: JSON loaded from fetched file
         """
-        data, _ = _FdaPodaData().get_latest()
+        from_local, force_refresh = False, False
+        if fetch_mode == FetchMode.FORCE_REFRESH:
+            force_refresh = True
+        elif fetch_mode == FetchMode.USE_LOCAL:
+            from_local = True
+        data, _ = _FdaPodaDataFetcher().get_latest(from_local, force_refresh)
         with data.open() as f:
             return json.load(f)
 
-    def harvest(self) -> _HarvestedData:
-        """Harvest FDA data.
+    def harvest(self, fetch_mode: FetchMode = FetchMode.CHECK_STALE) -> Path:
+        """Grab data from a source and stash a copy locally, returning the stashed location
 
-        :return: data structure containing statements and variants
+        :param fetch_mode: set data caching/fetching behavior.
+        :return: Location of performed data harvest
         """
-        source_data = self._get_fda_poda_data()
-        return FdaPodaHarvestedData(variants=[], **source_data)
+        source_data = self._get_fda_poda_data(fetch_mode)
+        harvested_data = FdaPodaHarvestedData(**source_data)
+        return self.src_data_dir.save_harvested_data(harvested_data)

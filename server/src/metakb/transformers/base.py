@@ -1,7 +1,5 @@
 """A module for the Transformer base class."""
 
-import datetime
-import json
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -19,12 +17,10 @@ from ga4gh.va_spec.base import (
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
 )
-from pydantic import BaseModel
 
-from metakb import DATE_FMT
-from metakb.config import get_config
-from metakb.harvesters.base import _HarvestedData
 from metakb.normalizers import ViccNormalizers
+from metakb.schemas.data import TransformedData
+from metakb.source_data import SourceDataStore
 from metakb.transformers.identifiers import (
     compute_assertion_id,
     compute_combo_id,
@@ -35,13 +31,6 @@ from metakb.transformers.methodology import (
 )
 
 _logger = logging.getLogger(__name__)
-
-
-class TransformedData(BaseModel):
-    """Define model for transformed data"""
-
-    evidence: list[Statement] = []
-    assertions: list[Statement] = []
 
 
 # TypeVar constrained to the specific Proposition subclasses.
@@ -61,85 +50,24 @@ class Transformer(ABC):
 
     def __init__(
         self,
-        data_dir: Path | None = None,
-        harvester_path: Path | None = None,
+        src_data_store: SourceDataStore,
         normalizers: ViccNormalizers | None = None,
     ) -> None:
         """Initialize Transformer base class.
 
-        :param data_dir: Path to source data directory. If not given, use a subdirectory
-            off of the MetaKB data directory as configured in the ``metakb.config`` module.
-        :param harvester_path: Path to previously harvested data
+        :param src_data_store: wrapper around source data location
         :param normalizers: normalizer collection instance
         """
-        self.name = self.__class__.__name__.lower().split("transformer")[0]
-        if data_dir:
-            self.data_dir = data_dir
-        else:
-            self.data_dir = get_config().data_dir / self.name
-        self.harvester_path = harvester_path
+        self.src_data_store = src_data_store
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
-        self.processed_data = None
 
     ### Basic/public behavior
 
     @abstractmethod
-    async def transform(self, *args, **kwargs) -> None:
-        """Transform harvested data to the Common Data Model.
-
-        :param harvested_data: Source harvested data
-        """
-
-    def extract_harvested_data(self) -> _HarvestedData:
-        """Get harvested data from file.
-
-        :return: Harvested data
-        :raise FileNotFoundError: harvest file not found
-        """
-        if self.harvester_path is None:
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            default_fname = f"{self.name}_harvester_{today}.json"
-            default_path = self.data_dir / "harvester" / default_fname
-            if not default_path.exists():
-                msg = f"Unable to open harvest file under default filename: {default_path.absolute().as_uri()}"
-                raise FileNotFoundError(msg)
-            self.harvester_path = default_path
-        elif not self.harvester_path.exists():
-            msg = f"Unable to open harvester file: {self.harvester_path}"
-            raise FileNotFoundError(msg)
-
-        with self.harvester_path.open() as f:
-            _harvested_data_child = _HarvestedData.get_subclass_by_prefix(self.name)
-            return _harvested_data_child(**json.load(f))
-
-    def create_json(self, cdm_filepath: Path | None = None) -> None:
-        """Create a composite JSON for transformed data.
-
-        :param cdm_filepath: Path to the JSON file locatio at which the CDM output will be
-            saved. If not provided, will use the default path of
-            ``<METAKB_DATA_DIR>/<src_name>/transformers/<src_name>_cdm_YYYYMMDD.json``,
-            where ``<METAKB_DATA_DIR>`` is the configurable data root directory.
-            See the :ref:`configuration <config-data-directory>` entry in the docs for more information.
-        :raise ValueError: if data variable hasn't been populated by transform method yet
-        """
-        if self.processed_data is None:
-            raise ValueError
-        if not cdm_filepath:
-            transformers_dir = self.data_dir / "transformers"
-            transformers_dir.mkdir(exist_ok=True, parents=True)
-            today = datetime.datetime.strftime(
-                datetime.datetime.now(tz=datetime.UTC), DATE_FMT
-            )
-            cdm_filepath = transformers_dir / f"{self.name}_cdm_{today}.json"
-
-        cdm_filepath.parent.mkdir(parents=True, exist_ok=True)
-
-        with cdm_filepath.open("w+") as f:
-            json.dump(self.processed_data.model_dump(exclude_none=True), f, indent=2)
+    async def transform(self, harvested_data_path: Path) -> TransformedData:
+        """Transform harvested data into GKS statements with MetaKB-required annotations."""
 
     ### Entity normalization
 
@@ -190,6 +118,19 @@ class Transformer(ABC):
                 return normalized_disease
         return None
 
+    def _normalize_phenotype(
+        self, phenotype: MappableConcept
+    ) -> MappableConcept | ConditionSet | None:
+        """Retrieve normalized phenotype concept
+
+        By default, this function is just a pass-through; we'd like to do some kind of
+        generalized phenotype normalization someday.
+
+        :param phenotype: phenotype concept from source
+        :return: normalized equivalent, if available
+        """
+        return phenotype
+
     def _resolve_condition_set(
         self, condition_set: ConditionSet
     ) -> ConditionSet | None:
@@ -204,14 +145,19 @@ class Transformer(ABC):
         for condition in condition_set.conditions:
             if isinstance(condition, MappableConcept):
                 if condition.conceptType == "Phenotype":
-                    members.append(condition)
+                    normalized_phenotype = self._normalize_phenotype(condition)
+                    if not normalized_phenotype:
+                        return None
+                    members.append(normalized_phenotype)
                 elif condition.conceptType == "Disease":
                     normalized_disease = self._normalize_disease(condition)
                     if not normalized_disease:
                         return None
                     members.append(normalized_disease)
                 else:
-                    raise ValueError
+                    msg = f"ConditionSet contains unexpected type: {{{condition}}}"
+                    _logger.error(msg)
+                    raise ValueError(msg)
             elif isinstance(condition, ConditionSet):
                 normalized_condition_set = self._resolve_condition_set(condition)
                 if not normalized_condition_set:
@@ -398,6 +344,27 @@ class Transformer(ABC):
 
     ### evidence/assertion construction
 
+    def _ensure_conditionset_id(self, condition_set: ConditionSet) -> None:
+        """Ensure that a ConditionSet, and everything it contains, has an ID
+
+        Modifies incoming object in-place if necessary. Source transformers should use
+        if incoming ConditionSet objects don't already have IDs.
+
+        :param condition_set: incoming condition set that may or may not have an ID
+        """
+        if condition_set.id:
+            _logger.info("Condition set already has an ID: %s", condition_set.id)
+            return
+        for member in condition_set.conditions:
+            if isinstance(member, ConditionSet):
+                self._ensure_conditionset_id(member)
+        condition_set.id = compute_combo_id(
+            self.src_data_store.src_name,
+            ConditionSet,
+            condition_set.membershipOperator,
+            [c.id for c in condition_set.conditions],
+        )
+
     async def _get_normalized_proposition(
         self, proposition: PropositionType
     ) -> PropositionType | None:
@@ -436,9 +403,8 @@ class Transformer(ABC):
 
         if failures:
             _logger.debug(
-                "Failed to normalize proposition components: %s | predicate=%s",
-                ", ".join(f"{k}={v}" for k, v in failures),
-                proposition.predicate,
+                "Failed to normalize proposition components: {%s}",
+                "}, {".join(f"{k}={v}" for k, v in failures),
             )
             return None
 

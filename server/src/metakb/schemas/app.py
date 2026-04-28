@@ -1,9 +1,9 @@
 """Module containing app schemas and enums"""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class SourceName(str, Enum):
+class SourceName(StrEnum):
     """Define enum for sources that are supported"""
 
     CIVIC = "civic"

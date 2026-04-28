@@ -14,13 +14,15 @@ from ga4gh.va_spec.base import (
     TherapyGroup,
 )
 
+from metakb.schemas.app import SourceName
+from metakb.source_data import SourceDataStore
 from metakb.transformers.base import Transformer
 from metakb.transformers.civic import CivicTransformer
 
 
 @pytest.fixture(scope="session")
 def transformer() -> Transformer:
-    return CivicTransformer()
+    return CivicTransformer(src_data_store=SourceDataStore(src_name=SourceName.CIVIC))
 
 
 @pytest.fixture(scope="session")
