@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import MappableConcept
+from ga4gh.core.models import Coding, ConceptMapping, MappableConcept, Relation, code
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -258,6 +258,58 @@ class Transformer(ABC):
             return None
         raise ValueError
 
+    def _postprocess_normalized_gene(
+        self, normalized_gene: MappableConcept, source_gene: MappableConcept
+    ) -> MappableConcept:
+        """Modify gene object received from normalizer service
+
+        Here, we can filter out or restructure values to match needs for MetaKB, particularly
+        with respect to the frontend.
+
+        We can also make some updates to the normalized object using the source's gene concept,
+        although that depends on the source.
+
+        :param normalized_gene: object from normalizer
+        :param source_gene: object from source that resulted into the normalized response above
+        :return: post-processed normalized gene
+        """
+        normalized_gene.id = normalized_gene.id.replace(":", "_")
+        normalized_gene.id = normalized_gene.id.replace(
+            "normalize.gene.", "metakb.gene:"
+        )
+        normalized_gene.mappings = (
+            [
+                m
+                for m in normalized_gene.mappings
+                if m.coding.id.startswith(("HGNC:", "ensembl:", "ncbigene:"))
+            ]
+            if normalized_gene.mappings
+            else []
+        )
+        normalized_gene.mappings.append(
+            ConceptMapping(
+                relation=Relation.EXACT_MATCH, coding=normalized_gene.primaryCoding
+            )
+        )
+        normalized_gene.extensions = [
+            e
+            for e in normalized_gene.extensions
+            if e.name in {"aliases", "gene_description"}
+        ]
+        if source_gene.id.startswith("civic.gid:"):
+            system = "https://civicdb.org/features/"
+            mapping_code = code(source_gene.id.split(":")[-1])
+        else:
+            system, mapping_code = None, None
+        if system and mapping_code:
+            normalized_gene.mappings.append(
+                ConceptMapping(
+                    relation=Relation.EXACT_MATCH,
+                    coding=Coding(id=source_gene.id, system=system, code=mapping_code),
+                )
+            )
+        return normalized_gene
+
     def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
         """Attempt normalization of a source Gene
 
@@ -273,14 +325,7 @@ class Transformer(ABC):
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
             result = result.model_copy(deep=True)
             if result.gene:
-                normalized_gene = result.gene
-                normalized_gene.id = normalized_gene.id.replace(":", "_")
-                normalized_gene.id = normalized_gene.id.replace(
-                    "normalize.gene.", "metakb.gene:"
-                )
-                normalized_gene.mappings = None
-                normalized_gene.extensions = None
-                return normalized_gene
+                return self._postprocess_normalized_gene(result.gene, gene)
         return None
 
     def _normalize_drug(self, drug: MappableConcept) -> MappableConcept | None:
