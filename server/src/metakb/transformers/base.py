@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Coding, ConceptMapping, MappableConcept, Relation, code
+from ga4gh.core.models import ConceptMapping, MappableConcept, Relation
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -259,7 +259,9 @@ class Transformer(ABC):
         raise ValueError
 
     def _postprocess_normalized_gene(
-        self, normalized_gene: MappableConcept, source_gene: MappableConcept
+        self,
+        normalized_gene: MappableConcept,
+        source_gene: MappableConcept,  # noqa: ARG002
     ) -> MappableConcept:
         """Modify gene object received from normalizer service
 
@@ -296,18 +298,20 @@ class Transformer(ABC):
             for e in normalized_gene.extensions
             if e.name in {"aliases", "gene_description"}
         ]
-        if source_gene.id.startswith("civic.gid:"):
-            system = "https://civicdb.org/features/"
-            mapping_code = code(source_gene.id.split(":")[-1])
-        else:
-            system, mapping_code = None, None
-        if system and mapping_code:
-            normalized_gene.mappings.append(
-                ConceptMapping(
-                    relation=Relation.EXACT_MATCH,
-                    coding=Coding(id=source_gene.id, system=system, code=mapping_code),
-                )
-            )
+        # TODO incorporate stuff from source objects themselves
+        # need to figure out some DB stuff before this can work
+        # if source_gene.id.startswith("civic.gid:"):
+        #     system = "https://civicdb.org/features/"
+        #     mapping_code = code(source_gene.id.split(":")[-1])
+        # else:
+        #     system, mapping_code = None, None
+        # if system and mapping_code:
+        #     normalized_gene.mappings.append(
+        #         ConceptMapping(
+        #             relation=Relation.EXACT_MATCH,
+        #             coding=Coding(id=source_gene.id, system=system, code=mapping_code),
+        #         )
+        #     )
         return normalized_gene
 
     def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:
