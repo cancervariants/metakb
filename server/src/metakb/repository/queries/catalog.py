@@ -138,3 +138,8 @@ def load_evidence_line() -> str:
 @cache
 def load_strength() -> str:
     return _load("load_strength.cypher")
+
+
+@cache
+def get_gene() -> str:
+    return _load("get_gene.cypher")

@@ -242,22 +242,8 @@ class Transformer(ABC):
         normalized_gene.extensions = [
             e
             for e in normalized_gene.extensions
-            if e.name in {"aliases", "gene_description"}
+            if e.name in {"aliases", "gene_description", "approved_name"}
         ]
-        # TODO incorporate stuff from source objects themselves
-        # need to figure out some DB stuff before this can work
-        # if source_gene.id.startswith("civic.gid:"):
-        #     system = "https://civicdb.org/features/"
-        #     mapping_code = code(source_gene.id.split(":")[-1])
-        # else:
-        #     system, mapping_code = None, None
-        # if system and mapping_code:
-        #     normalized_gene.mappings.append(
-        #         ConceptMapping(
-        #             relation=Relation.EXACT_MATCH,
-        #             coding=Coding(id=source_gene.id, system=system, code=mapping_code),
-        #         )
-        #     )
         return normalized_gene
 
     def _normalize_gene(self, gene: MappableConcept | None) -> MappableConcept | None:

@@ -1,6 +1,6 @@
 """Create schemas for API"""
 
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Literal
 
 from ga4gh.cat_vrs import CATVRS_VERSION
@@ -8,6 +8,7 @@ from ga4gh.cat_vrs import __version__ as cat_vrs_python_version
 from ga4gh.va_spec import VASPEC_VERSION
 from ga4gh.va_spec import __version__ as va_spec_python_version
 from ga4gh.va_spec.base import Statement
+from ga4gh.va_spec.base.core import MappableConcept
 from ga4gh.vrs import VRS_VERSION
 from ga4gh.vrs import (
     __version__ as vrs_python_version,
@@ -105,7 +106,7 @@ class ServiceMeta(BaseModel):
     )
 
 
-class SearchTermType(str, Enum):
+class SearchTermType(StrEnum):
     """Type of term being searched."""
 
     VARIATION = "variation"
@@ -121,6 +122,9 @@ class SearchTerm(BaseModel):
     term: str
     term_type: SearchTermType
     resolved_id: str | None
+    # this field isn't supported for all types of search terms and is currently
+    # being used experimentally
+    resolved_object: MappableConcept | None = None
 
 
 class SearchResult(BaseModel):
