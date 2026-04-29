@@ -27,8 +27,11 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
   const externalLinks =
     data.mappings
       ?.flatMap((m) => {
-        const url = generateUrlForId(m.coding.id)
-        return url ? [{ conceptId: m.coding.id, url }] : []
+        const id = m.coding?.id
+        if (!id) return []
+
+        const url = generateUrlForId(id)
+        return url ? [{ conceptId: id, url }] : []
       })
       .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
@@ -61,14 +64,16 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
       </InfoRow>
       <InfoRow label="Description" show={!!sourcedDescription}>
         {' '}
-        <ExpandableText
-          text={cleanDescription}
-          suffix={
-            <Link href={descriptionUrl} target="_blank" rel="noopener noreferrer">
-              [Source]
-            </Link>
-          }
-        />
+        {cleanDescription && descriptionUrl && (
+          <ExpandableText
+            text={cleanDescription}
+            suffix={
+              <Link href={descriptionUrl} target="_blank" rel="noopener noreferrer">
+                [Source]
+              </Link>
+            }
+          />
+        )}{' '}
       </InfoRow>
       <InfoRow label="Aliases" show={aliases.length > 0}>
         <Typography>{aliases.join(', ')}</Typography>

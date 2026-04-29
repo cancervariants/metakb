@@ -26,8 +26,11 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
   const externalLinks =
     data.mappings
       ?.flatMap((m) => {
-        const url = generateUrlForId(m.coding.id)
-        return url ? [{ conceptId: m.coding.id, url }] : []
+        const id = m.coding?.id
+        if (!id) return []
+
+        const url = generateUrlForId(id)
+        return url ? [{ conceptId: id, url }] : []
       })
       .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
@@ -57,14 +60,16 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
       </Box>
       <InfoRow label="Description" show={!!sourcedDescription}>
         {' '}
-        <ExpandableText
-          text={cleanDescription}
-          suffix={
-            <Link href={descriptionUrl} target="_blank" rel="noopener noreferrer">
-              [Source]
-            </Link>
-          }
-        />
+        {cleanDescription && descriptionUrl && (
+          <ExpandableText
+            text={cleanDescription}
+            suffix={
+              <Link href={descriptionUrl} target="_blank" rel="noopener noreferrer">
+                [Source]
+              </Link>
+            }
+          />
+        )}{' '}
       </InfoRow>
 
       <InfoRow label="External Resources" show={externalLinks.length > 0}>

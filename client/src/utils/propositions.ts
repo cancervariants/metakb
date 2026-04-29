@@ -297,7 +297,7 @@ export function getEntityMetadataFromProposition(
 }
 
 export type HasExtensions = {
-  extensions?: { name: string; value: unknown }[]
+  extensions?: { name: string; value: unknown }[] | null
 }
 
 export const getExtension = <T>(obj: HasExtensions, name: string): T | null => {
