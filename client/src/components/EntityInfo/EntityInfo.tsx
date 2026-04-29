@@ -1,7 +1,7 @@
 import { Box, Typography } from '@mui/material'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import GeneInfo from './GeneInfo'
-import VariantInfo from './VariantInfo'
+import VariationInfo from './VariationInfo'
 
 type InfoRowProps = {
   label: string
@@ -31,6 +31,6 @@ export const EntityInfo = (props: EntityInfoProps) => {
     case 'gene':
       return <GeneInfo data={props.data} />
     case 'variant':
-      return <VariantInfo data={props.data} />
+      return <VariationInfo data={props.data} />
   }
 }

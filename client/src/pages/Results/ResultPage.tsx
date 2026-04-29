@@ -26,7 +26,7 @@ import {
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
 import { StarRatingHistogram } from '../../components/StarRatingHistogram/StarRatingHistogram'
 import GeneInfo from '../../components/EntityInfo/GeneInfo'
-import VariantInfo from '../../components/EntityInfo/VariantInfo'
+import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 
 type SearchType = 'gene' | 'variation'
@@ -152,13 +152,14 @@ const ResultPage = () => {
         const data = await res.json()
 
         if (typeFromUrl === 'gene') {
-          setEntityState({ type: 'gene', data: data.query.gene.resolved_object })
+          const resolved = data.query.gene.resolved_object
+          setEntityState(resolved ? { type: 'gene', data: resolved } : null)
         } else if (typeFromUrl === 'variation') {
-          setEntityState({ type: 'variation', data: data.query.variation.resolved_object })
+          const resolved = data.query.variation.resolved_object
+          setEntityState(resolved ? { type: 'variation', data: resolved } : null)
         } else {
           setEntityState(null)
-        } // TODO handle variant case
-
+        }
         const prognostic_data = data.prognostic_statements
         const diagnostic_data = data.diagnostic_statements
         const therapeutic_data = data.therapeutic_response_statements
@@ -288,7 +289,7 @@ const ResultPage = () => {
               Showing results for {typeFromUrl}: {searchQuery}
             </Typography>
             {entityState?.type === 'gene' && <GeneInfo data={entityState.data} />}
-            {entityState?.type === 'variation' && <VariantInfo data={entityState.data} />}{' '}
+            {entityState?.type === 'variation' && <VariationInfo data={entityState.data} />}{' '}
             <Box
               id="results-table-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}
