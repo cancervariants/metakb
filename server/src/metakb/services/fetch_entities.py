@@ -1,4 +1,8 @@
-"""Retrieve data for specific biomedical entities."""
+"""Retrieve data for specific biomedical entities.
+
+For now, this mostly involves post-processing data from user searches, but could
+involve separate fetching operations in the future.
+"""
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import (
@@ -87,6 +91,7 @@ def extract_gene_from_assertions(assertions: list[Statement]) -> MappableConcept
 def _update_variation_from_moa_variation(
     variation: CategoricalVariant, moa_variation: CategoricalVariant
 ) -> CategoricalVariant:
+    """Add source-provided data onto original normalized entity object"""
     if moa_variation.mappings:
         variation.mappings.extend(moa_variation.mappings)
     return variation
@@ -95,6 +100,7 @@ def _update_variation_from_moa_variation(
 def _update_variation_from_civic_variation(
     variation: CategoricalVariant, civic_variation: CategoricalVariant
 ) -> CategoricalVariant:
+    """Add source-provided data onto original normalized entity object"""
     variation.mappings.append(
         ConceptMapping(
             relation=Relation.EXACT_MATCH,
