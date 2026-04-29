@@ -18,7 +18,10 @@ from metakb.schemas.api import (
     SearchStatementsResponse,
     ServiceMeta,
 )
-from metakb.services.fetch_entities import extract_gene_from_assertions
+from metakb.services.fetch_entities import (
+    extract_gene_from_assertions,
+    extract_variation_from_assertions,
+)
 from metakb.services.search import (
     EmptySearchError,
     batch_search_statements,
@@ -112,6 +115,9 @@ async def get_statements(
     if query.gene and query.gene.resolved_id:
         resolved_gene = extract_gene_from_assertions(search_results.statements)
         query.gene.resolved_object = resolved_gene
+    if query.variation and query.variation.resolved_id:
+        resolved_variant = extract_variation_from_assertions(search_results.statements)
+        query.variation.resolved_object = resolved_variant
 
     return SearchStatementsResponse(
         query=query,

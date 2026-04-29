@@ -340,6 +340,7 @@ class MoaTransformer(Transformer):
             mappings.append(
                 ConceptMapping(
                     coding=Coding(
+                        id=f"dbsnp:{rsid}",
                         code=code(rsid),
                         system="https://www.ncbi.nlm.nih.gov/snp/",
                     ),

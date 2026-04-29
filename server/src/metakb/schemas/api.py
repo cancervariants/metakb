@@ -5,6 +5,7 @@ from typing import Literal
 
 from ga4gh.cat_vrs import CATVRS_VERSION
 from ga4gh.cat_vrs import __version__ as cat_vrs_python_version
+from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.va_spec import VASPEC_VERSION
 from ga4gh.va_spec import __version__ as va_spec_python_version
 from ga4gh.va_spec.base import Statement
@@ -124,7 +125,7 @@ class SearchTerm(BaseModel):
     resolved_id: str | None
     # this field isn't supported for all types of search terms and is currently
     # being used experimentally
-    resolved_object: MappableConcept | None = None
+    resolved_object: MappableConcept | CategoricalVariant | None = None
 
 
 class SearchResult(BaseModel):

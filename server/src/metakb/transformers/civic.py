@@ -12,7 +12,7 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Extension, iriReference
+from ga4gh.core.models import ConceptMapping, Extension, iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -260,6 +260,12 @@ class CivicTransformer(Transformer):
         elif isinstance(statement.proposition.objectCondition.root, ConditionSet):
             self._ensure_conditionset_id(statement.proposition.objectCondition.root)
 
+        if statement.proposition.subjectVariant.mappings:
+            statement.proposition.subjectVariant.mappings = (
+                self._add_ids_to_variant_mappings(
+                    statement.proposition.subjectVariant.mappings
+                )
+            )
         if statement.hasEvidenceLines:
             for ev_line in statement.hasEvidenceLines:
                 if ev_line.hasEvidenceItems:
@@ -280,6 +286,32 @@ class CivicTransformer(Transformer):
 
             statement.reportedIn = reported_in
         return statement
+
+    def _add_ids_to_variant_mappings(
+        self, mappings: list[ConceptMapping]
+    ) -> list[ConceptMapping]:
+        """Populate CURIE-style IDs on variant mappings based on known coding systems.
+
+        Adds a prefixed `coding.id` (e.g., clingen.allele, clinvar.variation, dbsnp)
+        using the mapping's `coding.code.root` for supported systems.
+        """
+        for mapping in mappings:
+            if (
+                mapping.coding.system
+                == "https://reg.clinicalgenome.org/redmine/projects/registry/genboree_registry/by_canonicalid?canonicalid="
+            ):
+                prefix = "clingen.allele"
+            elif (
+                mapping.coding.system
+                == "https://www.ncbi.nlm.nih.gov/clinvar/variation/"
+            ):
+                prefix = "clinvar.variation"
+            elif mapping.coding.system == "https://www.ncbi.nlm.nih.gov/snp/":
+                prefix = "dbsnp"
+            else:
+                continue
+            mapping.coding.id = f"{prefix}:{mapping.coding.code.root}"
+        return mappings
 
     async def _normalize_variant(
         self, variant: CategoricalVariant
