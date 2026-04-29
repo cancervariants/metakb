@@ -1,4 +1,4 @@
-import { Box, Chip, Link, Typography } from '@mui/material'
+import { Box, Link, Typography } from '@mui/material'
 import { MappableConcept } from '../../models/domain'
 import { generateUrlForId } from '../../utils/externalLinks'
 import { ExpandableText } from '../common/ExpandableText'
@@ -26,11 +26,11 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
   }
   const externalLinks =
     data.mappings
-      ?.map((m) => {
+      ?.flatMap((m) => {
         const url = generateUrlForId(m.coding.id)
-        return url ? { conceptId: m.coding.id, url } : null
+        return url ? [{ conceptId: m.coding.id, url }] : []
       })
-      .filter((x): x is { conceptId: string; url: string } => x !== null) ?? []
+      .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
   return (
     <Box id="results-info-container" sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}>
@@ -41,14 +41,23 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
           </Typography>
         </Box>
         <Box>
-          <Chip label="Gene" />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 1,
+              backgroundColor: 'grey.100',
+              color: 'text.secondary',
+              fontWeight: 500,
+            }}
+          >
+            Gene
+          </Typography>
         </Box>
       </Box>
       <InfoRow label="Full Name" show={!!longName}>
         {longName}
-      </InfoRow>
-      <InfoRow label="Aliases" show={aliases.length > 0}>
-        <Typography>{aliases.join(', ')}</Typography>
       </InfoRow>
       <InfoRow label="Description" show={!!sourcedDescription}>
         {' '}
@@ -61,6 +70,10 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
           }
         />
       </InfoRow>
+      <InfoRow label="Aliases" show={aliases.length > 0}>
+        <Typography>{aliases.join(', ')}</Typography>
+      </InfoRow>
+
       <InfoRow label="External Resources" show={externalLinks.length > 0}>
         {' '}
         {externalLinks.map((link, idx) => (
@@ -68,7 +81,7 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
             <Link href={link.url} target="_blank" rel="noopener noreferrer">
               {link.conceptId} ↗
             </Link>
-            {idx < externalLinks.length - 1 && ', '}
+            {idx < externalLinks.length - 1 && ' | '}
           </span>
         ))}
       </InfoRow>

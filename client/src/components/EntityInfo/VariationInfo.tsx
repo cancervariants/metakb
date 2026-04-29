@@ -1,4 +1,4 @@
-import { Box, Chip, Link, Typography } from '@mui/material'
+import { Box, Link, Typography } from '@mui/material'
 import { CategoricalVariant } from '../../models/domain'
 import { InfoRow } from './EntityInfo'
 import { generateUrlForId } from '../../utils/externalLinks'
@@ -25,11 +25,11 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
 
   const externalLinks =
     data.mappings
-      ?.map((m) => {
+      ?.flatMap((m) => {
         const url = generateUrlForId(m.coding.id)
-        return url ? { conceptId: m.coding.id, url } : null
+        return url ? [{ conceptId: m.coding.id, url }] : []
       })
-      .filter((x): x is { conceptId: string; url: string } => x !== null) ?? []
+      .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
   return (
     <Box id="results-info-container" sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}>
@@ -40,7 +40,19 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
           </Typography>
         </Box>
         <Box>
-          <Chip label="Variation" />
+          <Typography
+            variant="subtitle1"
+            sx={{
+              px: 1.5,
+              py: 0.5,
+              borderRadius: 1,
+              backgroundColor: 'grey.100',
+              color: 'text.secondary',
+              fontWeight: 500,
+            }}
+          >
+            Variation
+          </Typography>
         </Box>
       </Box>
       <InfoRow label="Description" show={!!sourcedDescription}>
@@ -62,7 +74,7 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
             <Link href={link.url} target="_blank" rel="noopener noreferrer">
               {link.conceptId} ↗
             </Link>
-            {idx < externalLinks.length - 1 && ', '}
+            {idx < externalLinks.length - 1 && ' | '}
           </span>
         ))}
       </InfoRow>
