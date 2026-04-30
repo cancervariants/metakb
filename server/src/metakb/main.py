@@ -3,11 +3,10 @@
 import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,16 +15,10 @@ from metakb import __version__
 from metakb.config import get_config
 from metakb.log_config import configure_logs
 from metakb.normalizers import ViccNormalizers
-from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.repository.neo4j_repository import get_driver
-from metakb.restapi.dependencies import get_repository
+from metakb.restapi.meta import api_router as meta_router
 from metakb.restapi.search import api_router as search_router
-from metakb.schemas.api import (
-    METAKB_DESCRIPTION,
-    ServiceInfo,
-    ServiceOrganization,
-    ServiceType,
-)
+from metakb.schemas.api import METAKB_DESCRIPTION
 
 _logger = logging.getLogger(__name__)
 
@@ -68,7 +61,7 @@ app = FastAPI(
 )
 
 
-class _Tag(str, Enum):
+class _Tag(StrEnum):
     """Define tag names for endpoints."""
 
     META = "Meta"
@@ -76,33 +69,7 @@ class _Tag(str, Enum):
 
 
 app.include_router(search_router, tags=[_Tag.SEARCH], prefix=API_PREFIX)
-
-
-@app.get(
-    f"{API_PREFIX}/service-info",
-    summary="Get basic service information",
-    description="Retrieve service metadata, such as versioning and contact info. Structured in conformance with the [GA4GH service info API specification](https://www.ga4gh.org/product/service-info/)",
-    tags=[_Tag.META],
-)
-def service_info() -> ServiceInfo:
-    """Provide service info per GA4GH Service Info spec"""
-    return ServiceInfo(
-        organization=ServiceOrganization(),
-        type=ServiceType(),
-        environment=get_config().env,
-    )
-
-
-@app.get(
-    f"{API_PREFIX}/stats",
-    summary="Get basic statistics about MetaKB data.",
-    tags=[_Tag.META],
-)
-def stats(
-    repository: Annotated[AbstractRepository, Depends(get_repository)],
-) -> RepositoryStats:
-    """Provide stats for MetaKB data"""
-    return repository.get_stats()
+app.include_router(meta_router, tags=[_Tag.META], prefix=API_PREFIX)
 
 
 origins = [

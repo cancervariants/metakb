@@ -22,10 +22,12 @@ import {
   applyFilters,
   buildFilterOptions,
   TAB_LABELS,
-  getEntityMetadataFromProposition,
 } from '../../utils'
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
 import { StarRatingHistogram } from '../../components/StarRatingHistogram/StarRatingHistogram'
+import GeneInfo from '../../components/EntityInfo/GeneInfo'
+import VariationInfo from '../../components/EntityInfo/VariationInfo'
+import { CategoricalVariant, MappableConcept } from '../../models/domain'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -37,6 +39,11 @@ type EvidenceBuckets = {
 }
 
 const CHART_MIN_WIDTH = 420
+
+type EntityState =
+  | { type: 'gene'; data: MappableConcept }
+  | { type: 'variation'; data: CategoricalVariant }
+  | null
 
 const ResultPage = () => {
   const [params] = useSearchParams()
@@ -68,23 +75,6 @@ const ResultPage = () => {
   const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
   const [selectedSignificance, setSelectedSignificance] = useState<string[]>([])
   const [selectedSources, setSelectedSources] = useState<string[]>([])
-
-  const { description, aliases, displayName } = useMemo(() => {
-    const firstWithQualifier =
-      results.therapeutic[0]?.proposition ??
-      results.prognostic[0]?.proposition ??
-      results.diagnostic[0]?.proposition
-
-    const tmpResults = getEntityMetadataFromProposition(
-      firstWithQualifier,
-      typeFromUrl as 'gene' | 'variation',
-    )
-    return {
-      displayName: tmpResults.displayName,
-      aliases: ['alias1_placeholder', 'alias2_placeholder'],
-      description: 'description_placeholder',
-    }
-  }, [results.diagnostic, results.prognostic, results.therapeutic, typeFromUrl])
 
   const selectedFilters = {
     variants: selectedVariants,
@@ -139,6 +129,8 @@ const ResultPage = () => {
     })
   }, [filteredResults])
 
+  const [entityState, setEntityState] = useState<EntityState>(null)
+
   // Fetch when URL params change (source of truth is the URL)
   useEffect(() => {
     if (!typeFromUrl || !queryFromUrl.trim()) {
@@ -159,6 +151,15 @@ const ResultPage = () => {
         if (!res.ok) throw new Error(`Request failed: ${res.status}`)
         const data = await res.json()
 
+        if (typeFromUrl === 'gene') {
+          const resolved = data.query.gene.resolved_object
+          setEntityState(resolved ? { type: 'gene', data: resolved } : null)
+        } else if (typeFromUrl === 'variation') {
+          const resolved = data.query.variation.resolved_object
+          setEntityState(resolved ? { type: 'variation', data: resolved } : null)
+        } else {
+          setEntityState(null)
+        }
         const prognostic_data = data.prognostic_statements
         const diagnostic_data = data.diagnostic_statements
         const therapeutic_data = data.therapeutic_response_statements
@@ -287,27 +288,8 @@ const ResultPage = () => {
             <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
               Showing results for {typeFromUrl}: {searchQuery}
             </Typography>
-            <Box
-              id="results-info-container"
-              sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}
-              display={description || aliases.length ? 'block' : 'none'}
-            >
-              <Typography variant="h4" mb={2} fontWeight="bold">
-                {displayName}
-              </Typography>
-              <Typography
-                variant="h6"
-                mb={2}
-                fontWeight="bold"
-                color="darkgrey"
-                display={aliases.length ? 'block' : 'none'}
-              >
-                Aliases: {aliases.join(', ')}
-              </Typography>
-              <Typography variant="body1" mb={2} display={description ? 'block' : 'none'}>
-                {description}
-              </Typography>
-            </Box>
+            {entityState?.type === 'gene' && <GeneInfo data={entityState.data} />}
+            {entityState?.type === 'variation' && <VariationInfo data={entityState.data} />}{' '}
             <Box
               id="results-table-container"
               sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}

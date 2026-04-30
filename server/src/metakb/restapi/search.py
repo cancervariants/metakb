@@ -18,6 +18,10 @@ from metakb.schemas.api import (
     SearchStatementsResponse,
     ServiceMeta,
 )
+from metakb.services.fetch_entities import (
+    extract_gene_from_assertions,
+    extract_variation_from_assertions,
+)
 from metakb.services.search import (
     EmptySearchError,
     batch_search_statements,
@@ -91,6 +95,7 @@ async def get_statements(
         ) from e
 
     mapped_terms = {term.term_type.value: term for term in search_results.search_terms}
+    query = SearchStatementsQuery(**mapped_terms)
     therapeutic_response_statements = []
     diagnostic_statements = []
     prognostic_statements = []
@@ -106,8 +111,16 @@ async def get_statements(
                 raise TypeError
 
     end_time = perf_counter()
+
+    if query.gene and query.gene.resolved_id:
+        resolved_gene = extract_gene_from_assertions(search_results.statements)
+        query.gene.resolved_object = resolved_gene
+    if query.variation and query.variation.resolved_id:
+        resolved_variant = extract_variation_from_assertions(search_results.statements)
+        query.variation.resolved_object = resolved_variant
+
     return SearchStatementsResponse(
-        query=SearchStatementsQuery(**mapped_terms),
+        query=query,
         start=start,
         limit=limit,
         service_meta_=ServiceMeta(),

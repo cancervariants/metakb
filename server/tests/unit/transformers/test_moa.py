@@ -90,7 +90,9 @@ def test_create_moa_variant(moa_variants: dict[str, dict]):
         mappings=[
             ConceptMapping(
                 coding=Coding(
-                    system="https://www.ncbi.nlm.nih.gov/snp/", code=code("rs121913459")
+                    system="https://www.ncbi.nlm.nih.gov/snp/",
+                    code=code("rs121913459"),
+                    id="dbsnp:rs121913459",
                 ),
                 relation=Relation("relatedMatch"),
             )
