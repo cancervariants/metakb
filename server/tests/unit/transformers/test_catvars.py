@@ -148,18 +148,53 @@ def alleles() -> dict[str, models.Allele]:
                 length=0, sequence=models.sequenceString(""), repeatSubunitLength=2
             ),
         ),
+        "ga4gh:VA.nrfpqwUEKt4GCmq4X4cXMKQUrn8xE47D": models.Allele(
+            id="ga4gh:VA.nrfpqwUEKt4GCmq4X4cXMKQUrn8xE47D",
+            location=models.SequenceLocation(
+                id="ga4gh:SL.zAoQZ3N_H1pqBa_vA8jyYzv_DwZEsMUt",
+                sequenceReference=models.SequenceReference(
+                    refgetAccession="SQ.z-Oa0pZkJ6GHJHOYM7h5mY_umc0SJzTu"
+                ),
+                start=77,
+                end=77,
+            ),
+            state=models.LiteralSequenceExpression(sequence=models.sequenceString("L")),
+        ),
+        "ga4gh:VA.-m5pmbPlV01BMIPZQFlIXMW_nCdvTVst": models.Allele(
+            id="ga4gh:VA.-m5pmbPlV01BMIPZQFlIXMW_nCdvTVst",
+            location=models.SequenceLocation(
+                id="ga4gh:SL.h651718NCNT7b5cDFqnWEp7YjdSFfLjh",
+                sequenceReference=models.SequenceReference(
+                    refgetAccession="SQ.vyo55F6mA6n2LgN4cagcdRzOuh38V4mE"
+                ),
+                start=761,
+                end=763,
+                sequence=models.sequenceString("EA"),
+            ),
+            state=models.LiteralSequenceExpression(
+                sequence=models.sequenceString("EAFQEA")
+            ),
+        ),
     }
 
 
 class _DummySeqRepoAccess(SeqRepoAccess):
-    def __init__(self, aliases: list[str]) -> None:
+    def __init__(
+        self,
+        aliases: list[str],
+        sequence_responses: dict[tuple[str, int, int], str] | None = None,
+    ) -> None:
         self._aliases = aliases
+        self._sequence_responses = sequence_responses or {}
 
     def translate_alias(self, _: str) -> tuple[list[str], None]:
         return self._aliases, None
 
     def translate_identifier(self, _: str) -> tuple[list[str], None]:
         return self._aliases, None
+
+    def get_sequence(self, accession: str, start: int, end: int):
+        return self._sequence_responses[(accession, start, end)]
 
     @staticmethod
     def extract_sequence_type(alias: str) -> str | None:
@@ -187,15 +222,36 @@ def test_get_normalized_protein_consequence_name(
 def test_psq_name_ins(alleles: dict[str, models.Allele]):
     allele = alleles["ga4gh:VA.PpuS5Xbqkoat8rOHToYXl46bUX4WHTzo"]
     normalized_name = get_normalized_protein_consequence_name(
-        _DummySeqRepoAccess(["refseq:NP_005219.2"]), _DummyTxMappings("EGFR"), allele
+        _DummySeqRepoAccess(
+            ["refseq:NP_005219.2"],
+            {("NP_005219.2", 772, 773): "H", ("NP_005219.2", 773, 774): "V"},
+        ),
+        _DummyTxMappings("EGFR"),
+        allele,
     )
     assert normalized_name == "EGFR H773_V774insH"
 
-    allele = alleles["ga4gh:VA.i2mlUlU6zjxaCbKmBs2lOqxb06mHg5Xa"]
+    allele = alleles["ga4gh:VA.nrfpqwUEKt4GCmq4X4cXMKQUrn8xE47D"]
     normalized_name = get_normalized_protein_consequence_name(
-        _DummySeqRepoAccess(["refseq:NP_004439.2"]), _DummyTxMappings("ERBB2"), allele
+        _DummySeqRepoAccess(
+            ["refseq:NP_000542.1"],
+            {("NP_000542.1", 76, 77): "C", ("NP_000542.1", 77, 78): "N"},
+        ),
+        _DummyTxMappings("VHL"),
+        allele,
     )
-    assert normalized_name == "ERBB2 A775_G776insYVMA"
+    assert normalized_name == "VHL C77_N78insL"
+
+    allele = alleles["ga4gh:VA.-m5pmbPlV01BMIPZQFlIXMW_nCdvTVst"]
+    normalized_name = get_normalized_protein_consequence_name(
+        _DummySeqRepoAccess(
+            ["refseq:NP_005219.2"],
+            {("NP_005219.2", 762, 763): "A", ("NP_005219.2", 763, 764): "Y"},
+        ),
+        _DummyTxMappings("EGFR"),
+        allele,
+    )
+    assert normalized_name == "EGFR A763_Y764insFQEA"
 
 
 def test_get_psq_name_delins(alleles: dict[str, models.Allele]) -> None:
@@ -207,13 +263,17 @@ def test_get_psq_name_delins(alleles: dict[str, models.Allele]) -> None:
 
     allele = alleles["ga4gh:VA.DYjudLZvIA-rU6f2CK783CaO7r-jFWCu"]
     normalized_name = get_normalized_protein_consequence_name(
-        _DummySeqRepoAccess(["refseq:NP_004439.2"]), _DummyTxMappings("ERBB2"), allele
+        _DummySeqRepoAccess(["refseq:NP_004439.2"], {("NP_004439.2", 776, 777): "V"}),
+        _DummyTxMappings("ERBB2"),
+        allele,
     )
     assert normalized_name == "ERBB2 G776delinsVC"
 
     allele = alleles["ga4gh:VA.VukKKBRCtZoy8fyUe_1PRTmx2EKzI-YC"]
     normalized_name = get_normalized_protein_consequence_name(
-        _DummySeqRepoAccess(["refseq:NP_005219.2"]), _DummyTxMappings("EGFR"), allele
+        _DummySeqRepoAccess(["refseq:NP_005219.2"], {("NP_005219.2", 770, 771): "N"}),
+        _DummyTxMappings("EGFR"),
+        allele,
     )
     assert normalized_name == "EGFR D770delinsGY"
 
