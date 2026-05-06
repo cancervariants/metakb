@@ -278,8 +278,6 @@ def get_normalized_protein_consequence_name(
         protein_accession,
         ref,
         alt,
-        start0,
-        end0,
         start_pos,
         end_pos,
     )
@@ -298,7 +296,6 @@ def build_proteinsequenceconsequence_catvar(
     :return: ProteinSequenceConsequence-based catvar with MetaKB name and ID
     """
     cv_id = f"metakb.cv:PSQ.{allele.id.split(':')[1]}"
-    cv_name = allele.id  # acceptable default for now
     try:
         cv_name = get_normalized_protein_consequence_name(
             seqrepo_access, transcript_mappings, allele
@@ -308,6 +305,7 @@ def build_proteinsequenceconsequence_catvar(
             "Unable to generate name for protein sequence consequence allele: %s",
             allele,
         )
+        cv_name = allele.id  # acceptable default for now
     return ProteinSequenceConsequence(
         id=cv_id,
         name=cv_name,
