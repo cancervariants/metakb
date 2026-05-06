@@ -209,6 +209,7 @@ class _DummyTxMappings(TranscriptMappings):
         self.get_gene_symbol_from_ensembl_protein = lambda _: gene_name
 
 
+@pytest.mark.ci_ok
 def test_get_normalized_protein_consequence_name(
     alleles: dict[str, models.Allele],
 ) -> None:
@@ -219,6 +220,7 @@ def test_get_normalized_protein_consequence_name(
     assert normalized_name == "BRAF V600E"
 
 
+@pytest.mark.ci_ok
 def test_psq_name_ins(alleles: dict[str, models.Allele]):
     allele = alleles["ga4gh:VA.PpuS5Xbqkoat8rOHToYXl46bUX4WHTzo"]
     normalized_name = get_normalized_protein_consequence_name(
@@ -254,6 +256,7 @@ def test_psq_name_ins(alleles: dict[str, models.Allele]):
     assert normalized_name == "EGFR A763_Y764insFQEA"
 
 
+@pytest.mark.ci_ok
 def test_get_psq_name_delins(alleles: dict[str, models.Allele]) -> None:
     allele = alleles["ga4gh:VA.JkqD1otgdDeZdOxpYw0T9fXEnly_2EtW"]
     normalized_name = get_normalized_protein_consequence_name(
@@ -278,6 +281,7 @@ def test_get_psq_name_delins(alleles: dict[str, models.Allele]) -> None:
     assert normalized_name == "EGFR D770delinsGY"
 
 
+@pytest.mark.ci_ok
 def test_psq_name_del(alleles: dict[str, models.Allele]):
     allele = alleles["ga4gh:VA.9nu3YQ_Pi3fTdyJJEI4RBgRvMd17B_DL"]
     normalized_name = get_normalized_protein_consequence_name(
@@ -292,6 +296,7 @@ def test_psq_name_del(alleles: dict[str, models.Allele]):
     assert normalized_name == "KIT W557_K558del"
 
 
+@pytest.mark.ci_ok
 def test_categorical_variant_node_uses_normalized_name_for_name(
     alleles: dict[str, models.Allele],
 ) -> None:
