@@ -12,7 +12,7 @@ from civicpy.exports.civic_gks_record import (
     create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import ConceptMapping, Extension, iriReference
+from ga4gh.core.models import ConceptMapping, Extension, MappableConcept, iriReference
 from ga4gh.va_spec.base import (
     ConditionSet,
     Document,
@@ -26,6 +26,7 @@ from pydantic.dataclasses import dataclass
 from tqdm import tqdm
 
 from metakb.schemas.data import TransformedData
+from metakb.transformers import phenotypes
 from metakb.transformers.base import Transformer
 from metakb.transformers.catvars import (
     build_copynumberchange_catvar,
@@ -286,6 +287,17 @@ class CivicTransformer(Transformer):
 
             statement.reportedIn = reported_in
         return statement
+
+    def _normalize_phenotype(
+        self, phenotype: MappableConcept
+    ) -> MappableConcept | ConditionSet | None:
+        """Retrieve normalized phenotype concept
+
+        :param phenotype: phenotype concept from source
+        :return: normalized equivalent, if available
+        """
+        xref = phenotype.mappings[0].coding.code.root
+        return phenotypes.ONSET_LOOKUP.get(xref)
 
     def _add_ids_to_variant_mappings(
         self, mappings: list[ConceptMapping]
