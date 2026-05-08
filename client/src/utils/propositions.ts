@@ -113,40 +113,99 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   return []
 }
 
-const getNamedValue = (value: unknown): string => {
+type ConditionInfo = {
+  diseases: string[]
+  hasPediatricOnset: boolean
+}
+
+const PEDIATRIC_ONSET_TERMS = new Set<string>([
+  'HP:0410280',
+  'HP:0003623',
+  'HP:0011463',
+  'HP:0003593',
+  'HP:0003621',
+  'HP:0025708',
+  'HP:0011462',
+])
+
+const emptyConditionInfo = (): ConditionInfo => ({
+  diseases: [],
+  hasPediatricOnset: false,
+})
+
+const getNamedValue = (value: unknown): string | undefined => {
   if (value && typeof value === 'object' && 'name' in value && typeof value.name === 'string') {
     return value.name
   }
-  return 'N/A'
+
+  return undefined
+}
+
+const getIdValue = (value: unknown): string | undefined => {
+  if (value && typeof value === 'object' && 'id' in value && typeof value.id === 'string') {
+    return value.id
+  }
+
+  return undefined
+}
+
+const isPhenotype = (condition: unknown): boolean =>
+  !!condition &&
+  typeof condition === 'object' &&
+  'conceptType' in condition &&
+  condition.conceptType === 'Phenotype'
+
+function getConditionInfo(condition: string | Condition | undefined): ConditionInfo {
+  const result = emptyConditionInfo()
+
+  const visit = (value: string | Condition | undefined) => {
+    if (!value) return
+
+    if (typeof value === 'string') {
+      result.diseases.push(value)
+      return
+    }
+
+    if ('conditions' in value) {
+      value.conditions.forEach(visit)
+      return
+    }
+
+    if (isPhenotype(value)) {
+      const phenotypeId = getIdValue(value)
+      if (phenotypeId && PEDIATRIC_ONSET_TERMS.has(phenotypeId)) {
+        result.hasPediatricOnset = true
+      }
+
+      return
+    }
+
+    const diseaseName = getNamedValue(value)
+    if (diseaseName) {
+      result.diseases.push(diseaseName)
+    }
+  }
+
+  visit(condition)
+  console.log(result)
+  return result
 }
 
 /**
- * Extracts human-readable condition names from a Condition object.
+ * Extracts disease names and pediatric-onset phenotype status from a proposition.
  *
- * @param condition - A string, MappableConcept, ConditionSet, or undefined
- * @returns Array of condition names (may be multiple for ConditionSet)
- */
-function getConditionNames(condition: string | Condition | undefined): string[] {
-  if (!condition) return ['N/A']
-
-  if (typeof condition === 'string') {
-    return [condition]
-  }
-
-  if ('conditions' in condition) {
-    return condition.conditions.map(getNamedValue)
-  }
-
-  return [getNamedValue(condition)]
-}
-
-/**
- * Extracts associated disease names from a proposition, based on its type.
+ * Traverses nested Condition / ConditionSet structures associated with the
+ * proposition and:
+ * - collects all non-phenotype condition names into `diseases`
+ * - sets `hasPediatricOnset` to true if any phenotype term ID matches one of
+ *   the configured pediatric-onset HPO IDs
  *
- * @param prop - A variant proposition of various supported types
- * @returns Array of disease/condition names, or ["N/A"] if not available
+ * Phenotype terms themselves are not returned.
+ *
+ * @param prop - A supported proposition type containing condition information
+ * @returns Object containing flattened disease names and pediatric-onset status
  */
-export function getDiseaseFromProposition(
+export function getConditionsFromProposition(
   prop:
     | VariantTherapeuticResponseProposition
     | VariantDiagnosticProposition
@@ -154,27 +213,24 @@ export function getDiseaseFromProposition(
     | VariantOncogenicityProposition
     | VariantPathogenicityProposition
     | ExperimentalVariantFunctionalImpactProposition,
-): string[] {
-  if (!prop) return ['N/A']
+): ConditionInfo {
+  if (!prop) return emptyConditionInfo()
 
   switch (prop.type) {
     case 'VariantTherapeuticResponseProposition':
-      return getConditionNames(prop.conditionQualifier)
+      return getConditionInfo(prop.conditionQualifier)
 
     case 'VariantDiagnosticProposition':
     case 'VariantPrognosticProposition':
-      return getConditionNames(prop.objectCondition)
+    case 'VariantPathogenicityProposition':
+      return getConditionInfo(prop.objectCondition)
 
     case 'VariantOncogenicityProposition':
-      return getConditionNames(prop.objectTumorType)
-    case 'VariantPathogenicityProposition':
-      return getConditionNames(prop.objectCondition)
+      return getConditionInfo(prop.objectTumorType)
 
     case 'ExperimentalVariantFunctionalImpactProposition':
-      return ['N/A']
-
     default:
-      return ['N/A']
+      return emptyConditionInfo()
   }
 }
 
