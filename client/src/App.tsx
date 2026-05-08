@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material'
 import theme from './theme'
 import ResultPage from './pages/Results/ResultPage'
 import Layout from './Layout'
+import { OverviewPage } from './pages/About/Overview'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<ResultPage />} />
+            <Route path="/about/overview" element={<OverviewPage />} />
             {/* Fallback for invalid routes */}
             <Route path="*" element={<Home />} />
           </Route>
