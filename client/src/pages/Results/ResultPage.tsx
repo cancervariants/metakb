@@ -173,6 +173,15 @@ const ResultPage = () => {
           diagnostic: norm_diag_data,
           therapeutic: norm_ther_data,
         })
+
+        // Pick the first non-empty tab in preferred order
+        if (norm_ther_data.length > 0) {
+          setActiveTab('therapeutic')
+        } else if (norm_diag_data.length > 0) {
+          setActiveTab('diagnostic')
+        } else if (norm_prog_data.length > 0) {
+          setActiveTab('prognostic')
+        }
       } catch (e: unknown) {
         if (e instanceof Error) {
           if (e.name !== 'AbortError') {
