@@ -5,6 +5,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
+import ContentContainer from '../components/common/ContentContainer'
 
 const HomePage = () => {
   const navigate = useNavigate()
@@ -51,11 +52,11 @@ const HomePage = () => {
   }, [])
 
   return (
-    <>
+    <ContentContainer>
       <Box component="main">
         <Box
           id="main-page-container"
-          m={5}
+          my={5}
           sx={{
             display: 'flex',
             flexDirection: 'column',
@@ -196,7 +197,7 @@ const HomePage = () => {
           </Box>
         </Box>
       </Box>
-    </>
+    </ContentContainer>
   )
 }
 
