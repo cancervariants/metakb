@@ -22,7 +22,7 @@ import {
   VariantTherapeuticResponseProposition,
 } from '../models/domain'
 import {
-  getDiseaseFromProposition,
+  getConditionsFromProposition,
   getTherapyFromProposition,
   getVariantNameFromProposition,
 } from './propositions'
@@ -85,6 +85,8 @@ export interface AssertionResult {
   evidence_level: string
   /** Associated diseases, may include multiple names */
   disease: string[]
+  /** Associated phenotype options */
+  phenotype: string[]
   /** Therapy or combination therapy (if applicable) */
   therapy: NormalizedTherapy
   /** Clinical significance string */
@@ -252,12 +254,14 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         ratingReason: typeof reasonExt === 'string' ? reasonExt : starRating.ratingReason,
       }
     }
+    const conditions = getConditionsFromProposition(assertion.proposition)
     return [
       {
         proposition: assertion.proposition,
         variant_name: getVariantNameFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
-        disease: getDiseaseFromProposition(assertion.proposition),
+        disease: conditions.diseases,
+        phenotype: conditions.phenotypes,
         therapy: getTherapyFromProposition(assertion.proposition),
         significance: assertion.proposition?.predicate
           ? formatSignificance(assertion.proposition.predicate)

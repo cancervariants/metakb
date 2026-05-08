@@ -113,40 +113,61 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   return []
 }
 
-const getNamedValue = (value: unknown): string => {
+type ConditionNameBuckets = {
+  diseases: string[]
+  phenotypes: string[]
+}
+
+const emptyBuckets = (): ConditionNameBuckets => ({
+  diseases: [],
+  phenotypes: [],
+})
+
+const getNamedValue = (value: unknown): string | undefined => {
   if (value && typeof value === 'object' && 'name' in value && typeof value.name === 'string') {
     return value.name
   }
-  return 'N/A'
+
+  return undefined
 }
 
-/**
- * Extracts human-readable condition names from a Condition object.
- *
- * @param condition - A string, MappableConcept, ConditionSet, or undefined
- * @returns Array of condition names (may be multiple for ConditionSet)
- */
-function getConditionNames(condition: string | Condition | undefined): string[] {
-  if (!condition) return ['N/A']
+const isPhenotype = (condition: unknown): boolean =>
+  !!condition &&
+  typeof condition === 'object' &&
+  'conceptType' in condition &&
+  condition.conceptType === 'Phenotype'
 
-  if (typeof condition === 'string') {
-    return [condition]
+function getConditionNameBuckets(condition: string | Condition | undefined): ConditionNameBuckets {
+  const buckets = emptyBuckets()
+
+  const visit = (value: string | Condition | undefined) => {
+    if (!value) return
+
+    if (typeof value === 'string') {
+      buckets.diseases.push(value)
+      return
+    }
+
+    if ('conditions' in value) {
+      value.conditions.forEach(visit)
+      return
+    }
+
+    const name = getNamedValue(value)
+    if (!name) return
+
+    if (isPhenotype(value)) {
+      buckets.phenotypes.push(name)
+    } else {
+      buckets.diseases.push(name)
+    }
   }
 
-  if ('conditions' in condition) {
-    return condition.conditions.map(getNamedValue)
-  }
-
-  return [getNamedValue(condition)]
+  visit(condition)
+  return buckets
 }
 
-/**
- * Extracts associated disease names from a proposition, based on its type.
- *
- * @param prop - A variant proposition of various supported types
- * @returns Array of disease/condition names, or ["N/A"] if not available
- */
-export function getDiseaseFromProposition(
+export function getConditionsFromProposition(
   prop:
     | VariantTherapeuticResponseProposition
     | VariantDiagnosticProposition
@@ -154,27 +175,24 @@ export function getDiseaseFromProposition(
     | VariantOncogenicityProposition
     | VariantPathogenicityProposition
     | ExperimentalVariantFunctionalImpactProposition,
-): string[] {
-  if (!prop) return ['N/A']
+): ConditionNameBuckets {
+  if (!prop) return emptyBuckets()
 
   switch (prop.type) {
     case 'VariantTherapeuticResponseProposition':
-      return getConditionNames(prop.conditionQualifier)
+      return getConditionNameBuckets(prop.conditionQualifier)
 
     case 'VariantDiagnosticProposition':
     case 'VariantPrognosticProposition':
-      return getConditionNames(prop.objectCondition)
+    case 'VariantPathogenicityProposition':
+      return getConditionNameBuckets(prop.objectCondition)
 
     case 'VariantOncogenicityProposition':
-      return getConditionNames(prop.objectTumorType)
-    case 'VariantPathogenicityProposition':
-      return getConditionNames(prop.objectCondition)
+      return getConditionNameBuckets(prop.objectTumorType)
 
     case 'ExperimentalVariantFunctionalImpactProposition':
-      return ['N/A']
-
     default:
-      return ['N/A']
+      return emptyBuckets()
   }
 }
 
