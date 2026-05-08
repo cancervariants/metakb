@@ -28,6 +28,7 @@ import { StarRatingHistogram } from '../../components/StarRatingHistogram/StarRa
 import GeneInfo from '../../components/EntityInfo/GeneInfo'
 import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
+import ContentContainer from '../../components/common/ContentContainer'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -288,8 +289,8 @@ const ResultPage = () => {
   const hasFilteredResults = filteredResults.length > 0
 
   return (
-    <>
-      <Box id="result-page-container" m={5}>
+    <ContentContainer>
+      <Box id="result-page-container" my={5}>
         {loading && <CircularProgress />}
         {error && <Alert severity="error">{error}</Alert>}
         {!loading && !error && (
@@ -435,7 +436,7 @@ const ResultPage = () => {
           </Box>
         )}
       </Box>
-    </>
+    </ContentContainer>
   )
 }
 
