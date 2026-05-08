@@ -113,19 +113,37 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
   return []
 }
 
-type ConditionNameBuckets = {
+type ConditionInfo = {
   diseases: string[]
-  phenotypes: string[]
+  hasPediatricOnset: boolean
 }
 
-const emptyBuckets = (): ConditionNameBuckets => ({
+const PEDIATRIC_ONSET_TERMS = new Set<string>([
+  'HP:0410280',
+  'HP:0003623',
+  'HP:0011463',
+  'HP:0003593',
+  'HP:0003621',
+  'HP:0025708',
+  'HP:0011462',
+])
+
+const emptyConditionInfo = (): ConditionInfo => ({
   diseases: [],
-  phenotypes: [],
+  hasPediatricOnset: false,
 })
 
 const getNamedValue = (value: unknown): string | undefined => {
   if (value && typeof value === 'object' && 'name' in value && typeof value.name === 'string') {
     return value.name
+  }
+
+  return undefined
+}
+
+const getIdValue = (value: unknown): string | undefined => {
+  if (value && typeof value === 'object' && 'id' in value && typeof value.id === 'string') {
+    return value.id
   }
 
   return undefined
@@ -137,14 +155,14 @@ const isPhenotype = (condition: unknown): boolean =>
   'conceptType' in condition &&
   condition.conceptType === 'Phenotype'
 
-function getConditionNameBuckets(condition: string | Condition | undefined): ConditionNameBuckets {
-  const buckets = emptyBuckets()
+function getConditionInfo(condition: string | Condition | undefined): ConditionInfo {
+  const result = emptyConditionInfo()
 
   const visit = (value: string | Condition | undefined) => {
     if (!value) return
 
     if (typeof value === 'string') {
-      buckets.diseases.push(value)
+      result.diseases.push(value)
       return
     }
 
@@ -153,20 +171,40 @@ function getConditionNameBuckets(condition: string | Condition | undefined): Con
       return
     }
 
-    const name = getNamedValue(value)
-    if (!name) return
-
     if (isPhenotype(value)) {
-      buckets.phenotypes.push(name)
-    } else {
-      buckets.diseases.push(name)
+      const phenotypeId = getIdValue(value)
+      if (phenotypeId && PEDIATRIC_ONSET_TERMS.has(phenotypeId)) {
+        result.hasPediatricOnset = true
+      }
+
+      return
+    }
+
+    const diseaseName = getNamedValue(value)
+    if (diseaseName) {
+      result.diseases.push(diseaseName)
     }
   }
 
   visit(condition)
-  return buckets
+  console.log(result)
+  return result
 }
 
+/**
+ * Extracts disease names and pediatric-onset phenotype status from a proposition.
+ *
+ * Traverses nested Condition / ConditionSet structures associated with the
+ * proposition and:
+ * - collects all non-phenotype condition names into `diseases`
+ * - sets `hasPediatricOnset` to true if any phenotype term ID matches one of
+ *   the configured pediatric-onset HPO IDs
+ *
+ * Phenotype terms themselves are not returned.
+ *
+ * @param prop - A supported proposition type containing condition information
+ * @returns Object containing flattened disease names and pediatric-onset status
+ */
 export function getConditionsFromProposition(
   prop:
     | VariantTherapeuticResponseProposition
@@ -175,24 +213,24 @@ export function getConditionsFromProposition(
     | VariantOncogenicityProposition
     | VariantPathogenicityProposition
     | ExperimentalVariantFunctionalImpactProposition,
-): ConditionNameBuckets {
-  if (!prop) return emptyBuckets()
+): ConditionInfo {
+  if (!prop) return emptyConditionInfo()
 
   switch (prop.type) {
     case 'VariantTherapeuticResponseProposition':
-      return getConditionNameBuckets(prop.conditionQualifier)
+      return getConditionInfo(prop.conditionQualifier)
 
     case 'VariantDiagnosticProposition':
     case 'VariantPrognosticProposition':
     case 'VariantPathogenicityProposition':
-      return getConditionNameBuckets(prop.objectCondition)
+      return getConditionInfo(prop.objectCondition)
 
     case 'VariantOncogenicityProposition':
-      return getConditionNameBuckets(prop.objectTumorType)
+      return getConditionInfo(prop.objectTumorType)
 
     case 'ExperimentalVariantFunctionalImpactProposition':
     default:
-      return emptyBuckets()
+      return emptyConditionInfo()
   }
 }
 

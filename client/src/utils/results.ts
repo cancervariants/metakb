@@ -86,7 +86,7 @@ export interface AssertionResult {
   /** Associated diseases, may include multiple names */
   disease: string[]
   /** Associated phenotype options */
-  phenotype: string[]
+  hasPediatricOnset: boolean
   /** Therapy or combination therapy (if applicable) */
   therapy: NormalizedTherapy
   /** Clinical significance string */
@@ -261,7 +261,7 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         variant_name: getVariantNameFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
         disease: conditions.diseases,
-        phenotype: conditions.phenotypes,
+        hasPediatricOnset: conditions.hasPediatricOnset,
         therapy: getTherapyFromProposition(assertion.proposition),
         significance: assertion.proposition?.predicate
           ? formatSignificance(assertion.proposition.predicate)
