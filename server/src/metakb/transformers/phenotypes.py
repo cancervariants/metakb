@@ -89,6 +89,7 @@ EARLY_YOUNG_ADULT_ONSET = MappableConcept(
             value="Onset of disease at an age of greater than or equal to 16 to under 19 years.",
         )
     ],
+    conceptType="Phenotype",
 )
 YOUNG_ADULT_ONSET = MappableConcept(
     id="HP:0011462",
@@ -103,6 +104,7 @@ YOUNG_ADULT_ONSET = MappableConcept(
             value="Onset of disease at the age of between 16 and 40 years.",
         )
     ],
+    conceptType="Phenotype",
 )
 INTERMEDIATE_YOUNG_ADULT_ONSET = MappableConcept(
     id="HP:0025709",
