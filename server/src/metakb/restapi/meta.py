@@ -30,8 +30,8 @@ def service_info() -> ServiceInfo:
     "/stats",
     summary="Get basic statistics about MetaKB data.",
 )
-def stats(
+async def stats(
     repository: Annotated[AbstractRepository, Depends(get_repository)],
 ) -> RepositoryStats:
     """Provide stats for MetaKB data"""
-    return repository.get_stats()
+    return await repository.get_stats()
