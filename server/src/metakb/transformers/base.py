@@ -386,7 +386,6 @@ class Transformer(ABC):
             if not value:
                 original = getattr(proposition, key)
                 failures.append((key, original))
-
         if failures:
             _logger.debug(
                 "Failed to normalize proposition components: {%s}",

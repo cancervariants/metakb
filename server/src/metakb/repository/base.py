@@ -33,11 +33,11 @@ class AbstractRepository(abc.ABC):
     """
 
     @abc.abstractmethod
-    def initialize(self) -> None:
+    async def initialize(self) -> None:
         """Set up DB schema"""
 
     @abc.abstractmethod
-    def get_statement(self, statement_id: str) -> Statement | None:
+    async def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
@@ -45,7 +45,7 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def search_statements(
+    async def search_statements(
         self,
         variation_ids: list[str] | None = None,
         gene_ids: list[str] | None = None,
@@ -83,7 +83,7 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_gene(self, gene_id: str) -> MappableConcept | None:
+    async def get_gene(self, gene_id: str) -> MappableConcept | None:
         """Attempt to retrieve a gene given exact ID match
 
         :param gene_id: exact gene_id as stored in DB (eg `"metakb.gene:hgnc_6407"`)
@@ -91,23 +91,23 @@ class AbstractRepository(abc.ABC):
         """
 
     @abc.abstractmethod
-    def get_stats(self) -> RepositoryStats:
+    async def get_stats(self) -> RepositoryStats:
         """Fetch counts for entities
 
         :return: structured stats data class
         """
 
     @abc.abstractmethod
-    def load_assertion(self, assertion: Statement) -> None:
+    async def load_assertion(self, assertion: Statement) -> None:
         """Add or update a complete assertion object to the DB
 
         :param assertion: metakb assertion
         """
 
     @abc.abstractmethod
-    def teardown_db(self) -> None:
+    async def teardown_db(self) -> None:
         """Reset repository storage."""
 
     @abc.abstractmethod
-    def get_all_assertion_ids(self) -> list[str]:
+    async def get_all_assertion_ids(self) -> list[str]:
         """Return all assertion IDs"""

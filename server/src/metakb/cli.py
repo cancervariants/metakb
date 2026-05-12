@@ -2,19 +2,21 @@
 to graph datastore.
 """
 
+import asyncio
 import importlib.metadata as importlib_metadata
 import logging
 import os
 import re
 import tempfile
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
 from zipfile import ZipFile
 
-import asyncclick as click
 import boto3
+import click
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
 from botocore.config import Config
@@ -239,7 +241,6 @@ def cli() -> None:
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
 _neo4j_db_url_description = "Connection string for the application Neo4j database."
-_neo4j_creds_description = "Username and password to provide to application Neo4j database. Format as 'username:password'."
 
 
 def _print_enum_metavar(enum: type[Enum]) -> str:
@@ -394,7 +395,7 @@ def harvest(
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
-async def transform(
+def transform(
     normalizer_db_url: str | None,
     sources: tuple[SourceName, ...],
 ) -> None:
@@ -411,7 +412,17 @@ async def transform(
         given, defaults to the configuration rules of the individual normalizers.
     :param sources: tuple of source names. If empty, transform all sources.
     """  # noqa: D301
-    await _transform_sources(sources, normalizer_db_url)
+    asyncio.run(_transform_sources(sources, normalizer_db_url))
+
+
+async def _transform_file(
+    normalizer_db_url: str | None,
+    harvest_file: Path,
+    source_name: SourceName,
+) -> None:
+    """Perform transformation on a specific source harvest file"""
+    normalizer_handler = await _get_preflighted_normalizers(normalizer_db_url)
+    await _transform_source(source_name, normalizer_handler, harvest_file)
 
 
 @cli.command()
@@ -439,24 +450,39 @@ async def transform_file(
     :param harvest_file: path to harvest output file
     :param source_name: name of source that harvested file comes from
     """  # noqa: D301
-    normalizer_handler = await _get_preflighted_normalizers(normalizer_db_url)
-    await _transform_source(source_name, normalizer_handler, harvest_file)
+    asyncio.run(_transform_file(normalizer_db_url, harvest_file, source_name))
 
 
-def _get_repository(db_url: str | None) -> Generator[AbstractRepository, None, None]:
+@asynccontextmanager
+async def _get_repository(db_url: str | None) -> AsyncGenerator[AbstractRepository]:
     """Acquire repository session instance for CLI functions.
 
-    This function wraps the driver factory function in a generator to ensure proper lifespan
-    management (i.e. close it when the session concludes)
+    This function wraps the driver factory function in a context manager to ensure proper
+    lifespan management (i.e. close it when the session concludes)
 
     :param db_url: URL endpoint for the application Neo4j database.
     :return: Graph driver instance
     """
     driver = get_driver(db_url)
     session = driver.session()
-    yield Neo4jRepository(session)
-    session.close()
-    driver.close()
+    repo = Neo4jRepository(session)
+    try:
+        await repo.initialize()
+        yield repo
+    finally:
+        await session.close()
+        await driver.close()
+
+
+async def _clear_db(db_url: str) -> None:
+    """Perform async teardown of DB
+
+    Dispatch with asyncio.run() from a `click` function
+    """
+    click.echo("Clearing MetaKB DB...")
+    async with _get_repository(db_url) as repo:
+        await repo.teardown_db()
+    click.echo("Finishing clearing MetaKB DB.")
 
 
 @cli.command()
@@ -474,10 +500,46 @@ def clear_db(db_url: str) -> None:
     \f
     :param db_url: connection string for the application Neo4j database.
     """  # noqa: D301
-    repository = next(_get_repository(db_url))
-    click.echo("Clearing MetaKB DB...")
-    repository.teardown_db()
-    click.echo("Finishing clearing MetaKB DB.")
+    asyncio.run(_clear_db(db_url))
+
+
+async def _load_cdm(db_url: str, from_s3: bool, cdm_files: tuple[Path, ...]) -> None:
+    """Load cdms from an asyncio event loop"""
+    if from_s3 and cdm_files:
+        _help_msg("Error: Cannot use both cdm_file args and --from_s3 option.")
+
+    start = timer()
+    _echo_info("Loading Neo4j database...")
+
+    async with _get_repository(db_url) as repository:
+        if cdm_files:
+            for file in cdm_files:
+                await load_from_json(file, repository, silent=False)
+        elif from_s3:
+            version = _retrieve_s3_cdms()
+            for src in sorted([s.value for s in SourceName]):
+                if src == SourceName.CBIOPORTAL:
+                    continue  # TODO implement in GH issue #729
+                pattern = f"{src}_cdm_{version}.json"
+                globbed = (get_config().data_dir / src / "transformers").glob(pattern)
+
+                try:
+                    path = sorted(globbed)[-1]
+                except IndexError as e:
+                    msg = f"No valid transformation file found matching pattern: {pattern}"
+                    raise FileNotFoundError(msg) from e
+
+                await load_from_json(path, repository, silent=False)
+        else:
+            for src in sorted(SourceName):
+                if src == SourceName.CBIOPORTAL:
+                    continue  # TODO implement in GH issue #729
+                src_data = SourceDataStore(src_name=src)
+                cdm_file = src_data.get_latest_transformed_file()
+                await load_from_json(cdm_file, repository, silent=False)
+
+    end = timer()
+    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
 @cli.command()
@@ -526,43 +588,39 @@ def load_cdm(
     :param cdm_files: tuple of specific file(s) to load from. If empty, just get latest
         available locally for each source.
     """  # noqa: D301
-    if from_s3 and cdm_files:
-        _help_msg("Error: Cannot use both cdm_file args and --from_s3 option.")
+    asyncio.run(_load_cdm(db_url, from_s3, cdm_files))
+
+
+async def _update(
+    db_url: str,
+    normalizer_db_url: str | None,
+    refresh_source_caches: bool,
+    sources: tuple[SourceName, ...],
+) -> None:
+    """Update a source or sources from a sync click function"""
+    _harvest_sources(sources, refresh_source_caches)
+    await _transform_sources(sources, normalizer_db_url)
 
     start = timer()
     _echo_info("Loading Neo4j database...")
 
-    repository = next(_get_repository(db_url))
-    repository.initialize()
-
-    if cdm_files:
-        for file in cdm_files:
-            load_from_json(file, repository, silent=False)
-    elif from_s3:
-        version = _retrieve_s3_cdms()
-        for src in sorted([s.value for s in SourceName]):
-            if src == SourceName.CBIOPORTAL:
-                continue  # TODO implement in GH issue #729
-            pattern = f"{src}_cdm_{version}.json"
+    if not sources:
+        sources = tuple(SourceName)
+    async with _get_repository(db_url) as repository:
+        for src in sorted([s.value for s in sources]):
+            pattern = f"{src}_cdm_*.json"
             globbed = (get_config().data_dir / src / "transformers").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
             except IndexError as e:
-                msg = f"No valid transformation file found matching pattern: {pattern}"
+                msg = f"No valid transformation files found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            load_from_json(path, repository, silent=False)
-    else:
-        for src in sorted(SourceName):
-            if src == SourceName.CBIOPORTAL:
-                continue  # TODO implement in GH issue #729
-            src_data = SourceDataStore(src_name=src)
-            cdm_file = src_data.get_latest_transformed_file()
-            load_from_json(cdm_file, repository, silent=False)
+            await load_from_json(path, repository)
 
-    end = timer()
-    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
+        end = timer()
+        _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
 
 
 @cli.command()
@@ -616,31 +674,7 @@ async def update(
         ``False``.
     :param sources: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    _harvest_sources(sources, refresh_source_caches)
-    await _transform_sources(sources, normalizer_db_url)
-
-    start = timer()
-    _echo_info("Loading Neo4j database...")
-
-    repository = next(_get_repository(db_url))
-    repository.initialize()
-
-    if not sources:
-        sources = tuple(SourceName)
-    for src in sorted([s.value for s in sources]):
-        pattern = f"{src}_cdm_*.json"
-        globbed = (get_config().data_dir / src / "transformers").glob(pattern)
-
-        try:
-            path = sorted(globbed)[-1]
-        except IndexError as e:
-            msg = f"No valid transformation files found matching pattern: {pattern}"
-            raise FileNotFoundError(msg) from e
-
-        load_from_json(path, repository)
-
-    end = timer()
-    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
+    asyncio.run(_update(db_url, normalizer_db_url, refresh_source_caches, sources))
 
 
 def _harvest_sources(

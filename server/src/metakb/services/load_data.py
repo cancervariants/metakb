@@ -14,7 +14,7 @@ from metakb.transformers.methodology import merge_assertions
 _logger = logging.getLogger(__name__)
 
 
-def load_from_json(
+async def load_from_json(
     src_transformed_cdm: Path, repository: AbstractRepository, silent: bool = True
 ) -> None:
     """Load assertions and evidence into DB from given CDM JSON file.
@@ -33,11 +33,11 @@ def load_from_json(
         data = TransformedData(**dumped_data)
         loaded_stmt_count = 0
         for assertion in tqdm(data.assertions, disable=silent):
-            if existing_assertion := repository.get_statement(assertion.id):
+            if existing_assertion := await repository.get_statement(assertion.id):
                 # MUST pass the existing assertion as the first arg to ensure
                 # IDs remain consistent
                 assertion = merge_assertions(existing_assertion, assertion)  # noqa: PLW2901
-            repository.load_assertion(assertion)
+            await repository.load_assertion(assertion)
             loaded_stmt_count += 1
 
     _logger.info("Successfully loaded %s statements.", loaded_stmt_count)

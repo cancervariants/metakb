@@ -13,7 +13,6 @@ from ga4gh.va_spec.base import (
     EvidenceLine,
     Method,
     Statement,
-    Strength,
     Therapeutic,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -21,11 +20,12 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 from neo4j import (
-    Driver,
-    GraphDatabase,
+    AsyncDriver,
+    AsyncGraphDatabase,
+    AsyncManagedTransaction,
+    AsyncSession,
+    AsyncTransaction,
     Record,
-    Session,
-    Transaction,
 )
 from neo4j.graph import Node
 
@@ -104,7 +104,7 @@ def _parse_connection_params(url: str) -> _Neo4jConnectionParams:
 
 def get_driver(
     url: str | None = None,
-) -> Driver:
+) -> AsyncDriver:
     """Get a Neo4j DB connection using a resolved url.
 
     Connection URL resolved in the following order:
@@ -129,7 +129,7 @@ def get_driver(
         err_msg = "Neo4j connection requires METAKB_DB_URL to be set"
         raise Neo4jCredentialsError(err_msg)
     connection_params = _parse_connection_params(resolved_url)
-    return GraphDatabase.driver(
+    return AsyncGraphDatabase.driver(
         connection_params.url,
         auth=(connection_params.username, connection_params.password),
     )
@@ -138,22 +138,24 @@ def get_driver(
 class Neo4jRepository(AbstractRepository):
     """Neo4j implementation of a repository abstraction."""
 
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: AsyncSession) -> None:
         """Initialize repository instance
 
         :param session: Neo4j driver session
         """
         self.session = session
 
-    def initialize(
+    async def initialize(
         self,
     ) -> None:
         """Set up DB schema"""
-        with self.session.begin_transaction() as tx:
+        async with await self.session.begin_transaction() as tx:
             for query in queries_catalog.initialize():
-                tx.run(query)
+                await tx.run(query)
 
-    def _add_catvar(self, tx: Transaction, catvar: CategoricalVariant) -> None:
+    async def _add_catvar(
+        self, tx: AsyncTransaction, catvar: CategoricalVariant
+    ) -> None:
         """Add categorical variant to DB
 
         Currently validates that the constraint property, if it exists, has a length of
@@ -174,23 +176,23 @@ class Neo4jRepository(AbstractRepository):
                 raise NotImplementedError
         else:
             query = queries_catalog.load_text_catvar()
-        tx.run(query, cv=catvar_node.model_dump(mode="json"))
+        await tx.run(query, cv=catvar_node.model_dump(mode="json"))
 
-    def _add_document(self, tx: Transaction, document: Document) -> None:
+    async def _add_document(self, tx: AsyncTransaction, document: Document) -> None:
         """Add document to DB
 
         :param tx: Neo4j transaction
         :param document: VA-Spec document
         """
         document_node = DocumentNode.from_gks(document)
-        tx.run(
+        await tx.run(
             queries_catalog.load_document(),
             doc=document_node.model_dump(mode="json"),
         )
 
-    def _add_gene(
+    async def _add_gene(
         self,
-        tx: Transaction,
+        tx: AsyncTransaction,
         gene: MappableConcept,
     ) -> None:
         """Add gene to DB
@@ -199,9 +201,11 @@ class Neo4jRepository(AbstractRepository):
         :param gene: VA-Spec gene object
         """
         gene_node = GeneNode.from_gks(gene)
-        tx.run(queries_catalog.load_gene(), gene=gene_node.model_dump(mode="json"))
+        await tx.run(
+            queries_catalog.load_gene(), gene=gene_node.model_dump(mode="json")
+        )
 
-    def _add_condition(self, tx: Transaction, condition: Condition) -> None:
+    async def _add_condition(self, tx: AsyncTransaction, condition: Condition) -> None:
         """Add condition to DB.
 
         :param tx: Neo4j transaction
@@ -211,13 +215,13 @@ class Neo4jRepository(AbstractRepository):
         cond = getattr(condition, "root", condition)
         if isinstance(cond, ConditionSet):
             node = ConditionSetNode.from_gks(cond)
-            tx.run(
+            await tx.run(
                 queries_catalog.load_condition_set(),
                 condition_set=node.model_dump(mode="json"),
             )
 
             for child in cond.conditions:
-                self._add_condition(tx, child)
+                await self._add_condition(tx, child)
             return
 
         if not isinstance(cond, MappableConcept):
@@ -226,13 +230,13 @@ class Neo4jRepository(AbstractRepository):
 
         if cond.conceptType == "Disease":
             disease_node = DiseaseNode.from_gks(cond)
-            tx.run(
+            await tx.run(
                 queries_catalog.load_disease(),
                 disease=disease_node.model_dump(mode="json"),
             )
         elif cond.conceptType == "Phenotype":
             phenotype_node = PhenotypeNode.from_gks(cond)
-            tx.run(
+            await tx.run(
                 queries_catalog.load_phenotype(),
                 phenotype=phenotype_node.model_dump(mode="json"),
             )
@@ -240,7 +244,9 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized conceptType: {cond}"
             raise TypeError(msg)
 
-    def _add_therapeutic(self, tx: Transaction, therapeutic: Therapeutic) -> None:
+    async def _add_therapeutic(
+        self, tx: AsyncTransaction, therapeutic: Therapeutic
+    ) -> None:
         """Add a therapeutic -- either an individual Drug or a group.
 
         :param tx: Neo4j transaction
@@ -249,10 +255,12 @@ class Neo4jRepository(AbstractRepository):
         root = therapeutic.root
         if isinstance(root, MappableConcept):
             drug_node = DrugNode.from_gks(root)
-            tx.run(queries_catalog.load_drug(), drug=drug_node.model_dump(mode="json"))
+            await tx.run(
+                queries_catalog.load_drug(), drug=drug_node.model_dump(mode="json")
+            )
         elif isinstance(root, TherapyGroup):
             therapy_group_node = TherapyGroupNode.from_gks(root)
-            tx.run(
+            await tx.run(
                 queries_catalog.load_therapy_group(),
                 therapy_group=therapy_group_node.model_dump(mode="json"),
             )
@@ -260,29 +268,33 @@ class Neo4jRepository(AbstractRepository):
             msg = f"Unrecognized therapeutic type: {therapeutic}"
             raise TypeError(msg)
 
-    def _add_method(self, tx: Transaction, method: Method) -> None:
+    async def _add_method(self, tx: AsyncTransaction, method: Method) -> None:
         """Add a Method object.
 
         :param tx: Neo4j transaction
         :param method: VA-Spec method object
         """
-        tx.run(
+        await tx.run(
             queries_catalog.load_method(),
             method=MethodNode.from_gks(method).model_dump(mode="json"),
         )
 
-    def _add_strength(self, tx: Transaction, strength: Strength) -> None:
+    async def _add_strength(
+        self, tx: AsyncTransaction, strength: MappableConcept
+    ) -> None:
         """Load a strength object
 
         :param tx: Neo4j transaction
         :param strength: VA-Spec strength object
         """
-        tx.run(
+        await tx.run(
             queries_catalog.load_strength(),
             strength=StrengthNode.from_gks(strength).model_dump(mode="json"),
         )
 
-    def _add_evidence_line(self, tx: Transaction, evidence_line: EvidenceLine) -> None:
+    async def _add_evidence_line(
+        self, tx: AsyncTransaction, evidence_line: EvidenceLine
+    ) -> None:
         """Load an evidence line + everything that it contains
 
         :param tx: neo4j transaction
@@ -294,26 +306,26 @@ class Neo4jRepository(AbstractRepository):
             raise ValueError(msg)
         for item in evidence_line.hasEvidenceItems:
             if isinstance(item, EvidenceLine):
-                self._add_evidence_line(tx, item)
+                await self._add_evidence_line(tx, item)
             elif isinstance(item, Statement):
-                self._add_statement(tx, item)
+                await self._add_statement(tx, item)
             else:
                 raise TypeError
         if evidence_line.strengthOfEvidenceProvided:
-            self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
+            await self._add_strength(tx, evidence_line.strengthOfEvidenceProvided)
             strength_id = evidence_line.strengthOfEvidenceProvided.id
         else:
             strength_id = None
 
         evline_node = EvidenceLineNode.from_gks(evidence_line)
-        tx.run(
+        await tx.run(
             queries_catalog.load_evidence_line(),
             evidence_line=evline_node.model_dump(mode="json"),
             strength_id=strength_id,
             item_ids=[i.id for i in evline_node.has_evidence_items],
         )
 
-    def _add_statement(self, tx: Transaction, statement: Statement) -> None:
+    async def _add_statement(self, tx: AsyncTransaction, statement: Statement) -> None:
         """Add an individual statement, as well as any contained evidence, to the DB
 
         Note that this function gets used BOTH for loading higher-order assertions
@@ -324,31 +336,31 @@ class Neo4jRepository(AbstractRepository):
         """
         if statement.hasEvidenceLines:
             for ev_line in statement.hasEvidenceLines:
-                self._add_evidence_line(tx, ev_line)
+                await self._add_evidence_line(tx, ev_line)
 
         proposition = statement.proposition
-        self._add_catvar(tx, proposition.subjectVariant)
-        self._add_gene(tx, proposition.geneContextQualifier)
+        await self._add_catvar(tx, proposition.subjectVariant)
+        await self._add_gene(tx, proposition.geneContextQualifier)
         # handle proposition-specific properties
         if proposition.type == "VariantTherapeuticResponseProposition":
-            self._add_condition(tx, proposition.conditionQualifier)
-            self._add_therapeutic(tx, proposition.objectTherapeutic)
+            await self._add_condition(tx, proposition.conditionQualifier)
+            await self._add_therapeutic(tx, proposition.objectTherapeutic)
         elif proposition.type in {
             "VariantDiagnosticProposition",
             "VariantPrognosticProposition",
         }:
-            self._add_condition(tx, proposition.objectCondition)
+            await self._add_condition(tx, proposition.objectCondition)
         else:
             raise NotImplementedError(proposition)
         if statement.reportedIn:
             for document in statement.reportedIn:
                 if isinstance(document, Document):
-                    self._add_document(tx, document)
+                    await self._add_document(tx, document)
 
         if isinstance(statement.specifiedBy.reportedIn, Document):
-            self._add_document(tx, statement.specifiedBy.reportedIn)
-        self._add_strength(tx, statement.strength)
-        self._add_method(tx, statement.specifiedBy)
+            await self._add_document(tx, statement.specifiedBy.reportedIn)
+        await self._add_strength(tx, statement.strength)
+        await self._add_method(tx, statement.specifiedBy)
         match statement.proposition:
             case VariantTherapeuticResponseProposition():
                 statement_node = TherapeuticResponseStatementNode.from_gks(statement)
@@ -359,12 +371,14 @@ class Neo4jRepository(AbstractRepository):
             case _:
                 msg = f"Unsupported proposition type: {statement.proposition.type}"
                 raise NotImplementedError(msg)
-        tx.run(
+        await tx.run(
             queries_catalog.load_statement(),
             statement=statement_node.model_dump(mode="json"),
         )
 
-    def _recursive_delete_ev_line(self, tx: Transaction, ev_line: EvidenceLine) -> None:
+    async def _recursive_delete_ev_line(
+        self, tx: AsyncTransaction, ev_line: EvidenceLine
+    ) -> None:
         """Delete an evidence line and any evidence lines that it contains
 
         This saves us the effort of manually moving edges around when evidence structure
@@ -381,18 +395,20 @@ class Neo4jRepository(AbstractRepository):
             raise ValueError
         for item in ev_line.hasEvidenceItems:
             if isinstance(item, EvidenceLine):
-                self._recursive_delete_ev_line(tx, item)
-        tx.run(queries_catalog.delete_evidence_line(), evidence_line_id=ev_line.id)
+                await self._recursive_delete_ev_line(tx, item)
+        await tx.run(
+            queries_catalog.delete_evidence_line(), evidence_line_id=ev_line.id
+        )
 
-    def load_assertion(self, assertion: Statement) -> None:
+    async def load_assertion(self, assertion: Statement) -> None:
         """Add or update a complete assertion object to the DB
 
         :param assertion: metakb assertion
         """
-        with self.session.begin_transaction() as tx:
+        async with await self.session.begin_transaction() as tx:
             for line in assertion.hasEvidenceLines:
-                self._recursive_delete_ev_line(tx, line)
-            self._add_statement(tx, assertion)
+                await self._recursive_delete_ev_line(tx, line)
+            await self._add_statement(tx, assertion)
 
     @staticmethod
     def _make_allele_node(
@@ -537,13 +553,13 @@ class Neo4jRepository(AbstractRepository):
             )
         return DrugNode(**drug_record)
 
-    def get_statement(self, statement_id: str) -> Statement | None:
+    async def get_statement(self, statement_id: str) -> Statement | None:
         """Retrieve a statement
 
         :param statement_id: ID of the statement minted by the source
         :return: complete statement if available
         """
-        results = self._execute_statement_search(
+        results = await self._execute_statement_search(
             [], [], [], [], [statement_id], 0, CYPHER_PAGE_LIMIT
         )
         if len(results) == 0:
@@ -768,7 +784,7 @@ class Neo4jRepository(AbstractRepository):
             statements.append(statement.to_gks())
         return statements
 
-    def _execute_statement_search(
+    async def _execute_statement_search(
         self,
         variation_ids: list[str],
         gene_ids: list[str],
@@ -784,10 +800,13 @@ class Neo4jRepository(AbstractRepository):
 
         The IDs args MUST be lists -- can't be null or the Cypher query will error out
         """
-        search_results = self.session.execute_read(
-            lambda tx, **kwargs: list(
-                tx.run(queries_catalog.search_statements(), **kwargs)
-            ),
+
+        async def _search_tx(tx: AsyncManagedTransaction, **kwargs) -> list[Record]:
+            result = await tx.run(queries_catalog.search_statements(), **kwargs)
+            return [record async for record in result]
+
+        search_results = await self.session.execute_read(
+            _search_tx,
             statement_ids=statement_ids,
             variation_ids=variation_ids,
             condition_ids=disease_ids,
@@ -798,7 +817,7 @@ class Neo4jRepository(AbstractRepository):
         )
         pending_statement_ids = self._get_pending_statement_ids(search_results)
         if pending_statement_ids:
-            fetched = self._execute_statement_search(
+            fetched = await self._execute_statement_search(
                 variation_ids=[],
                 gene_ids=[],
                 therapy_ids=[],
@@ -864,7 +883,7 @@ class Neo4jRepository(AbstractRepository):
                     if isinstance(item, str) and item in fetched_map:
                         leaf_items[i] = fetched_map[item]
 
-    def search_statements(
+    async def search_statements(
         self,
         variation_ids: list[str] | None = None,
         gene_ids: list[str] | None = None,
@@ -899,7 +918,7 @@ class Neo4jRepository(AbstractRepository):
         if limit is None:
             limit = CYPHER_PAGE_LIMIT
 
-        search_results = self._execute_statement_search(
+        search_results = await self._execute_statement_search(
             variation_ids or [],
             gene_ids or [],
             therapy_ids or [],
@@ -911,14 +930,19 @@ class Neo4jRepository(AbstractRepository):
 
         return self._get_statements_from_results(search_results)
 
-    def get_gene(self, gene_id: str) -> MappableConcept | None:
+    async def get_gene(self, gene_id: str) -> MappableConcept | None:
         """Attempt to retrieve a gene given exact ID match
 
         :param gene_id: exact gene_id as stored in DB (eg `"metakb.gene:hgnc_6407"`)
         :return: gene if available, with child gene objects in extensions
         """
-        result = self.session.execute_read(
-            lambda tx, **kwargs: list(tx.run(queries_catalog.get_gene(), **kwargs)),
+
+        async def _get_gene_tx(tx: AsyncManagedTransaction, **kwargs) -> list[Record]:
+            result = await tx.run(queries_catalog.get_gene(), **kwargs)
+            return [record async for record in result]
+
+        result = await self.session.execute_read(
+            _get_gene_tx,
             gene_id=gene_id,
         )
         if not result:
@@ -928,32 +952,44 @@ class Neo4jRepository(AbstractRepository):
         gene.extensions.append(Extension(name="source_gene_objects", value=child_genes))
         return gene
 
-    def get_stats(self) -> RepositoryStats:
+    async def get_stats(self) -> RepositoryStats:
         """Fetch counts for entities
 
         :return: structured stats data class
         """
-        result = self.session.execute_read(
-            lambda tx: list(tx.run(queries_catalog.get_counts()))
-        )
+
+        async def _get_stats_tx(tx: AsyncManagedTransaction) -> list[Record]:
+            result = await tx.run(queries_catalog.get_counts())
+            return [record async for record in result]
+
+        result = await self.session.execute_read(_get_stats_tx)
         return RepositoryStats(
             **{i["info"]["label"]: i["info"]["count"] for i in result}
         )
 
-    def teardown_db(self) -> None:
+    async def teardown_db(self) -> None:
         """Reset repository storage.
 
         Delete all nodes/edges and constraints.
         """
-        # this is a write query and needs to be in its own transaction
-        self.session.execute_write(lambda tx: tx.run("MATCH (n) DETACH DELETE n"))
-        with self.session.begin_transaction() as tx:
-            for query in queries_catalog.teardown():
-                tx.run(query)
 
-    def get_all_assertion_ids(self) -> list[str]:
+        # this is a write query and needs to be in its own transaction
+        async def _teardown_tx(tx: AsyncManagedTransaction) -> None:
+            await tx.run("MATCH (n) DETACH DELETE n")
+
+        await self.session.execute_write(_teardown_tx)
+        async with await self.session.begin_transaction() as tx:
+            for query in queries_catalog.teardown():
+                await tx.run(query)
+
+    async def get_all_assertion_ids(self) -> list[str]:
         """Return all assertion IDs"""
-        result = self.session.execute_read(
-            lambda tx: list(tx.run(queries_catalog.get_all_assertion_ids()))
-        )
+
+        async def _get_all_assertion_ids_tx(
+            tx: AsyncManagedTransaction,
+        ) -> list[Record]:
+            result = await tx.run(queries_catalog.get_all_assertion_ids())
+            return [record async for record in result]
+
+        result = await self.session.execute_read(_get_all_assertion_ids_tx)
         return [r["s.id"] for r in result]
