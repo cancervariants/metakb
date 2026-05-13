@@ -1,6 +1,6 @@
 """Provide route dependencies"""
 
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 
 from fastapi import Request
 
@@ -8,9 +8,9 @@ from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_repository import Neo4jRepository
 
 
-def get_repository(
+async def get_repository(
     request: Request,
-) -> Generator[AbstractRepository, None, None]:
+) -> AsyncGenerator[AbstractRepository, None]:
     """Provide repository factory for REST API route dependency injection
 
     :param request: HTTP request instance provided by FastAPI
@@ -19,5 +19,7 @@ def get_repository(
     """
     session = request.app.state.driver.session()
     repository = Neo4jRepository(session)
-    yield repository
-    session.close()
+    try:
+        yield repository
+    finally:
+        await session.close()
