@@ -100,7 +100,7 @@ traitlets==5.14.3
 typing-extensions==4.15.0
 typing-inspection==0.4.2
 tzdata==2025.2
-ujson==5.11.0
+ujson==5.12.1
 url-normalize==2.2.1
 urllib3==2.5.0
 uvicorn==0.37.0
