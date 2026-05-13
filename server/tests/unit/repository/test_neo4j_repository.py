@@ -7,10 +7,11 @@ import pytest
 import pytest_asyncio
 from ga4gh.va_spec.base import Statement
 
+from metakb.repository.base import RepositoryStats
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 
 
-@pytest_asyncio.fixture(scope="module")
+@pytest_asyncio.fixture
 async def repository():
     """Provide a new repository session. Wipe all existing DB data and re-initialize."""
     driver = get_driver()
@@ -204,20 +205,38 @@ async def test_diagnostic_assertion(repository: Neo4jRepository, assertions: dic
 
 @pytest.mark.ci_only
 @pytest.mark.asyncio
-async def test_get_stats(repository: Neo4jRepository):
-    # If we had a robust test dataset, we could meaningfully check for specific expected counts
-    # for now this just checks that they respond
+async def test_get_stats(repository: Neo4jRepository, assertions: dict):
+    for assertion_key in (
+        "BRAF mutation",
+        "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz",
+    ):
+        assertion = assertions[assertion_key]
+        await repository.load_assertion(assertion)
+
     stats = await repository.get_stats()
-    for k, v in stats.model_dump().items():
-        assert v, f"Count of {k} is {v}"
+    assert stats == RepositoryStats(
+        num_genes=2,
+        num_drugs=2,
+        num_diseases=2,
+        num_variations=2,
+        num_source_statements=2,
+        num_documents=5,
+        num_metakb_assertions=2,
+    )
 
 
 @pytest.mark.ci_only
 @pytest.mark.asyncio
-async def test_get_all_assertion_ids(repository: Neo4jRepository):
+async def test_get_all_assertion_ids(repository: Neo4jRepository, assertions: dict):
+    for assertion_key in (
+        "BRAF mutation",
+        "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz",
+    ):
+        assertion = assertions[assertion_key]
+        await repository.load_assertion(assertion)
+
     all_ids = await repository.get_all_assertion_ids()
     assert set(all_ids) == {
         "metakb.assertion:RXgu1CLSyUKNM3c7-YfTF_lh5meCOnSM",
-        "metakb.assertion:UYyEPTPQPtrMEQjTbat9Ka396w5YKrCi",
         "metakb.assertion:Bc6f65XfxIgXv77i5sNsJh0lLaLRIPyz",
     }
