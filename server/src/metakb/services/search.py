@@ -60,6 +60,9 @@ def _get_normalized_therapy(normalizer: ViccNormalizers, therapy: str) -> Search
     )
 
 
+_GA4GH_ID_LEN = 41  # VRS IDs are always 41 characters
+
+
 async def _get_normalized_variation(
     normalizer: ViccNormalizers, variation: str
 ) -> SearchTerm:
@@ -70,7 +73,10 @@ async def _get_normalized_variation(
     :return: A normalized variant concept if it exists
     """
     # Check if VRS variation (allele, copy number change, copy number count)
-    if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
+    if (
+        variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN."))
+        and len(variation) == _GA4GH_ID_LEN
+    ):
         normalized_variation = variation
     else:
         variant_norm_resp = await normalizer.normalize_variation(variation)
