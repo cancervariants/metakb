@@ -65,32 +65,19 @@ def test_normalize_condition(
     result = transformer._normalize_condition(conditionset)
     assert result is not None
     assert isinstance(result.root, ConditionSet)
-    assert result.root.id == "metakb.cs:1Ag26yUEdBwHn7W5NTmXhz5VLMrY343Y"
+    assert result.root.id == "metakb.cs:J48jP9ZWN7G1FKwnzVOXXq01pDiow2x-"
     assert result.root.membershipOperator == MembershipOperator.AND
     assert result.root.conditions[0].id == "metakb.disease:ncit_C3797"
 
     assert isinstance(result.root.conditions[1], ConditionSet)
-    assert result.root.conditions[1].id == "metakb.cs:xw9sBMfjiKmjf6Xda1sUamhi76oLETPO"
+    assert result.root.conditions[1].id == "metakb.cs:VXoGdg4PaQbSXeSh5At6zKhSkxrUgxC9"
 
     assert result.root.conditions[1].membershipOperator == MembershipOperator.OR
     # eventually these should be normalized out of source IDs too
     # see https://github.com/cancervariants/metakb/issues/726
-    assert result.root.conditions[1].conditions[0].id == "civic.phenotype:8121"
-    assert result.root.conditions[1].conditions[1].id == "civic.phenotype:2656"
-    assert result.root.conditions[1].conditions[2].id == "civic.phenotype:16642"
-
-    # handle case of disease + secondary finding as phenotype
-    # for now, we return the phenotype as-is, but in the phenotype normalizer issue,
-    # we may want to handle it differently
-    result = transformer._normalize_condition(
-        unnormalized_conditions["civic_melanoma_brain_mets"]
-    )
-    assert result is not None
-    assert isinstance(result.root, ConditionSet)
-    assert result.root.id == "metakb.cs:CQkbqdeijVJR6AVLeKwd9Cqyqs7pttj-"
-    assert result.root.membershipOperator == MembershipOperator.AND
-    assert result.root.conditions[0].id == "metakb.disease:ncit_C3224"
-    assert result.root.conditions[1].id == "civic.phenotype:10817"
+    assert result.root.conditions[1].conditions[0].id == "HP:0011463"
+    assert result.root.conditions[1].conditions[1].id == "HP:0003621"
+    assert result.root.conditions[1].conditions[2].id == "HP:0025708"
 
     fake_disease = MappableConcept(
         id="src:12345", conceptType="Disease", name="asdfghjkl;"
