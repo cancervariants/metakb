@@ -7,6 +7,7 @@ fetches don't reload the file.
 from functools import cache
 from importlib.resources import files
 from pathlib import Path
+from typing import LiteralString, cast
 
 _query_dir = Path(str(files("metakb.repository.queries")))
 
@@ -24,7 +25,7 @@ def _load(filename: str) -> str:
     return (path).read_text(encoding="utf-8")
 
 
-def _load_multiple_queries(filename: str) -> list[str]:
+def _load_multiquery(filename: str) -> list[LiteralString]:
     """Load a file containing multiple queries, separated by semicolons.
 
     For some actions, like adding a bunch of constraints, it's convenient to keep them
@@ -35,111 +36,112 @@ def _load_multiple_queries(filename: str) -> list[str]:
     :return: list of queries contained within, with comments removed
     """
     raw_text = _load(filename)
-    return " ".join(
+    queries = " ".join(
         filter(None, [line.split("//")[0] for line in raw_text.split("\n")])
     ).split(";")[:-1]
+    return [cast("LiteralString", q) for q in queries]
 
 
 @cache
-def initialize() -> list[str]:
-    return _load_multiple_queries("initialize.cypher")
+def initialize() -> list[LiteralString]:
+    return _load_multiquery("initialize.cypher")
 
 
 @cache
-def teardown() -> list[str]:
-    return _load_multiple_queries("teardown.cypher")
+def teardown() -> list[LiteralString]:
+    return _load_multiquery("teardown.cypher")
 
 
 @cache
-def load_dac_catvar() -> str:
-    return _load("load_definingalleleconstraint_catvar.cypher")
+def load_dac_catvar() -> LiteralString:
+    return cast("LiteralString", _load("load_definingalleleconstraint_catvar.cypher"))
 
 
 @cache
-def load_fcc_catvar() -> str:
-    return _load("load_featurecontextconstraint_catvar.cypher")
+def load_fcc_catvar() -> LiteralString:
+    return cast("LiteralString", _load("load_featurecontextconstraint_catvar.cypher"))
 
 
 @cache
-def load_text_catvar() -> str:
-    return _load("load_text_catvar.cypher")
+def load_text_catvar() -> LiteralString:
+    return cast("LiteralString", _load("load_text_catvar.cypher"))
 
 
 @cache
-def load_document() -> str:
-    return _load("load_document.cypher")
+def load_document() -> LiteralString:
+    return cast("LiteralString", cast("LiteralString", _load("load_document.cypher")))
 
 
 @cache
-def load_gene() -> str:
-    return _load("load_gene.cypher")
+def load_gene() -> LiteralString:
+    return cast("LiteralString", _load("load_gene.cypher"))
 
 
 @cache
-def load_disease() -> str:
-    return _load("load_disease.cypher")
+def load_disease() -> LiteralString:
+    return cast("LiteralString", _load("load_disease.cypher"))
 
 
 @cache
-def load_phenotype() -> str:
-    return _load("load_phenotype.cypher")
+def load_phenotype() -> LiteralString:
+    return cast("LiteralString", _load("load_phenotype.cypher"))
 
 
 @cache
-def load_condition_set() -> str:
-    return _load("load_condition_set.cypher")
+def load_condition_set() -> LiteralString:
+    return cast("LiteralString", _load("load_condition_set.cypher"))
 
 
 @cache
-def load_drug() -> str:
-    return _load("load_drug.cypher")
+def load_drug() -> LiteralString:
+    return cast("LiteralString", _load("load_drug.cypher"))
 
 
 @cache
-def load_therapy_group() -> str:
-    return _load("load_therapy_group.cypher")
+def load_therapy_group() -> LiteralString:
+    return cast("LiteralString", _load("load_therapy_group.cypher"))
 
 
 @cache
-def load_method() -> str:
-    return _load("load_method.cypher")
+def load_method() -> LiteralString:
+    return cast("LiteralString", _load("load_method.cypher"))
 
 
 @cache
-def load_statement() -> str:
-    return _load("load_statement.cypher")
+def load_statement() -> LiteralString:
+    return cast("LiteralString", _load("load_statement.cypher"))
 
 
 @cache
-def search_statements() -> str:
-    return _load("search_statements.cypher")
+def search_statements() -> LiteralString:
+    return cast("LiteralString", _load("search_statements.cypher"))
 
 
 @cache
-def get_counts() -> str:
-    return _load("get_counts.cypher")
+def get_counts() -> LiteralString:
+    return cast("LiteralString", _load("get_counts.cypher"))
 
 
 @cache
-def get_all_assertion_ids() -> str:
-    return _load("get_all_assertion_ids.cypher")
+def get_all_assertion_ids() -> LiteralString:
+    return cast("LiteralString", _load("get_all_assertion_ids.cypher"))
 
 
 @cache
-def delete_evidence_line() -> str:
-    return _load("delete_evidence_line.cypher")
+def delete_evidence_line() -> LiteralString:
+    return cast("LiteralString", _load("delete_evidence_line.cypher"))
 
 
 @cache
-def load_evidence_line() -> str:
-    return _load("load_evidence_line.cypher")
+def load_evidence_line() -> LiteralString:
+    return cast("LiteralString", _load("load_evidence_line.cypher"))
 
 
 @cache
-def load_strength() -> str:
-    return _load("load_strength.cypher")
+def load_strength() -> LiteralString:
+    return cast("LiteralString", _load("load_strength.cypher"))
 
 
 @cache
-def get_gene() -> str:
-    return _load("get_gene.cypher")
+def get_gene() -> LiteralString:
+    return cast("LiteralString", _load("get_gene.cypher"))

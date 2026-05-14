@@ -112,12 +112,15 @@ async def get_statements(
 
     end_time = perf_counter()
 
-    if query.gene and query.gene.resolved_id:
-        resolved_gene = extract_gene_from_assertions(search_results.statements)
-        query.gene.resolved_object = resolved_gene
-    if query.variation and query.variation.resolved_id:
-        resolved_variant = extract_variation_from_assertions(search_results.statements)
-        query.variation.resolved_object = resolved_variant
+    if search_results.statements:
+        if query.gene and query.gene.resolved_id:
+            resolved_gene = extract_gene_from_assertions(search_results.statements)
+            query.gene.resolved_object = resolved_gene
+        if query.variation and query.variation.resolved_id:
+            resolved_variant = extract_variation_from_assertions(
+                search_results.statements
+            )
+            query.variation.resolved_object = resolved_variant
 
     return SearchStatementsResponse(
         query=query,

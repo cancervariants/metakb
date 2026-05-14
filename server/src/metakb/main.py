@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     app.state.driver = driver
     app.state.normalizer = ViccNormalizers()
     yield
-    driver.close()
+    await driver.close()
 
 
 API_PREFIX = "/api"

@@ -60,6 +60,9 @@ def _get_normalized_therapy(normalizer: ViccNormalizers, therapy: str) -> Search
     )
 
 
+_GA4GH_ID_LEN = 41  # VRS IDs are always 41 characters
+
+
 async def _get_normalized_variation(
     normalizer: ViccNormalizers, variation: str
 ) -> SearchTerm:
@@ -70,7 +73,10 @@ async def _get_normalized_variation(
     :return: A normalized variant concept if it exists
     """
     # Check if VRS variation (allele, copy number change, copy number count)
-    if variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN.")):
+    if (
+        variation.startswith(("ga4gh:VA.", "ga4gh:CX.", "ga4gh:CN."))
+        and len(variation) == _GA4GH_ID_LEN
+    ):
         normalized_variation = variation
     else:
         variant_norm_resp = await normalizer.normalize_variation(variation)
@@ -162,7 +168,7 @@ async def search_statements(
     # Check that queried statement_id is valid
     statement, statement_term = None, None
     if statement_id:
-        statement = repository.get_statement(statement_id)
+        statement = await repository.get_statement(statement_id)
         statement_term = SearchTerm(
             term=statement_id,
             term_type=SearchTermType.STATEMENT_ID,
@@ -189,7 +195,7 @@ async def search_statements(
     if statement:
         statements = [statement]
     else:
-        statements = repository.search_statements(
+        statements = await repository.search_statements(
             [normalized_variation.resolved_id] if normalized_variation else None,
             [normalized_gene.resolved_id] if normalized_gene else None,
             [normalized_therapy.resolved_id] if normalized_therapy else None,
@@ -230,8 +236,8 @@ async def batch_search_statements(
     >>> len(response.statement_ids) == len(redundant_response.statement_ids)
     True
 
-    :param repository:
-    :param normalizer:
+    :param repository: repository instance
+    :param normalizer: normalizer wrapper class
     :param variations: a list of variation description strings, e.g. ``["BRAF V600E"]``
     :param start: Index of first result to fetch. Must be nonnegative.
     :param limit: Max number of results to fetch. Must be nonnegative. Revert to
@@ -259,7 +265,7 @@ async def batch_search_statements(
         return SearchResult(
             search_terms=search_terms, start=start, limit=limit, statements=[]
         )
-    statements = repository.search_statements(
+    statements = await repository.search_statements(
         variation_ids=variation_ids, start=start, limit=limit
     )
     return SearchResult(
