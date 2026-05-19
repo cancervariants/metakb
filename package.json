@@ -11,7 +11,7 @@
     "husky": "^9.1.7",
     "json-schema-to-typescript": "^15.0.4",
     "lint-staged": "^15.5.1",
-    "turbo": "^1.12.3"
+    "turbo": "^2.9.14"
   },
   "lint-staged": {
     "server/**/*.py": [
