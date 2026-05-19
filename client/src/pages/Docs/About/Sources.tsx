@@ -4,18 +4,6 @@ import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 export default function SourcesPage() {
   return (
     <DocsLayout>
-      {/* <Typography variant="h4" mb={2} fontWeight="bold">
-        Data Sources
-      </Typography>
-
-      <Typography component="p" sx={{ mb: 2 }}>
-        MetaKB Jr aggregates and harmonizes data from publicly available cancer interpretation resources and biomedical datasets.
-      </Typography>
-
-      <Typography component="p" sx={{ mb: 2 }}>
-        Aggregated sources include:
-      </Typography>
-<Divider sx= {{my: 4}} /> */}
       <Typography variant="h4" mb={2} fontWeight="bold">
         Current Sources
       </Typography>

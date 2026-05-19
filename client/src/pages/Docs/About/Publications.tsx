@@ -1,6 +1,7 @@
 import { Typography, Box, Stack, Link, Divider } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 
+// TODO: Make this an external component and import it
 export default function PublicationsPage() {
   return (
     <DocsLayout>
