@@ -38,7 +38,7 @@ h11==0.16.0
 hgvs==1.5.6
 httptools==0.6.4
 humanfriendly==10.0
-idna==3.10
+idna==3.15
 importlib-metadata==8.7.0
 importlib-resources==6.5.2
 ipython==8.37.0
