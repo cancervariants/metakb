@@ -361,13 +361,20 @@ const ResultPage = () => {
                         setSelected={setSelectedDiseases}
                       />
                       <hr></hr>
-                      <FilterSection
-                        title="Therapy"
-                        options={therapyOptions}
-                        selected={selectedTherapies}
-                        setSelected={setSelectedTherapies}
-                      />
-                      <hr></hr>
+                      <>
+                        {activeTab === 'therapeutic' && (
+                          <>
+                            <FilterSection
+                              title="Therapy"
+                              options={therapyOptions}
+                              selected={selectedTherapies}
+                              setSelected={setSelectedTherapies}
+                            />
+                            <hr></hr>
+                          </>
+                        )}
+                      </>
+
                       <FilterSection
                         title="Evidence Level"
                         options={evidenceLevelOptions}
