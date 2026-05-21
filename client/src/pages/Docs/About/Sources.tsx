@@ -62,7 +62,7 @@ export default function SourcesPage() {
         <Box>
           <Typography
             component={Link}
-            href="https://www.fda.gov/about-fda/oncology-center-excellence/pediatric-oncology-drug-approvals"
+            href="https://www.fda.gov/media/191379/download?attachment"
             target="_blank"
             rel="noopener"
             variant="h6"

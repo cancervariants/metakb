@@ -10,8 +10,11 @@ export default function PublicationsPage() {
       </Typography>
 
       <Typography component="p" sx={{ mb: 2 }}>
-        MetaKB Jr builds upon prior work in cancer knowledge aggregation, clinical interpretation
-        standards and biomedical data harmonization.
+  MetaKB Jr builds upon prior work in cancer knowledge aggregation, clinical
+  interpretation standards, and biomedical data harmonization. While there is
+  not yet a dedicated MetaKB Jr publication, this project extends concepts and
+  infrastructure developed through our previous work. Publications, technical
+  details, and related resources will be added here as the project evolves.
       </Typography>
 
       <Stack spacing={3} sx={{ mt: 3 }}>
