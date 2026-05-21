@@ -1,4 +1,4 @@
-import { Typography, Box, Divider } from '@mui/material'
+import { Typography, Box } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 
 // TODO: Make this an external component
