@@ -9,7 +9,7 @@ export default function OverviewPage() {
       </Typography>
 
       <Typography component="p" sx={{ mb: 2 }}>
-        MetaKB Jr. is an open, community-driven knowledgebase designed to make clinically relevant
+        MetaKB Jr. is an open, community-driven knowledgebase aggregator designed to make clinically relevant
         somatic variant interpretation data easier to explore, integrate, and reuse. MetaKB
         aggregates and harmonizes data from multiple precision oncology knowledgebases into a
         singular, consistent data model with a focus on pediatric data.
