@@ -77,7 +77,15 @@ export default function SourcesPage() {
 
           <Typography variant="body2" sx={{ mt: 1 }}>
             U.S. Food and Drug Administration. FDA-approved oncology therapies and pediatric
-            indication resources, as curated <Link href="https://github.com/GenomicMedLab/fda_pediatric_oncology_drug_approvals" target="_blank" rel="noopener">here</Link>.
+            indication resources, as curated{' '}
+            <Link
+              href="https://github.com/GenomicMedLab/fda_pediatric_oncology_drug_approvals"
+              target="_blank"
+              rel="noopener"
+            >
+              here
+            </Link>
+            .
           </Typography>
         </Box>
       </Stack>
