@@ -2,30 +2,16 @@ import { Typography, Box } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 
 // TODO: Make this an external component
-function FAQItem({
-  question,
-  answer,
-}: {
-  question: string
-  answer: string
-}) {
+function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
     <Box sx={{ py: 2 }}>
-      <Typography
-        variant="h6"
-        fontWeight="bold"
-        sx={{ mb: 1 }}
-      >
+      <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
         {question}
       </Typography>
 
-      <Typography
-        component="p"
-        color="text.secondary"
-      >
+      <Typography component="p" color="text.secondary">
         {answer}
       </Typography>
-
     </Box>
   )
 }
@@ -33,11 +19,7 @@ function FAQItem({
 export default function FAQPage() {
   return (
     <DocsLayout>
-      <Typography
-        variant="h4"
-        mb={1}
-        fontWeight="bold"
-      >
+      <Typography variant="h4" mb={1} fontWeight="bold">
         Frequently Asked Questions
       </Typography>
 
