@@ -3,14 +3,7 @@
 import abc
 
 from ga4gh.core.models import MappableConcept
-from ga4gh.va_spec.aac_2017 import (
-    VariantDiagnosticStudyStatement,
-    VariantPrognosticStudyStatement,
-    VariantTherapeuticResponseStudyStatement,
-)
-from ga4gh.va_spec.base import (
-    Statement,
-)
+from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel
 
 
@@ -54,12 +47,7 @@ class AbstractRepository(abc.ABC):
         statement_ids: list[str] | None = None,
         start: int = 0,
         limit: int | None = None,
-    ) -> list[
-        Statement
-        | VariantDiagnosticStudyStatement
-        | VariantPrognosticStudyStatement
-        | VariantTherapeuticResponseStudyStatement
-    ]:
+    ) -> list[Statement]:
         """Perform entity-based search over all statements.
 
         Return all statements matching any item within a given list of entity IDs.
@@ -71,6 +59,7 @@ class AbstractRepository(abc.ABC):
         * Combo-therapy specific search
         * Specific logic for searching diseases/conditionsets
         * Search on source values rather than normalized values
+        * Searching non-allele catvars (e.g. feature context catvars)
 
         :param variation_ids: list of normalized variation IDs
         :param gene_ids: list of normalized gene IDs
