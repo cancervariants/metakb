@@ -7,9 +7,9 @@ from uuid import uuid4
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
+    CivicGksAssertion,
     CivicGksEvidence,
     CivicGksRecordError,
-    create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import ConceptMapping, Extension, MappableConcept, iriReference
@@ -129,6 +129,15 @@ class CivicTransformer(Transformer):
                 continue
             statements.append(transformed_statement)
 
+            if (
+                transformed_statement.proposition.type
+                == "VariantClinicalSignificanceProposition"
+            ):
+                _logger.debug(
+                    "CIViC statement %s is a clinical significance proposition -- this is unsupported",
+                    transformed_statement.id,
+                )
+                continue
             await self._upsert_assertion_from_evidence(
                 transformed_statement, assertions
             )
@@ -215,7 +224,7 @@ class CivicTransformer(Transformer):
             )
         elif isinstance(item, civicpy.Assertion):
             try:
-                statement = create_gks_record_from_assertion(item)
+                statement = CivicGksAssertion(item)
                 # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
@@ -238,7 +247,14 @@ class CivicTransformer(Transformer):
                     f"amp_asco_cap:{statement.strength.primaryCoding.code.root}"
                 )
                 for evline in statement.hasEvidenceLines:
-                    self._ensure_evidenceline_id(evline)
+                    try:
+                        self._ensure_evidenceline_id(evline)
+                    except ValueError:
+                        _logger.exception(
+                            "CIViC item %s appears to have malformed evidence lines",
+                            statement.id,
+                        )
+                        return None
             except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",

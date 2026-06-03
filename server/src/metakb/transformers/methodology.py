@@ -10,7 +10,7 @@ import logging
 from enum import StrEnum
 
 from ga4gh.core.models import Coding, Extension, Relation, code
-from ga4gh.va_spec.aac_2017 import Strength as AmpAscoCapStrength
+from ga4gh.va_spec.aac_2017 import AmpAscoCapStrengthCode
 from ga4gh.va_spec.base import (
     Direction,
     Document,
@@ -84,7 +84,7 @@ def get_evidence_level_coding(
     evidence_level: EcoLevel
     | CivicEvidenceLevel
     | MoaEvidenceLevel
-    | AmpAscoCapStrength,
+    | AmpAscoCapStrengthCode,
 ) -> Coding:
     """Create a GKS Coding object for an evidence level instance
 
@@ -98,7 +98,7 @@ def get_evidence_level_coding(
             system = CIVIC_SYSTEM
         case MoaEvidenceLevel():
             system = MOA_SYSTEM
-        case AmpAscoCapStrength():
+        case AmpAscoCapStrengthCode():
             system = System.AMP_ASCO_CAP
         case _:
             raise ValueError  # just in case
@@ -117,8 +117,11 @@ class ViccConceptVocabEntry(BaseModel):
     term: StrictStr
     parents: list[StrictStr] = []
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    aac_mapping: AmpAscoCapStrength
+    aac_mapping: AmpAscoCapStrengthCode | None = None
     definition: StrictStr
+    # value to be displayed on frontend --
+    # formatted differently for different levels of assertion
+    display_value_base: StrictStr
 
 
 _vicc_concept_vocab = [
@@ -128,8 +131,9 @@ _vicc_concept_vocab = [
         term="evidence",
         parents=[],
         source_mappings={EcoLevel.EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapStrengthCode.STRONG,
         definition="A type of information that is used to support statements.",
+        display_value_base="A",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000001",
@@ -137,8 +141,9 @@ _vicc_concept_vocab = [
         term="authoritative evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.A},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapStrengthCode.STRONG,
         definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
+        display_value_base="Level A",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000002",
@@ -146,8 +151,9 @@ _vicc_concept_vocab = [
         term="FDA recognized evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.FDA_APPROVED},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapStrengthCode.STRONG,
         definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
+        display_value_base="Level A",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000003",
@@ -155,8 +161,9 @@ _vicc_concept_vocab = [
         term="professional guideline evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.GUIDELINE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapStrengthCode.STRONG,
         definition="Evidence derived from statements by professional society guidelines",
+        display_value_base="Level A",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000004",
@@ -164,8 +171,9 @@ _vicc_concept_vocab = [
         term="clinical evidence",
         parents=["vicc:e000000"],
         source_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_B,
+        aac_mapping=AmpAscoCapStrengthCode.POTENTIAL,
         definition="Evidence derived from clinical research studies",
+        display_value_base="Level B",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000005",
@@ -173,8 +181,9 @@ _vicc_concept_vocab = [
         term="clinical cohort evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.B},
-        aac_mapping=AmpAscoCapStrength.LEVEL_B,
+        aac_mapping=AmpAscoCapStrengthCode.POTENTIAL,
         definition="Evidence derived from the clinical study of a participant cohort",
+        display_value_base="Level B",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000006",
@@ -182,8 +191,9 @@ _vicc_concept_vocab = [
         term="interventional study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
+        display_value_base="Level C",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000007",
@@ -191,8 +201,9 @@ _vicc_concept_vocab = [
         term="observational study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from observational studies of clinical cohorts",
+        display_value_base="Level C",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000008",
@@ -200,8 +211,9 @@ _vicc_concept_vocab = [
         term="case study evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.C},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
         definition="Evidence derived from clinical study of a single participant",
+        display_value_base="Level C",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000009",
@@ -209,8 +221,9 @@ _vicc_concept_vocab = [
         term="preclinical evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        # aac_mapping=AmpAscoCapStrength.LEVEL_D,
         definition="Evidence derived from the study of model organisms",
+        display_value_base="Level D",
     ),
     ViccConceptVocabEntry(
         id="vicc:e000010",
@@ -218,8 +231,9 @@ _vicc_concept_vocab = [
         term="inferential evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        # aac_mapping=AmpAscoCapStrength.LEVEL_D,
         definition="Evidence derived by inference",
+        display_value_base="Level D",
     ),
 ]
 
@@ -287,14 +301,14 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     """
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
         match strength.primaryCoding.code.root:
-            case AmpAscoCapStrength.LEVEL_A:
+            case AmpAscoCapStrengthCode.STRONG:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
-            case AmpAscoCapStrength.LEVEL_B:
+            case AmpAscoCapStrengthCode.POTENTIAL:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000005"]
-            case AmpAscoCapStrength.LEVEL_C:
-                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
-            case AmpAscoCapStrength.LEVEL_D:
-                vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
+            # case AmpAscoCapStrength.LEVEL_C:
+            #     vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
+            # case AmpAscoCapStrength.LEVEL_D:
+            #     vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
             case _:
                 raise ValueError
     elif strength.primaryCoding.system == FDA_SYSTEM:
@@ -311,8 +325,8 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             )
             raise ValueError
         vicc_vocab_entry = VICC_CODE_EXACT_MAPPING_INDEX[src_level]
-    if not vicc_vocab_entry.aac_mapping:
-        return None
+    # if not vicc_vocab_entry.aac_mapping:
+    #     return None
 
     mappings = [
         ConceptMapping(
@@ -339,7 +353,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
         extensions=[
             Extension(
                 name="metakb_display_value",
-                value=vicc_vocab_entry.aac_mapping.value.removeprefix("Level "),
+                value=vicc_vocab_entry.display_value_base,
             )
         ],
     )
