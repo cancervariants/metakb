@@ -4,7 +4,7 @@ import json
 import logging
 from pathlib import Path
 
-import asyncclick as click
+import click
 from tqdm import tqdm
 
 from metakb.repository.base import AbstractRepository
