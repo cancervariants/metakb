@@ -222,6 +222,7 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
+            print((type(item), item.id))
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = CivicGksAssertion(item)

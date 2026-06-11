@@ -1,30 +1,32 @@
 """Fetch NCH Molecular Characterization Initiative (MCI) structured knowledge"""
 
 import json
+import re
 from pathlib import Path
 
 import requests
+from ga4gh.va_spec.aac_2017.models import VariantClinicalSignificanceStatement
 from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel
 from wags_tails.base_source import DataSource
-from wags_tails.utils.downloads import HTTPS_REQUEST_TIMEOUT, download_http
+from wags_tails.utils.downloads import HTTPS_REQUEST_TIMEOUT, download_http, handle_zip
 
 from metakb.harvesters.base import FetchMode, Harvester
 
 
-class FdaPodaHarvestedData(BaseModel):
-    """Hold statements and variants grabbed from FDA PODA data"""
+class MciHarvestedData(BaseModel):
+    """Hold statements and variants grabbed from MCI data"""
 
-    statements: list[Statement]
+    statements: list[VariantClinicalSignificanceStatement]
 
 
-class _FdaPodaDataFetcher(DataSource):
-    _src_name = "fda_poda"
+class _MciDataFetcher(DataSource):
+    _src_name = "mci"
     _filetype = "json"
 
     def _get_latest_version(self) -> str:
         response = requests.get(
-            "https://api.github.com/repos/GenomicMedLab/fda_pediatric_oncology_drug_approvals/releases",
+            "https://api.github.com/repos/GenomicMedLab/mci-knowledge-pilot/releases",
             timeout=HTTPS_REQUEST_TIMEOUT,
         )
         response.raise_for_status()
@@ -36,14 +38,28 @@ class _FdaPodaDataFetcher(DataSource):
         :param version: version to acquire
         :param outfile: location and filename for final data file
         """
-        url = f"https://github.com/genomicmedlab/fda_pediatric_oncology_drug_approvals/releases/download/{version}/fda_poda.json"
-        download_http(url, outfile, tqdm_params=self._tqdm_params)
+        releases_response = requests.get(
+            "https://api.github.com/repos/GenomicMedLab/mci-knowledge-pilot/releases",
+            timeout=HTTPS_REQUEST_TIMEOUT,
+        )
+        releases_response.raise_for_status()
+        assets = next(i for i in releases_response.json() if i["tag_name"] == version)[
+            "assets"
+        ]
+        asset_url = next(
+            i["browser_download_url"]
+            for i in assets
+            if re.match(r"mci-gks.*json\.zip", i["name"])
+        )
+        download_http(
+            asset_url, outfile, handler=handle_zip, tqdm_params=self._tqdm_params
+        )
 
 
-class FdaPodaHarvester(Harvester):
-    """Harvest FDA PODA data"""
+class MciHarvester(Harvester):
+    """Harvest MCI data"""
 
-    def _get_fda_poda_data(self, fetch_mode: FetchMode) -> dict:
+    def _get_mci_data(self, fetch_mode: FetchMode) -> dict:
         """Fetch raw data
 
         :param fetch_mode: behavior for fetching/caching data
@@ -54,7 +70,7 @@ class FdaPodaHarvester(Harvester):
             force_refresh = True
         elif fetch_mode == FetchMode.USE_LOCAL:
             from_local = True
-        data, _ = _FdaPodaDataFetcher().get_latest(from_local, force_refresh)
+        data, _ = _MciDataFetcher().get_latest(from_local, force_refresh)
         with data.open() as f:
             return json.load(f)
 
@@ -64,6 +80,8 @@ class FdaPodaHarvester(Harvester):
         :param fetch_mode: set data caching/fetching behavior.
         :return: Location of performed data harvest
         """
-        source_data = self._get_fda_poda_data(fetch_mode)
-        harvested_data = FdaPodaHarvestedData(**source_data)
+        source_data = self._get_mci_data(fetch_mode)["statements"][0]
+        harvested_data = MciHarvestedData(
+            statements=[VariantClinicalSignificanceStatement(**i) for i in source_data]
+        )
         return self.src_data_dir.save_harvested_data(harvested_data)

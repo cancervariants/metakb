@@ -31,6 +31,7 @@ from metakb.harvesters import (
     MoaHarvester,
 )
 from metakb.harvesters.base import FetchMode, Harvester
+from metakb.harvesters.mci import MciHarvester
 from metakb.log_config import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -693,6 +694,7 @@ def _harvest_sources(
         SourceName.MOA: MoaHarvester,
         SourceName.FDA_PODA: FdaPodaHarvester,
         SourceName.CBIOPORTAL: CBioPortalHarvester,
+        SourceName.MCI: MciHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
