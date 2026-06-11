@@ -8,9 +8,14 @@
 
 import logging
 from enum import StrEnum
+from typing import overload
 
 from ga4gh.core.models import Coding, Extension, Relation, code
-from ga4gh.va_spec.aac_2017 import AmpAscoCapStrengthCode
+from ga4gh.va_spec.aac_2017 import (
+    AmpAscoCapEvidenceLine,
+    AmpAscoCapStrengthCode,
+    VariantClinicalSignificanceStatement,
+)
 from ga4gh.va_spec.base import (
     Direction,
     Document,
@@ -18,6 +23,7 @@ from ga4gh.va_spec.base import (
     Method,
     Statement,
     System,
+    VariantClinicalSignificanceProposition,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
@@ -380,7 +386,19 @@ def _get_vicc_strength(strength: MappableConcept) -> MappableConcept:
     return vicc_strength
 
 
-def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
+@overload
+def _initialize_evidence_line(
+    ev_item: VariantClinicalSignificanceStatement,
+) -> AmpAscoCapEvidenceLine: ...
+
+
+@overload
+def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine: ...
+
+
+def _initialize_evidence_line(
+    ev_item: Statement | VariantClinicalSignificanceStatement,
+) -> EvidenceLine | AmpAscoCapEvidenceLine:
     """Create initial evidence line wrapped around new evidence item
 
     This function MUST define
@@ -423,13 +441,32 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     )
 
 
+@overload
 def initialize_assertion(
     assertion_id: str,
     proposition: VariantDiagnosticProposition
     | VariantPrognosticProposition
     | VariantTherapeuticResponseProposition,
     evidence_item: Statement,
-) -> Statement:
+) -> Statement: ...
+
+
+@overload
+def initialize_assertion(
+    assertion_id: str,
+    proposition: VariantClinicalSignificanceProposition,
+    evidence_item: VariantClinicalSignificanceStatement,
+) -> VariantClinicalSignificanceStatement: ...
+
+
+def initialize_assertion(
+    assertion_id: str,
+    proposition: VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantTherapeuticResponseProposition
+    | VariantClinicalSignificanceProposition,
+    evidence_item: Statement | VariantClinicalSignificanceStatement,
+) -> Statement | VariantClinicalSignificanceStatement:
     """Create a new metakb assertion given some previously-computed parameters
 
     Implementation makes use of some stuff that the existing ingest/transform pipeline
@@ -441,6 +478,31 @@ def initialize_assertion(
     :return: full metakb assertion containing a single evidence line
     """
     evidence_line = _initialize_evidence_line(evidence_item)
+    if isinstance(proposition, VariantClinicalSignificanceProposition) and isinstance(
+        evidence_item, VariantClinicalSignificanceStatement
+    ):
+        import ipdb
+
+        ipdb.set_trace()
+        return VariantClinicalSignificanceStatement(
+            id=assertion_id,
+            proposition=proposition,
+            direction=evidence_line.directionOfEvidenceProvided,
+            strength=evidence_line.strengthOfEvidenceProvided,
+            classification=evidence_item.classification,
+            specifiedBy=METAKB_METHOD,
+            hasEvidenceLines=[evidence_line],
+            extensions=[
+                Extension(
+                    name="metakb_star_rating",
+                    value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
+                ),
+                Extension(
+                    name="metakb_star_rating_reason",
+                    value=evidence_line.extensions[0].value,
+                ),
+            ],
+        )
     return Statement(
         id=assertion_id,
         proposition=proposition,
@@ -578,29 +640,6 @@ def _get_evidence_from_assertion(assertion: Statement) -> list[Statement]:
     return results
 
 
-def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
-    """Combine two assertions with the same proposition
-
-    :param assertion: assertion #1
-    :param new_assertion: assertion #2
-    :return: assertion #1, now containing all evidence items from #2
-    :raise ValueError: if assertion IDs aren't matching
-    """
-    if assertion.id != new_assertion.id:
-        raise ValueError
-
-    assertion_item_ids = {s.id for s in _get_evidence_from_assertion(assertion)}
-    new_assertion_items = _get_evidence_from_assertion(new_assertion)
-
-    for item in new_assertion_items:
-        # skip redundant evidence
-        if item.id not in assertion_item_ids:
-            add_evidence_to_assertion(assertion, item)
-
-    _recompute_aggregate_assertion_values(assertion)
-    return assertion
-
-
 def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Statement:
     """Fold new evidence item into assertion
 
@@ -675,6 +714,29 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
         if not grouped_existing_low_star:
             # First low-star item goes directly under the assertion.
             assertion.hasEvidenceLines.append(item_ev_line)
+
+    _recompute_aggregate_assertion_values(assertion)
+    return assertion
+
+
+def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
+    """Combine two assertions with the same proposition
+
+    :param assertion: assertion #1
+    :param new_assertion: assertion #2
+    :return: assertion #1, now containing all evidence items from #2
+    :raise ValueError: if assertion IDs aren't matching
+    """
+    if assertion.id != new_assertion.id:
+        raise ValueError
+
+    assertion_item_ids = {s.id for s in _get_evidence_from_assertion(assertion)}
+    new_assertion_items = _get_evidence_from_assertion(new_assertion)
+
+    for item in new_assertion_items:
+        # skip redundant evidence
+        if item.id not in assertion_item_ids:
+            add_evidence_to_assertion(assertion, item)
 
     _recompute_aggregate_assertion_values(assertion)
     return assertion

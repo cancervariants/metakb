@@ -56,4 +56,4 @@ class TransformedData(BaseModel):
     """Define model for transformed data"""
 
     evidence: list[Statement | VariantClinicalSignificanceStatement] = []
-    assertions: list[Statement] = []
+    assertions: list[Statement | VariantClinicalSignificanceStatement] = []

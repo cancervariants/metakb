@@ -10,7 +10,8 @@ from ga4gh.core.models import (
     Relation,
     code,
 )
-from ga4gh.va_spec.base import Statement
+from ga4gh.va_spec.aac_2017.models import AmpAscoCapStrengthCode
+from ga4gh.va_spec.base import Statement, System
 
 from metakb.transformers.methodology import (
     src_strength_to_vicc_code,
@@ -46,9 +47,7 @@ def test_moa_strength_to_vicc_code():
             relation=Relation("exactMatch"),
         ),
         ConceptMapping(
-            coding=Coding(
-                system="AMP/ASCO/CAP (AAC) Guidelines, 2017", code=code("Level A")
-            ),
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level A")),
             relation=Relation.RELATED_MATCH,
         ),
     ]
@@ -87,9 +86,7 @@ def test_civic_strength_to_vicc_code():
             relation=Relation("exactMatch"),
         ),
         ConceptMapping(
-            coding=Coding(
-                system="AMP/ASCO/CAP (AAC) Guidelines, 2017", code=code("Level C")
-            ),
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level C")),
             relation=Relation.RELATED_MATCH,
         ),
     ]
@@ -97,10 +94,13 @@ def test_civic_strength_to_vicc_code():
 
 def test_aac_strength_to_vicc_code():
     aac = MappableConcept(
-        id="amp_asco_cap:Level C",
-        extensions=[Extension(name="metakb_display_value", value="C")],
+        id="amp_asco_cap:strong",
+        extensions=[Extension(name="metakb_display_value", value="strong")],
+        conceptType=None,
+        name=None,
         primaryCoding=Coding(
-            system="AMP/ASCO/CAP (AAC) Guidelines, 2017", code=code("Level C")
+            system=System.AMP_ASCO_CAP.value,
+            code=code(root=AmpAscoCapStrengthCode.STRONG.value),
         ),
     )
     response = src_strength_to_vicc_code(aac)
@@ -116,12 +116,14 @@ def test_aac_strength_to_vicc_code():
             relation=Relation("exactMatch"),
         ),
         ConceptMapping(
-            coding=Coding(
-                system="AMP/ASCO/CAP (AAC) Guidelines, 2017", code=code("Level C")
-            ),
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level C")),
             relation=Relation.RELATED_MATCH,
         ),
     ]
+
+
+def test_fda_strength_to_vicc_code():
+    pass  # TODO
 
 
 def test_initialize_assertion(statements: dict[str, Statement]):

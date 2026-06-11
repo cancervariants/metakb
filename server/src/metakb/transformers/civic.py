@@ -115,6 +115,7 @@ class CivicTransformer(Transformer):
         """
         civicpy.load_cache(str(harvested_data_path), on_stale="ignore")
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
+        accepted_evidence_items = []  # TODO remove
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
         assertions = {}
@@ -127,17 +128,9 @@ class CivicTransformer(Transformer):
                     type(item),
                 )
                 continue
+
             statements.append(transformed_statement)
 
-            if (
-                transformed_statement.proposition.type
-                == "VariantClinicalSignificanceProposition"
-            ):
-                _logger.debug(
-                    "CIViC statement %s is a clinical significance proposition -- this is unsupported",
-                    transformed_statement.id,
-                )
-                continue
             await self._upsert_assertion_from_evidence(
                 transformed_statement, assertions
             )
@@ -222,10 +215,12 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
-            print((type(item), item.id))
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = CivicGksAssertion(item)
+                import ipdb
+
+                ipdb.set_trace()
                 # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
