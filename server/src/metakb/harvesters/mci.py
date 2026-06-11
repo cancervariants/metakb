@@ -6,7 +6,6 @@ from pathlib import Path
 
 import requests
 from ga4gh.va_spec.aac_2017.models import VariantClinicalSignificanceStatement
-from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel
 from wags_tails.base_source import DataSource
 from wags_tails.utils.downloads import HTTPS_REQUEST_TIMEOUT, download_http, handle_zip
