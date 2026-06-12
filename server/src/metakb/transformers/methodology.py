@@ -359,7 +359,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
         extensions=[
             Extension(
                 name="metakb_display_value",
-                value=vicc_vocab_entry.display_value_base,
+                value=vicc_vocab_entry.display_value_base.removeprefix("Level "),
             )
         ],
     )
