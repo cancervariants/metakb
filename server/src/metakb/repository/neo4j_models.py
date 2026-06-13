@@ -806,7 +806,7 @@ class ClassificationNode(BaseNode):
         match classification.primaryCoding.system:
             case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
                 node_id = f"civic.strength:{classification.primaryCoding.code.root}"
-            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
+            case "AMP/ASCO/CAP Guidelines, 2017":
                 node_id = (
                     f"amp-asco-cap.strength:{classification.primaryCoding.code.root}"
                 )

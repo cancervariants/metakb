@@ -4,13 +4,63 @@
 * Provide functions for converting between different systems of evidence strength
 * Provide a function for properly merging evidence into existing assertions
 
+The general model of MetaKB assertions looks like this:
+
+- type: Statement
+  id: a `metakb.assertion:` prefix + a digest built from proposition entity IDs
+  extensions:
+    - >
+      a `metakb_star_rating` extension with values bounded by the `StarRating` enum
+      defined in this module. Aggregated from evidence lines. This is how we represent
+      factors like consensus and quality across evidence lines.
+    - >
+      a `metakb_star_rating_reason` extension with values bounded by the
+      `StarRatingReason` enum defined in this module.
+  specifiedBy: the MetaKB "method". At time of writing, this is a glorified placeholder.
+  direction: aggregated from evidence lines
+  strength: >
+    a VICC strength code MappableConcept, equal to the highest-strength contained
+    evidence line. Ideally contains mappings to source strength codes, AMP/ASCO/CAP, etc
+  proposition: consisting of normalized biomedical entities, ie processed by VICC normalizers
+  hasEvidenceLines:
+    - type: EvidenceLine
+    - id: a `metakb.evline` prefix + a digest built from contained IDs
+    - extensions:
+      - >
+        a `metakb_star_rating_reason` extension with values bounded by the
+        `StarRatingReason` enum defined in this module
+    - directionOfEvidenceProvided: aggregated from ev items
+    - strengthOfEvidenceProvided: >
+        a VICC strength code MappableConcept. Aggregated from contained ev lines/items.
+        If different sources' strength codes map to the same VICC code, a single evidence
+        line should contain both.
+    - evidenceOutcome: MappableConcept for MetaKB star rating
+    - hasEvidenceItems:
+      - type: Statement
+        # other properties etc
+      - type: EvidenceLine
+        # other properties etc
+
+Generally, the rules for evidence line structure are
+
+* 3- and 4-star items are added directly under the assertion
+* If there's only a single 1- or 2-star item, it goes directly under the assertion
+* Once a second 1- or 2-star item is added, it gets moved down into another evidence
+  line. All subsequent 1-star or 2-star items are added to that evidence line.
+
 """
 
 import logging
 from enum import StrEnum
+from typing import overload
 
 from ga4gh.core.models import Coding, Extension, Relation, code
-from ga4gh.va_spec.aac_2017 import Strength as AmpAscoCapStrength
+from ga4gh.va_spec.aac_2017 import (
+    AmpAscoCapEvidenceLine,
+    AmpAscoCapEvidenceLineStrength,
+    AmpAscoCapStrengthCode,
+    VariantClinicalSignificanceStatement,
+)
 from ga4gh.va_spec.base import (
     Direction,
     Document,
@@ -18,6 +68,7 @@ from ga4gh.va_spec.base import (
     Method,
     Statement,
     System,
+    VariantClinicalSignificanceProposition,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
@@ -84,7 +135,7 @@ def get_evidence_level_coding(
     evidence_level: EcoLevel
     | CivicEvidenceLevel
     | MoaEvidenceLevel
-    | AmpAscoCapStrength,
+    | AmpAscoCapStrengthCode,
 ) -> Coding:
     """Create a GKS Coding object for an evidence level instance
 
@@ -98,11 +149,25 @@ def get_evidence_level_coding(
             system = CIVIC_SYSTEM
         case MoaEvidenceLevel():
             system = MOA_SYSTEM
-        case AmpAscoCapStrength():
+        case AmpAscoCapStrengthCode() | AmpAscoCapEvidenceLineStrength():
             system = System.AMP_ASCO_CAP
         case _:
             raise ValueError  # just in case
     return Coding(system=system, code=code(evidence_level.value))
+
+
+class MetakbDisplayValue(StrEnum):
+    """Constrain values that evidence gets grouped into for frontend display purposes
+
+    An assertion consisting of multiple pieces of evidence shows a breakdown of all
+    evidence by strength in a small piechart in the search results page. This enum
+    is the basis for those groupings.
+    """
+
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
 
 
 class ViccConceptVocabEntry(BaseModel):
@@ -117,8 +182,11 @@ class ViccConceptVocabEntry(BaseModel):
     term: StrictStr
     parents: list[StrictStr] = []
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    aac_mapping: AmpAscoCapStrength
+    aac_mapping: AmpAscoCapEvidenceLineStrength | None = None
     definition: StrictStr
+    # value to be displayed on frontend --
+    # formatted differently for different levels of assertion
+    display_value: MetakbDisplayValue
 
 
 _vicc_concept_vocab = [
@@ -128,8 +196,9 @@ _vicc_concept_vocab = [
         term="evidence",
         parents=[],
         source_mappings={EcoLevel.EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="A type of information that is used to support statements.",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000001",
@@ -137,8 +206,9 @@ _vicc_concept_vocab = [
         term="authoritative evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.A},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000002",
@@ -146,8 +216,9 @@ _vicc_concept_vocab = [
         term="FDA recognized evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.FDA_APPROVED},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000003",
@@ -155,8 +226,9 @@ _vicc_concept_vocab = [
         term="professional guideline evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.GUIDELINE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_A,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from statements by professional society guidelines",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000004",
@@ -164,8 +236,9 @@ _vicc_concept_vocab = [
         term="clinical evidence",
         parents=["vicc:e000000"],
         source_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_B,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.B,
         definition="Evidence derived from clinical research studies",
+        display_value=MetakbDisplayValue.B,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000005",
@@ -173,8 +246,9 @@ _vicc_concept_vocab = [
         term="clinical cohort evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.B},
-        aac_mapping=AmpAscoCapStrength.LEVEL_B,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.B,
         definition="Evidence derived from the clinical study of a participant cohort",
+        display_value=MetakbDisplayValue.B,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000006",
@@ -182,8 +256,9 @@ _vicc_concept_vocab = [
         term="interventional study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000007",
@@ -191,8 +266,9 @@ _vicc_concept_vocab = [
         term="observational study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from observational studies of clinical cohorts",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000008",
@@ -200,8 +276,9 @@ _vicc_concept_vocab = [
         term="case study evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.C},
-        aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from clinical study of a single participant",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000009",
@@ -209,8 +286,9 @@ _vicc_concept_vocab = [
         term="preclinical evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.D,
         definition="Evidence derived from the study of model organisms",
+        display_value=MetakbDisplayValue.D,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000010",
@@ -218,8 +296,9 @@ _vicc_concept_vocab = [
         term="inferential evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-        aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.D,
         definition="Evidence derived by inference",
+        display_value=MetakbDisplayValue.D,
     ),
 ]
 
@@ -287,13 +366,21 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     """
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
         match strength.primaryCoding.code.root:
-            case AmpAscoCapStrength.LEVEL_A:
+            # TODO these mappings might be wrong
+            # or we might have to redo how we do evidence grouping
+            case AmpAscoCapStrengthCode.STRONG:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
-            case AmpAscoCapStrength.LEVEL_B:
+            case AmpAscoCapStrengthCode.POTENTIAL:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000004"]
+            # not clear to me if we need these long term or if we'll always just be
+            # grouping based on overall clinical significance -- saving them for now
+            case AmpAscoCapEvidenceLineStrength.A:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
+            case AmpAscoCapEvidenceLineStrength.B:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000005"]
-            case AmpAscoCapStrength.LEVEL_C:
+            case AmpAscoCapEvidenceLineStrength.C:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
-            case AmpAscoCapStrength.LEVEL_D:
+            case AmpAscoCapEvidenceLineStrength.D:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
             case _:
                 raise ValueError
@@ -311,8 +398,8 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             )
             raise ValueError
         vicc_vocab_entry = VICC_CODE_EXACT_MAPPING_INDEX[src_level]
-    if not vicc_vocab_entry.aac_mapping:
-        return None
+    # if not vicc_vocab_entry.aac_mapping:
+    #     return None
 
     mappings = [
         ConceptMapping(
@@ -339,7 +426,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
         extensions=[
             Extension(
                 name="metakb_display_value",
-                value=vicc_vocab_entry.aac_mapping.value.removeprefix("Level "),
+                value=vicc_vocab_entry.display_value.removeprefix("Level "),
             )
         ],
     )
@@ -366,7 +453,19 @@ def _get_vicc_strength(strength: MappableConcept) -> MappableConcept:
     return vicc_strength
 
 
-def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
+@overload
+def _initialize_evidence_line(
+    ev_item: VariantClinicalSignificanceStatement,
+) -> AmpAscoCapEvidenceLine: ...
+
+
+@overload
+def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine: ...
+
+
+def _initialize_evidence_line(
+    ev_item: Statement | VariantClinicalSignificanceStatement,
+) -> EvidenceLine | AmpAscoCapEvidenceLine:
     """Create initial evidence line wrapped around new evidence item
 
     This function MUST define
@@ -409,13 +508,32 @@ def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     )
 
 
+@overload
 def initialize_assertion(
     assertion_id: str,
     proposition: VariantDiagnosticProposition
     | VariantPrognosticProposition
     | VariantTherapeuticResponseProposition,
     evidence_item: Statement,
-) -> Statement:
+) -> Statement: ...
+
+
+@overload
+def initialize_assertion(
+    assertion_id: str,
+    proposition: VariantClinicalSignificanceProposition,
+    evidence_item: VariantClinicalSignificanceStatement,
+) -> VariantClinicalSignificanceStatement: ...
+
+
+def initialize_assertion(
+    assertion_id: str,
+    proposition: VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantTherapeuticResponseProposition
+    | VariantClinicalSignificanceProposition,
+    evidence_item: Statement | VariantClinicalSignificanceStatement,
+) -> Statement | VariantClinicalSignificanceStatement:
     """Create a new metakb assertion given some previously-computed parameters
 
     Implementation makes use of some stuff that the existing ingest/transform pipeline
@@ -427,6 +545,31 @@ def initialize_assertion(
     :return: full metakb assertion containing a single evidence line
     """
     evidence_line = _initialize_evidence_line(evidence_item)
+    if isinstance(proposition, VariantClinicalSignificanceProposition) and isinstance(
+        evidence_item, VariantClinicalSignificanceStatement
+    ):
+        import ipdb
+
+        ipdb.set_trace()
+        return VariantClinicalSignificanceStatement(
+            id=assertion_id,
+            proposition=proposition,
+            direction=evidence_line.directionOfEvidenceProvided,
+            strength=evidence_line.strengthOfEvidenceProvided,
+            classification=evidence_item.classification,
+            specifiedBy=METAKB_METHOD,
+            hasEvidenceLines=[evidence_line],
+            extensions=[
+                Extension(
+                    name="metakb_star_rating",
+                    value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
+                ),
+                Extension(
+                    name="metakb_star_rating_reason",
+                    value=evidence_line.extensions[0].value,
+                ),
+            ],
+        )
     return Statement(
         id=assertion_id,
         proposition=proposition,
@@ -564,29 +707,6 @@ def _get_evidence_from_assertion(assertion: Statement) -> list[Statement]:
     return results
 
 
-def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
-    """Combine two assertions with the same proposition
-
-    :param assertion: assertion #1
-    :param new_assertion: assertion #2
-    :return: assertion #1, now containing all evidence items from #2
-    :raise ValueError: if assertion IDs aren't matching
-    """
-    if assertion.id != new_assertion.id:
-        raise ValueError
-
-    assertion_item_ids = {s.id for s in _get_evidence_from_assertion(assertion)}
-    new_assertion_items = _get_evidence_from_assertion(new_assertion)
-
-    for item in new_assertion_items:
-        # skip redundant evidence
-        if item.id not in assertion_item_ids:
-            add_evidence_to_assertion(assertion, item)
-
-    _recompute_aggregate_assertion_values(assertion)
-    return assertion
-
-
 def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Statement:
     """Fold new evidence item into assertion
 
@@ -661,6 +781,29 @@ def add_evidence_to_assertion(assertion: Statement, new_item: Statement) -> Stat
         if not grouped_existing_low_star:
             # First low-star item goes directly under the assertion.
             assertion.hasEvidenceLines.append(item_ev_line)
+
+    _recompute_aggregate_assertion_values(assertion)
+    return assertion
+
+
+def merge_assertions(assertion: Statement, new_assertion: Statement) -> Statement:
+    """Combine two assertions with the same proposition
+
+    :param assertion: assertion #1
+    :param new_assertion: assertion #2
+    :return: assertion #1, now containing all evidence items from #2
+    :raise ValueError: if assertion IDs aren't matching
+    """
+    if assertion.id != new_assertion.id:
+        raise ValueError
+
+    assertion_item_ids = {s.id for s in _get_evidence_from_assertion(assertion)}
+    new_assertion_items = _get_evidence_from_assertion(new_assertion)
+
+    for item in new_assertion_items:
+        # skip redundant evidence
+        if item.id not in assertion_item_ids:
+            add_evidence_to_assertion(assertion, item)
 
     _recompute_aggregate_assertion_values(assertion)
     return assertion

@@ -26,15 +26,15 @@ description = "A search interface for cancer variant interpretations assembled b
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = [
-    "ga4gh.vrs>=2.2.0,<3.0",
-    "ga4gh.cat_vrs~=0.7.2",
-    "ga4gh.va_spec~=0.4.3",
+    "ga4gh.vrs~=2.4.0-a1",
+    "ga4gh.cat_vrs~=0.8.0-a2",
+    "ga4gh.va_spec~=0.5.0-a0",
     "cool-seq-tool ~= 0.16.0",
     "gene-normalizer[etl]~=0.11.5",
     "variation-normalizer~=0.15.4",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy~=5.3.0",
+    "civicpy @ git+https://github.com/griffithlab/civicpy@a3594d63f2eff8e49c9f996cb54f21e8457a631d",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",
