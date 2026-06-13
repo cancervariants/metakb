@@ -4,6 +4,50 @@
 * Provide functions for converting between different systems of evidence strength
 * Provide a function for properly merging evidence into existing assertions
 
+The general model of MetaKB assertions looks like this:
+
+- type: Statement
+  id: a `metakb.assertion:` prefix + a digest built from proposition entity IDs
+  extensions:
+    - >
+      a `metakb_star_rating` extension with values bounded by the `StarRating` enum
+      defined in this module. Aggregated from evidence lines. This is how we represent
+      factors like consensus and quality across evidence lines.
+    - >
+      a `metakb_star_rating_reason` extension with values bounded by the
+      `StarRatingReason` enum defined in this module.
+  specifiedBy: the MetaKB "method". At time of writing, this is a glorified placeholder.
+  direction: aggregated from evidence lines
+  strength: >
+    a VICC strength code MappableConcept, equal to the highest-strength contained
+    evidence line. Ideally contains mappings to source strength codes, AMP/ASCO/CAP, etc
+  proposition: consisting of normalized biomedical entities, ie processed by VICC normalizers
+  hasEvidenceLines:
+    - type: EvidenceLine
+    - id: a `metakb.evline` prefix + a digest built from contained IDs
+    - extensions:
+      - >
+        a `metakb_star_rating_reason` extension with values bounded by the
+        `StarRatingReason` enum defined in this module
+    - directionOfEvidenceProvided: aggregated from ev items
+    - strengthOfEvidenceProvided: >
+        a VICC strength code MappableConcept. Aggregated from contained ev lines/items.
+        If different sources' strength codes map to the same VICC code, a single evidence
+        line should contain both.
+    - evidenceOutcome: MappableConcept for MetaKB star rating
+    - hasEvidenceItems:
+      - type: Statement
+        # other properties etc
+      - type: EvidenceLine
+        # other properties etc
+
+Generally, the rules for evidence line structure are
+
+* 3- and 4-star items are added directly under the assertion
+* If there's only a single 1- or 2-star item, it goes directly under the assertion
+* Once a second 1- or 2-star item is added, it gets moved down into another evidence
+  line. All subsequent 1-star or 2-star items are added to that evidence line.
+
 """
 
 import logging
