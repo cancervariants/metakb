@@ -91,17 +91,6 @@ class MolecularProfileNameComponents:
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
-    @staticmethod
-    def _assertion_has_vcep_approval(item: civicpy.Assertion) -> bool:
-        """Check if any of the assertion's approvals is from a VCEP-approved org.
-        :param item: The civicpy Assertion to check
-        :return: True if an approval was found where the organization that approved it is an SC-VCEP
-        """
-        return any(
-            getattr(getattr(approval, "organization", None), "is_approved_vcep", False)
-            for approval in (getattr(item, "approvals", None) or [])
-        )
-
     async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform CIViC evidence and assertions to common data model.
 
@@ -115,7 +104,7 @@ class CivicTransformer(Transformer):
         """
         civicpy.load_cache(str(harvested_data_path), on_stale="ignore")
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
-        accepted_evidence_items = []  # TODO remove
+        accepted_evidence_items = []  # TODO remove THIS!!!!
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
         assertions = {}
@@ -169,6 +158,17 @@ class CivicTransformer(Transformer):
             [th.id for th in therapy_group.therapies],
         )
 
+    @staticmethod
+    def _assertion_has_vcep_approval(item: civicpy.Assertion) -> bool:
+        """Check if any of the assertion's approvals is from a VCEP-approved org.
+        :param item: The civicpy Assertion to check
+        :return: True if an approval was found where the organization that approved it is an SC-VCEP
+        """
+        return any(
+            getattr(getattr(approval, "organization", None), "is_approved_vcep", False)
+            for approval in (getattr(item, "approvals", None) or [])
+        )
+
     def _civic_claim_to_statement(
         self,
         item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,
@@ -218,9 +218,6 @@ class CivicTransformer(Transformer):
         elif isinstance(item, civicpy.Assertion):
             try:
                 statement = CivicGksAssertion(item)
-                import ipdb
-
-                ipdb.set_trace()
                 # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []

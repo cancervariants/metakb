@@ -57,6 +57,7 @@ from typing import overload
 from ga4gh.core.models import Coding, Extension, Relation, code
 from ga4gh.va_spec.aac_2017 import (
     AmpAscoCapEvidenceLine,
+    AmpAscoCapEvidenceLineStrength,
     AmpAscoCapStrengthCode,
     VariantClinicalSignificanceStatement,
 )
@@ -148,11 +149,25 @@ def get_evidence_level_coding(
             system = CIVIC_SYSTEM
         case MoaEvidenceLevel():
             system = MOA_SYSTEM
-        case AmpAscoCapStrengthCode():
+        case AmpAscoCapStrengthCode() | AmpAscoCapEvidenceLineStrength():
             system = System.AMP_ASCO_CAP
         case _:
             raise ValueError  # just in case
     return Coding(system=system, code=code(evidence_level.value))
+
+
+class MetakbDisplayValue(StrEnum):
+    """Constrain values that evidence gets grouped into for frontend display purposes
+
+    An assertion consisting of multiple pieces of evidence shows a breakdown of all
+    evidence by strength in a small piechart in the search results page. This enum
+    is the basis for those groupings.
+    """
+
+    A = "A"
+    B = "B"
+    C = "C"
+    D = "D"
 
 
 class ViccConceptVocabEntry(BaseModel):
@@ -167,11 +182,11 @@ class ViccConceptVocabEntry(BaseModel):
     term: StrictStr
     parents: list[StrictStr] = []
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
-    aac_mapping: AmpAscoCapStrengthCode | None = None
+    aac_mapping: AmpAscoCapEvidenceLineStrength | None = None
     definition: StrictStr
     # value to be displayed on frontend --
     # formatted differently for different levels of assertion
-    display_value_base: StrictStr
+    display_value: MetakbDisplayValue
 
 
 _vicc_concept_vocab = [
@@ -181,9 +196,9 @@ _vicc_concept_vocab = [
         term="evidence",
         parents=[],
         source_mappings={EcoLevel.EVIDENCE},
-        aac_mapping=AmpAscoCapStrengthCode.STRONG,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="A type of information that is used to support statements.",
-        display_value_base="A",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000001",
@@ -191,9 +206,9 @@ _vicc_concept_vocab = [
         term="authoritative evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.A},
-        aac_mapping=AmpAscoCapStrengthCode.STRONG,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from an authoritative source describing a proven or consensus statement.",
-        display_value_base="Level A",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000002",
@@ -201,9 +216,9 @@ _vicc_concept_vocab = [
         term="FDA recognized evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.FDA_APPROVED},
-        aac_mapping=AmpAscoCapStrengthCode.STRONG,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from statements recognized by the US Food and Drug Administration.",
-        display_value_base="Level A",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000003",
@@ -211,9 +226,9 @@ _vicc_concept_vocab = [
         term="professional guideline evidence",
         parents=["vicc:e000001"],
         source_mappings={MoaEvidenceLevel.GUIDELINE},
-        aac_mapping=AmpAscoCapStrengthCode.STRONG,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.A,
         definition="Evidence derived from statements by professional society guidelines",
-        display_value_base="Level A",
+        display_value=MetakbDisplayValue.A,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000004",
@@ -221,9 +236,9 @@ _vicc_concept_vocab = [
         term="clinical evidence",
         parents=["vicc:e000000"],
         source_mappings={EcoLevel.CLINICAL_STUDY_EVIDENCE},
-        aac_mapping=AmpAscoCapStrengthCode.POTENTIAL,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.B,
         definition="Evidence derived from clinical research studies",
-        display_value_base="Level B",
+        display_value=MetakbDisplayValue.B,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000005",
@@ -231,9 +246,9 @@ _vicc_concept_vocab = [
         term="clinical cohort evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.B},
-        aac_mapping=AmpAscoCapStrengthCode.POTENTIAL,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.B,
         definition="Evidence derived from the clinical study of a participant cohort",
-        display_value_base="Level B",
+        display_value=MetakbDisplayValue.B,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000006",
@@ -241,9 +256,9 @@ _vicc_concept_vocab = [
         term="interventional study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_TRIAL},
-        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from interventional studies of clinical cohorts (clinical trials)",
-        display_value_base="Level C",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000007",
@@ -251,9 +266,9 @@ _vicc_concept_vocab = [
         term="observational study evidence",
         parents=["vicc:e000005"],
         source_mappings={MoaEvidenceLevel.CLINICAL_EVIDENCE},
-        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from observational studies of clinical cohorts",
-        display_value_base="Level C",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000008",
@@ -261,9 +276,9 @@ _vicc_concept_vocab = [
         term="case study evidence",
         parents=["vicc:e000004"],
         source_mappings={CivicEvidenceLevel.C},
-        # aac_mapping=AmpAscoCapStrength.LEVEL_C,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.C,
         definition="Evidence derived from clinical study of a single participant",
-        display_value_base="Level C",
+        display_value=MetakbDisplayValue.C,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000009",
@@ -271,9 +286,9 @@ _vicc_concept_vocab = [
         term="preclinical evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.D, MoaEvidenceLevel.PRECLINICAL},
-        # aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.D,
         definition="Evidence derived from the study of model organisms",
-        display_value_base="Level D",
+        display_value=MetakbDisplayValue.D,
     ),
     ViccConceptVocabEntry(
         id="vicc:e000010",
@@ -281,9 +296,9 @@ _vicc_concept_vocab = [
         term="inferential evidence",
         parents=["vicc:e000000"],
         source_mappings={CivicEvidenceLevel.E, MoaEvidenceLevel.INFERENTIAL},
-        # aac_mapping=AmpAscoCapStrength.LEVEL_D,
+        aac_mapping=AmpAscoCapEvidenceLineStrength.D,
         definition="Evidence derived by inference",
-        display_value_base="Level D",
+        display_value=MetakbDisplayValue.D,
     ),
 ]
 
@@ -351,14 +366,22 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
     """
     if strength.primaryCoding.system == System.AMP_ASCO_CAP:
         match strength.primaryCoding.code.root:
+            # TODO these mappings might be wrong
+            # or we might have to redo how we do evidence grouping
             case AmpAscoCapStrengthCode.STRONG:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
             case AmpAscoCapStrengthCode.POTENTIAL:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000004"]
+            # not clear to me if we need these long term or if we'll always just be
+            # grouping based on overall clinical significance -- saving them for now
+            case AmpAscoCapEvidenceLineStrength.A:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000001"]
+            case AmpAscoCapEvidenceLineStrength.B:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000005"]
-            # case AmpAscoCapStrength.LEVEL_C:
-            #     vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
-            # case AmpAscoCapStrength.LEVEL_D:
-            #     vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
+            case AmpAscoCapEvidenceLineStrength.C:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
+            case AmpAscoCapEvidenceLineStrength.D:
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
             case _:
                 raise ValueError
     elif strength.primaryCoding.system == FDA_SYSTEM:
@@ -403,7 +426,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
         extensions=[
             Extension(
                 name="metakb_display_value",
-                value=vicc_vocab_entry.display_value_base.removeprefix("Level "),
+                value=vicc_vocab_entry.display_value.removeprefix("Level "),
             )
         ],
     )

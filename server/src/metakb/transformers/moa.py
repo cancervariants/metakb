@@ -208,7 +208,7 @@ class MoaTransformer(Transformer):
             extensions=[
                 Extension(
                     name="metakb_display_value",
-                    value=vicc_code.display_value_base,
+                    value=vicc_code.display_value,
                 )
             ],
         )
