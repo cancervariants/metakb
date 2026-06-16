@@ -10,12 +10,11 @@ from ga4gh.core.models import (
     Relation,
     code,
 )
+from ga4gh.va_spec.aac_2017 import AmpAscoCapEvidenceLineStrength
 from ga4gh.va_spec.aac_2017.models import AmpAscoCapStrengthCode
 from ga4gh.va_spec.base import Statement, System
 
-from metakb.transformers.methodology import (
-    src_strength_to_vicc_code,
-)
+from metakb.transformers.methodology import FDA_SYSTEM, src_strength_to_vicc_code
 
 
 @pytest.fixture(scope="session")
@@ -27,7 +26,28 @@ def statements(test_data_dir: Path) -> dict[str, Statement]:
         return {k: Statement(**v) for k, v in data.items()}
 
 
-def test_moa_strength_to_vicc_code():
+@pytest.fixture
+def fda_approved_strength() -> MappableConcept:
+    return MappableConcept(
+        id="vicc:e000002",
+        name="FDA recognized evidence",
+        extensions=[Extension(name="metakb_display_value", value="A")],
+        mappings=[
+            ConceptMapping(
+                coding=Coding(
+                    system="https://moalmanac.org/about", code=code("FDA-Approved")
+                ),
+                relation=Relation("exactMatch"),
+            ),
+            ConceptMapping(
+                coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("A")),
+                relation=Relation.RELATED_MATCH,
+            ),
+        ],
+    )
+
+
+def test_moa_strength_to_vicc_code(fda_approved_strength: MappableConcept):
     moa = MappableConcept(
         id="moa.strength:FDA-Approved",
         extensions=[Extension(name="metakb_display_value", value="A")],
@@ -36,21 +56,7 @@ def test_moa_strength_to_vicc_code():
         ),
     )
     response = src_strength_to_vicc_code(moa)
-    assert response.id == "vicc:e000002"
-    assert response.name == "FDA recognized evidence"
-    assert response.extensions == [Extension(name="metakb_display_value", value="A")]
-    assert response.mappings == [
-        ConceptMapping(
-            coding=Coding(
-                system="https://moalmanac.org/about", code=code("FDA-Approved")
-            ),
-            relation=Relation("exactMatch"),
-        ),
-        ConceptMapping(
-            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level A")),
-            relation=Relation.RELATED_MATCH,
-        ),
-    ]
+    assert response == fda_approved_strength
 
 
 def test_civic_strength_to_vicc_code():
@@ -86,21 +92,21 @@ def test_civic_strength_to_vicc_code():
             relation=Relation("exactMatch"),
         ),
         ConceptMapping(
-            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level C")),
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("C")),
             relation=Relation.RELATED_MATCH,
         ),
     ]
 
 
-def test_aac_strength_to_vicc_code():
+def test_aac_evline_strength_to_vicc_code():
     aac = MappableConcept(
-        id="amp_asco_cap:strong",
-        extensions=[Extension(name="metakb_display_value", value="strong")],
+        id="amp_asco_cap:C",
+        extensions=[Extension(name="metakb_display_value", value="C")],
         conceptType=None,
         name=None,
         primaryCoding=Coding(
             system=System.AMP_ASCO_CAP.value,
-            code=code(root=AmpAscoCapStrengthCode.STRONG.value),
+            code=code(root=AmpAscoCapEvidenceLineStrength.C),
         ),
     )
     response = src_strength_to_vicc_code(aac)
@@ -116,14 +122,49 @@ def test_aac_strength_to_vicc_code():
             relation=Relation("exactMatch"),
         ),
         ConceptMapping(
-            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("Level C")),
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("C")),
             relation=Relation.RELATED_MATCH,
         ),
     ]
 
 
-def test_fda_strength_to_vicc_code():
-    pass  # TODO
+def test_aac_significance_to_vicc_code():
+    """Note: these are all wrong"""
+    aac = MappableConcept(
+        id="amp_asco_cap:strong",
+        extensions=[Extension(name="metakb_display_value", value="A")],
+        primaryCoding=Coding(
+            system=System.AMP_ASCO_CAP.value,
+            code=code(root=AmpAscoCapStrengthCode.STRONG),
+        ),
+    )
+    response = src_strength_to_vicc_code(aac)
+    assert response.id == "vicc:e000001"
+    assert response.name == "authoritative evidence"
+    assert response.extensions == [Extension(name="metakb_display_value", value="A")]
+    assert response.mappings == [
+        ConceptMapping(
+            coding=Coding(
+                system="https://civic.readthedocs.io/en/latest/model/evidence/level.html",
+                code=code("A"),
+            ),
+            relation=Relation("exactMatch"),
+        ),
+        ConceptMapping(
+            coding=Coding(system="AMP/ASCO/CAP Guidelines, 2017", code=code("A")),
+            relation=Relation.RELATED_MATCH,
+        ),
+    ]
+
+
+def test_fda_strength_to_vicc_code(fda_approved_strength: MappableConcept):
+    fda = MappableConcept(
+        id="fda_poda:approved",
+        extensions=[Extension(name="metakb_display_value", value="A")],
+        primaryCoding=Coding(system=FDA_SYSTEM, code=code(root="FDA-Approved")),
+    )
+    response = src_strength_to_vicc_code(fda)
+    assert response == fda_approved_strength
 
 
 def test_initialize_assertion(statements: dict[str, Statement]):
