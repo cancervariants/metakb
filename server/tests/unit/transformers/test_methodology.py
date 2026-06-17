@@ -30,6 +30,9 @@ def statements(test_data_dir: Path) -> dict[str, Statement]:
 def fda_approved_strength() -> MappableConcept:
     return MappableConcept(
         id="vicc:e000002",
+        primaryCoding=Coding(
+            system="https://go.osu.edu/evidence-codes", code=code("e000002")
+        ),
         name="FDA recognized evidence",
         extensions=[Extension(name="metakb_display_value", value="A")],
         mappings=[

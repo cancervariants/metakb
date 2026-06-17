@@ -184,8 +184,6 @@ class ViccConceptVocabEntry(BaseModel):
     source_mappings: set[CivicEvidenceLevel | MoaEvidenceLevel | EcoLevel] = set()
     aac_mapping: AmpAscoCapEvidenceLineStrength | None = None
     definition: StrictStr
-    # value to be displayed on frontend --
-    # formatted differently for different levels of assertion
     display_value: MetakbDisplayValue
 
 
@@ -548,9 +546,6 @@ def initialize_assertion(
     if isinstance(proposition, VariantClinicalSignificanceProposition) and isinstance(
         evidence_item, VariantClinicalSignificanceStatement
     ):
-        import ipdb
-
-        ipdb.set_trace()
         return VariantClinicalSignificanceStatement(
             id=assertion_id,
             proposition=proposition,
