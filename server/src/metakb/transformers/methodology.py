@@ -2,7 +2,8 @@
 
 * Define source evidence levels and VICC evidence codes
 * Provide functions for converting between different systems of evidence strength
-* Provide a function for properly merging evidence into existing assertions
+* Provide functions for constructing evidentiary scaffolding for MetaKB assertions
+* Provide a function for properly merging new evidence into existing assertions
 
 The general model of MetaKB assertions looks like this:
 
@@ -466,7 +467,9 @@ def _initialize_evidence_line(
 ) -> EvidenceLine | AmpAscoCapEvidenceLine:
     """Create initial evidence line wrapped around new evidence item
 
-    This function MUST define
+    Critically, this function is the location of the star rating calculation logic.
+
+    This function MUST define:
 
     * ``id`` -- needed for dropping/recreating nodes in the DB
     * ``strengthOfEvidenceProvided`` (using VICC evidence codes)

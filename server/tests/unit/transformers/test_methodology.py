@@ -10,8 +10,10 @@ from ga4gh.core.models import (
     Relation,
     code,
 )
-from ga4gh.va_spec.aac_2017 import AmpAscoCapEvidenceLineStrength
-from ga4gh.va_spec.aac_2017.models import AmpAscoCapStrengthCode
+from ga4gh.va_spec.aac_2017.models import (
+    AmpAscoCapEvidenceLineStrength,
+    AmpAscoCapStrengthCode,
+)
 from ga4gh.va_spec.base import Statement, System
 
 from metakb.transformers.methodology import FDA_SYSTEM, src_strength_to_vicc_code
@@ -171,6 +173,10 @@ def test_fda_strength_to_vicc_code(fda_approved_strength: MappableConcept):
 
 
 def test_initialize_assertion(statements: dict[str, Statement]):
+    pass  # TODO
+
+
+def test_initialize_assertion_aac(statements: dict[str, Statement]):
     pass  # TODO
 
 

@@ -50,6 +50,9 @@ class FdaPodaTransformer(Transformer):
         statements: list[Statement] = []
         assertions: dict[str, Statement] = {}
         for ev_item in tqdm(harvested_data.statements):
+            import ipdb
+
+            ipdb.set_trace()
             if isinstance(ev_item.proposition.conditionQualifier.root, ConditionSet):
                 self._ensure_conditionset_id(
                     ev_item.proposition.conditionQualifier.root
