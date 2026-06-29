@@ -452,19 +452,7 @@ def _get_vicc_strength(strength: MappableConcept) -> MappableConcept:
     return vicc_strength
 
 
-@overload
-def _initialize_evidence_line(
-    ev_item: VariantClinicalSignificanceStatement,
-) -> AmpAscoCapEvidenceLine: ...
-
-
-@overload
-def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine: ...
-
-
-def _initialize_evidence_line(
-    ev_item: Statement | VariantClinicalSignificanceStatement,
-) -> EvidenceLine | AmpAscoCapEvidenceLine:
+def _initialize_evidence_line(ev_item: Statement) -> EvidenceLine:
     """Create initial evidence line wrapped around new evidence item
 
     Critically, this function is the location of the star rating calculation logic.
@@ -509,32 +497,13 @@ def _initialize_evidence_line(
     )
 
 
-@overload
 def initialize_assertion(
     assertion_id: str,
     proposition: VariantDiagnosticProposition
     | VariantPrognosticProposition
     | VariantTherapeuticResponseProposition,
-    evidence_item: Statement,
-) -> Statement: ...
-
-
-@overload
-def initialize_assertion(
-    assertion_id: str,
-    proposition: VariantClinicalSignificanceProposition,
-    evidence_item: VariantClinicalSignificanceStatement,
-) -> VariantClinicalSignificanceStatement: ...
-
-
-def initialize_assertion(
-    assertion_id: str,
-    proposition: VariantDiagnosticProposition
-    | VariantPrognosticProposition
-    | VariantTherapeuticResponseProposition
-    | VariantClinicalSignificanceProposition,
     evidence_item: Statement | VariantClinicalSignificanceStatement,
-) -> Statement | VariantClinicalSignificanceStatement:
+) -> Statement:
     """Create a new metakb assertion given some previously-computed parameters
 
     Implementation makes use of some stuff that the existing ingest/transform pipeline

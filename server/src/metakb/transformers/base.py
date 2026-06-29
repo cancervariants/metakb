@@ -85,6 +85,8 @@ class Transformer(ABC):
         queries = []
         if concept.id:
             queries.append(concept.id)
+        if concept.primaryCoding:
+            queries.append(concept.primaryCoding.code.root)
         if concept.name:
             queries.append(concept.name)
         if concept.mappings:
@@ -402,14 +404,14 @@ class Transformer(ABC):
 
     async def _upsert_assertion_from_evidence(
         self,
-        evidence_item: Statement | VariantClinicalSignificanceStatement,
-        assertions_map: dict[str, Statement | VariantClinicalSignificanceStatement],
+        evidence_item: Statement,
+        assertions_map: dict[str, Statement],
     ) -> None:
         """Create or update an assertion from a single evidence item.
 
-        The transformer workflow's assertions tracker is borrowed and updated in-place.
-
-        If the proposition cannot be normalized, no assertion is created.
+        * The transformer workflow's assertions tracker is borrowed and updated in-place.
+        * If the proposition cannot be normalized, no assertion is created.
+        * Clinical significance statements
 
         :param evidence_item: source statement to incorporate as evidence
         :param assertions_map: mapping of assertion_id -> Statement, updated in place

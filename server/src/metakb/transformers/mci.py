@@ -4,8 +4,8 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from tqdm import tqdm
 from ga4gh.cat_vrs.models import CategoricalVariant
+from tqdm import tqdm
 
 from metakb.harvesters.mci import MciHarvestedData
 from metakb.schemas.data import TransformedData
@@ -24,6 +24,11 @@ class MciTransformer(Transformer):
 
         Will store transformed results in ``processed_data`` instance variable.
 
+        Post-processing we have to:
+
+        * Add IDs to stuff
+        * todo figure out more
+
         :param harvested_data: FDA-PODA harvested data
         :return: transformed statements
         """
@@ -32,6 +37,7 @@ class MciTransformer(Transformer):
         statements: list[VariantClinicalSignificanceStatement | Statement] = []
         assertions: dict[str, VariantClinicalSignificanceStatement | Statement] = {}
         for ev_item in tqdm(harvested_data.statements):
+            continue
             # TODO
             # double check that conditionsets and therapygroups are ID'd
             # and documents
@@ -45,4 +51,5 @@ class MciTransformer(Transformer):
     async def _normalize_variant(
         self, variant: CategoricalVariant
     ) -> CategoricalVariant | None:
+        # TODO allele -> catvar w/ DAC
         raise NotImplementedError

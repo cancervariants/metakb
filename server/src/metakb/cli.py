@@ -50,8 +50,12 @@ from metakb.repository.neo4j_repository import (
 from metakb.schemas.app import SourceName
 from metakb.services.load_data import load_from_json
 from metakb.source_data import SourceDataStore
-from metakb.transformers import CivicTransformer, MoaTransformer
-from metakb.transformers.fda_poda import FdaPodaTransformer
+from metakb.transformers import (
+    CivicTransformer,
+    FdaPodaTransformer,
+    MciTransformer,
+    MoaTransformer,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -731,6 +735,7 @@ async def _transform_source(
         SourceName.CIVIC: CivicTransformer,
         SourceName.MOA: MoaTransformer,
         SourceName.FDA_PODA: FdaPodaTransformer,
+        SourceName.MCI: MciTransformer,
     }
     _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()

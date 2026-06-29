@@ -104,7 +104,7 @@ class CivicTransformer(Transformer):
         """
         civicpy.load_cache(str(harvested_data_path), on_stale="ignore")
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
-        accepted_evidence_items = []  # TODO remove THIS!!!!
+        accepted_evidence_items = []  # TODO remove THIS!!!! just using it to skip statements
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
         assertions = {}
@@ -186,6 +186,7 @@ class CivicTransformer(Transformer):
         :raise TypeError: if unrecognized item type is given
         """
         statement = None
+        # item is an independent statement
         if isinstance(item, civicpy.Evidence):
             try:
                 statement = Statement(**CivicGksEvidence(item).model_dump())
@@ -204,6 +205,7 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
+        # item is a statement supporting an assertion
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
             statement.strength.extensions = [
@@ -215,9 +217,24 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
+        # item is an assertion
         elif isinstance(item, civicpy.Assertion):
             try:
-                statement = CivicGksAssertion(item)
+                clinsig_statement = CivicGksAssertion(item)
+                if len(clinsig_statement.hasEvidenceLines or []) != 1:
+                    msg = "Assumption of 1 evidence line is broken"
+                    raise ValueError(msg)
+                ev_line = clinsig_statement.hasEvidenceLines[0]
+                statement = Statement(
+                    id=clinsig_statement.id,
+                    strength=ev_line.strengthOfEvidenceProvided,
+                    proposition=ev_line.targetProposition,
+                    direction=clinsig_statement.direction,
+                    hasEvidenceLines=[ev_line],
+                    specifiedBy=clinsig_statement.specifiedBy,
+                    reportedIn=clinsig_statement.reportedIn,  # TODO might need to deref this
+                )
+
                 # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
@@ -231,9 +248,7 @@ class CivicTransformer(Transformer):
                 statement.strength.extensions = [
                     Extension(
                         name="metakb_display_value",
-                        value=statement.strength.primaryCoding.code.root.removeprefix(
-                            "Level "
-                        ),
+                        value=statement.strength.primaryCoding.code.root,
                     )
                 ]
                 statement.strength.id = (
