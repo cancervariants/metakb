@@ -141,11 +141,8 @@ class MciTransformer(Transformer):
             MoleculeType.GENOMIC,
         }:
             cv_id = f"metakb.cv:DAC.{allele.id.split(':')[1]}"
-            cv_name = self.vicc_normalizers.allele_tlr.translate_to(allele, fmt="hgvs")[
-                0
-            ]
         else:
             raise ValueError
         return CategoricalVariant(
-            id=cv_id, name=cv_name, constraints=variant.constraints
+            id=cv_id, name=variant.name, constraints=variant.constraints
         )
