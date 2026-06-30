@@ -97,7 +97,16 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        working-directory: ./client
+        run: pnpm install --frozen-lockfile
+
+      - name: Debug versions
+        working-directory: ./client
+        run: |
+          node --version
+          pnpm --version
+          pnpm exec prettier --version
+          pnpm why prettier
 
       - name: Lint code
         working-directory: ./client
