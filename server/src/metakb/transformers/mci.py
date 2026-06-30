@@ -11,6 +11,7 @@ from ga4gh.cat_vrs.models import (
 )
 from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
+    ClinicalVariantProposition,
     Condition,
     Statement,
     VariantDiagnosticProposition,
@@ -78,6 +79,9 @@ class MciTransformer(Transformer):
                 specifiedBy=ev_item.specifiedBy,
                 reportedIn=ev_line.reportedIn,
             )
+            statement.strength.id = (
+                f"amp_asc_cap:{statement.strength.primaryCoding.code.root}"
+            )
             statement.strength.extensions = [
                 Extension(
                     name="metakb_display_value",
@@ -91,6 +95,11 @@ class MciTransformer(Transformer):
         )
 
     def _ensure_condition_id(self, condition: Condition) -> Condition:
+        """Ensure that a condition has a populated root identifier
+
+        Used to create IDs for loading in the DB and for generating higher level
+        hashed IDs
+        """
         if not condition.root.id:
             if isinstance(condition.root, MappableConcept):
                 if condition.root.primaryCoding:
@@ -102,24 +111,17 @@ class MciTransformer(Transformer):
         return condition
 
     def _ensure_entity_ids(
-        self,
-        prop: VariantDiagnosticProposition
-        | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition,
-    ) -> (
-        VariantDiagnosticProposition
-        | VariantPrognosticProposition
-        | VariantTherapeuticResponseProposition
-    ):
+        self, prop: ClinicalVariantProposition
+    ) -> ClinicalVariantProposition:
         prop.geneContextQualifier.id = f"mci.gene:{prop.geneContextQualifier.name}"
-        if isinstance(prop, VariantTherapeuticResponseProposition):
-            import ipdb  # TODO does this happen?
-
-            ipdb.set_trace()
-            prop.objectTherapeutic.id = f"mci.therapy:{prop.objectTherapeutic.name}"
-            prop.conditionQualifier = self._ensure_condition_id(prop.conditionQualifier)
-        else:
+        if isinstance(
+            prop, (VariantDiagnosticProposition, VariantPrognosticProposition)
+        ):
             prop.objectCondition = self._ensure_condition_id(prop.objectCondition)
+        else:
+            msg = "Encountered unexpected proposition type -- has the underlying data changed?"
+            _logger.exception("Unexpected proposition type: %s", prop)
+            raise TypeError(msg)
         return prop
 
     async def _normalize_variant(

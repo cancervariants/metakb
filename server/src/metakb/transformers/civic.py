@@ -104,7 +104,6 @@ class CivicTransformer(Transformer):
         """
         civicpy.load_cache(str(harvested_data_path), on_stale="ignore")
         accepted_evidence_items = civicpy.get_all_evidence(include_status=["accepted"])
-        accepted_evidence_items = []  # TODO remove THIS!!!! just using it to skip statements
         accepted_assertions = civicpy.get_all_assertions(include_status=["accepted"])
         statements = []
         assertions = {}

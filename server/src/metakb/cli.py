@@ -16,6 +16,7 @@ from timeit import default_timer as timer
 from zipfile import ZipFile
 
 import boto3
+from civicpy.civic import Source
 import click
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
@@ -594,6 +595,30 @@ def load_cdm(
         available locally for each source.
     """  # noqa: D301
     asyncio.run(_load_cdm(db_url, from_s3, cdm_files))
+
+
+async def _load_source_cdms(sources: tuple[SourceName, ...], db_url: str) -> None:
+    for source in sources:
+        async with _get_repository(db_url) as repository:
+            src_data = SourceDataStore(src_name=source)
+            cdm_file = src_data.get_latest_transformed_file()
+            await load_from_json(cdm_file, repository, silent=False)
+
+
+@cli.command()
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.argument(
+    "sources",
+    metavar=_print_enum_metavar(SourceName),
+    type=click.Choice(list(SourceName), case_sensitive=False),
+    nargs=-1,
+)
+def load_source_cdms(
+    db_url: str,
+    sources: tuple[SourceName, ...],
+) -> None:
+    """Load CDMs for given source(s)"""
+    asyncio.run(_load_source_cdms(sources, db_url))
 
 
 async def _update(
