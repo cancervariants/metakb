@@ -16,7 +16,6 @@ from ga4gh.va_spec.base import (
     Statement,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
-    VariantTherapeuticResponseProposition,
 )
 from tqdm import tqdm
 
@@ -58,12 +57,12 @@ class MciTransformer(Transformer):
             ev_line = ev_item.hasEvidenceLines[0]
             proposition = ev_line.targetProposition
             proposition.subjectVariant = CategoricalVariant(
-                id="todo ahhhh",
-                name=proposition.subjectVariant.root.id,
+                id=f"mci.psq:{1}",
+                name=proposition.subjectVariant.root.expressions[0],
                 constraints=[
                     Constraint(
                         root=DefiningAlleleConstraint(
-                            allele=proposition.subjectVariant.root
+                            allele=proposition.subjectVariant.root,
                         )
                     )
                 ],
@@ -129,7 +128,10 @@ class MciTransformer(Transformer):
     ) -> CategoricalVariant | None:
         """Normalize MCI-provided variant.
 
-        This is just a pass-through method; the MCI dataset consists of normalized variants,
-        so we don't need to do any extra processing on them.
+        This is mostly just a pass-through method; the MCI dataset consists of normalized variants,
+        so we don't need to a lot of extra processing on them. We just want to change IDs/names for
+        things that metakb is inferring them for.
         """
+        # TODO generate name
+        # TODO generate id
         return variant
