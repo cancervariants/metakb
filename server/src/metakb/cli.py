@@ -507,8 +507,10 @@ def clear_db(db_url: str) -> None:
 
 
 def _confirm_remote(uri: str, assume_yes: bool) -> None:
+    if not uri:
+        uri = os.environ.get("METAKB_DB_URL", "")
     host = urlparse(uri).hostname
-    if assume_yes or host in {"localhost", "127.0.0.1", "::1"}:
+    if assume_yes or host in {"localhost", "127.0.0.1", "::1", None}:
         return
 
     click.confirm(
