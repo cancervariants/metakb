@@ -237,13 +237,6 @@ def _format_protein_change(
     raise ValueError(msg)
 
 
-def get_normalized_genomic_variant_name(
-    seqrepo_access: SeqRepoAccess, allele: Allele
-) -> str:
-    """Generate a name for a genomic variant"""
-    raise NotImplementedError
-
-
 def get_normalized_protein_consequence_name(
     seqrepo_access: SeqRepoAccess,
     transcript_mappings: TranscriptMappings,
@@ -276,6 +269,9 @@ def get_normalized_protein_consequence_name(
         start_pos,
         end_pos,
     )
+
+
+# def build_dac_catvar(tlr: AlleleTranslator)
 
 
 def build_proteinsequenceconsequence_catvar(

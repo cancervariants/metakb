@@ -7,7 +7,6 @@ from typing import TypeVar
 
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import ConceptMapping, MappableConcept, Relation
-from ga4gh.va_spec.aac_2017 import VariantClinicalSignificanceStatement
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,

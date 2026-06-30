@@ -50,7 +50,7 @@ def hash_proposition(
     ):
         member_ids += [proposition.objectCondition.root.id]
     else:
-        raise ValueError
+        raise TypeError
 
     return _hash_array(member_ids)
 

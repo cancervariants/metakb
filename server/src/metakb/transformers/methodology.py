@@ -53,11 +53,9 @@ Generally, the rules for evidence line structure are
 
 import logging
 from enum import StrEnum
-from typing import overload
 
 from ga4gh.core.models import Coding, Extension, Relation, code
 from ga4gh.va_spec.aac_2017 import (
-    AmpAscoCapEvidenceLine,
     AmpAscoCapEvidenceLineStrength,
     AmpAscoCapStrengthCode,
     VariantClinicalSignificanceStatement,

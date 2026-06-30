@@ -17,6 +17,7 @@ from ga4gh.va_spec.base import (
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
 )
+from ga4gh.vrs.models import MoleculeType
 from tqdm import tqdm
 
 from metakb.harvesters.mci import MciHarvestedData
@@ -35,11 +36,13 @@ class MciTransformer(Transformer):
 
         Will store transformed results in ``processed_data`` instance variable.
 
-        Post-processing we have to:
+        Transformations/post-processing we have to do:
 
+        * Collapse the evidence line and clinical significance assertion to reconstruct
+          a non-AMP/ASCO/CAP statement (which is not supported by MetaKB).
         * Add ID to statement. This is unstable because it's dependent on a hash of the
           proposition -- would be nice to get an upstream fix
-        * Add IDs to all proposition entities
+        * Add IDs to all proposition entities. Add name to catvar.
 
         :param harvested_data: FDA-PODA harvested data
         :return: transformed statements
@@ -56,9 +59,10 @@ class MciTransformer(Transformer):
                 continue
             ev_line = ev_item.hasEvidenceLines[0]
             proposition = ev_line.targetProposition
+            ev_allele = proposition.subjectVariant.root
             proposition.subjectVariant = CategoricalVariant(
-                id=f"mci.psq:{1}",
-                name=proposition.subjectVariant.root.expressions[0],
+                id=f"mci.cv:{ev_allele.id.replace(':', '_')}",
+                name=proposition.subjectVariant.root.expressions[0].value,
                 constraints=[
                     Constraint(
                         root=DefiningAlleleConstraint(
@@ -126,12 +130,22 @@ class MciTransformer(Transformer):
     async def _normalize_variant(
         self, variant: CategoricalVariant
     ) -> CategoricalVariant | None:
-        """Normalize MCI-provided variant.
-
-        This is mostly just a pass-through method; the MCI dataset consists of normalized variants,
-        so we don't need to a lot of extra processing on them. We just want to change IDs/names for
-        things that metakb is inferring them for.
-        """
-        # TODO generate name
-        # TODO generate id
-        return variant
+        """Normalize MCI-provided variant."""
+        if not len(variant.constraints) == 1:
+            raise ValueError
+        if not isinstance(variant.constraints[0].root, DefiningAlleleConstraint):
+            raise TypeError
+        allele = variant.constraints[0].root.allele
+        if allele.location.sequenceReference.moleculeType in {
+            MoleculeType.RNA,
+            MoleculeType.GENOMIC,
+        }:
+            cv_id = f"metakb.cv:DAC.{allele.id.split(':')[1]}"
+            cv_name = self.vicc_normalizers.allele_tlr.translate_to(allele, fmt="hgvs")[
+                0
+            ]
+        else:
+            raise ValueError
+        return CategoricalVariant(
+            id=cv_id, name=cv_name, constraints=variant.constraints
+        )

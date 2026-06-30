@@ -16,7 +16,6 @@ from timeit import default_timer as timer
 from zipfile import ZipFile
 
 import boto3
-from civicpy.civic import Source
 import click
 from boto3.exceptions import ResourceLoadException
 from botocore import UNSIGNED
@@ -44,10 +43,7 @@ from metakb.normalizers import (
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.base import AbstractRepository
-from metakb.repository.neo4j_repository import (
-    Neo4jRepository,
-    get_driver,
-)
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
 from metakb.services.load_data import load_from_json
 from metakb.source_data import SourceDataStore

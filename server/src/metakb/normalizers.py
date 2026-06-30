@@ -100,6 +100,7 @@ class ViccNormalizers:
         # during transformation
         self.seqrepo_access = variation_query_handler.seqrepo_access
         self.transcript_mappings = variation_query_handler.gnomad_vcf_to_protein_handler.mane_transcript.transcript_mappings
+        self.allele_tlr = variation_query_handler.vrs_python_tlr
 
     async def normalize_variation(
         self, query: str
