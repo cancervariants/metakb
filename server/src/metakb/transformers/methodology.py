@@ -380,7 +380,7 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             case AmpAscoCapEvidenceLineStrength.C:
                 vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000008"]
             case AmpAscoCapEvidenceLineStrength.D:
-                vicc_vocab_entry = VICC_CODE_INDEX["vicc.e000009"]
+                vicc_vocab_entry = VICC_CODE_INDEX["vicc:e000009"]
             case _:
                 raise ValueError
     elif strength.primaryCoding.system == FDA_SYSTEM:
