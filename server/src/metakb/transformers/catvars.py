@@ -271,9 +271,6 @@ def get_normalized_protein_consequence_name(
     )
 
 
-# def build_dac_catvar(tlr: AlleleTranslator)
-
-
 def build_proteinsequenceconsequence_catvar(
     seqrepo_access: SeqRepoAccess,
     transcript_mappings: TranscriptMappings,

@@ -9,6 +9,7 @@ from ga4gh.cat_vrs.models import (
     Constraint,
     DefiningAlleleConstraint,
 )
+from ga4gh.cat_vrs.relations import LIFTOVER_TO_RELATION
 from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
     ClinicalVariantProposition,
@@ -72,6 +73,7 @@ class MciTransformer(Transformer):
                     Constraint(
                         root=DefiningAlleleConstraint(
                             allele=proposition.subjectVariant.root,
+                            relations=[LIFTOVER_TO_RELATION],
                         )
                     )
                 ],
