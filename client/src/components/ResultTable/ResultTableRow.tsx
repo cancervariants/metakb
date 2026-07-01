@@ -110,9 +110,11 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                         </>
                       ) : null}
                     </div>
-                    <div>
-                      <strong>Description:</strong> {item.description}
-                    </div>
+                    {item.description && (
+                      <div>
+                        <strong>Description:</strong> {item.description}
+                      </div>
+                    )}
                   </Box>
                 )
               })}
