@@ -88,7 +88,8 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
+
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -97,7 +98,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint code
         working-directory: ./client
@@ -115,7 +116,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
 
       - name: Set up Node
         uses: actions/setup-node@v4
