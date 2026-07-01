@@ -176,10 +176,6 @@ def test_initialize_assertion(statements: dict[str, Statement]):
     pass  # TODO
 
 
-def test_initialize_assertion_aac(statements: dict[str, Statement]):
-    pass  # TODO
-
-
 def test_merge_assertions():
     pass  # TODO
 
