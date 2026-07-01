@@ -2,7 +2,6 @@
 
 from enum import StrEnum
 
-from ga4gh.va_spec.aac_2017 import VariantClinicalSignificanceStatement
 from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel
 
@@ -55,5 +54,5 @@ class CBioPortalHarvestedData(BaseModel):
 class TransformedData(BaseModel):
     """Define model for transformed data"""
 
-    evidence: list[Statement | VariantClinicalSignificanceStatement] = []
-    assertions: list[Statement | VariantClinicalSignificanceStatement] = []
+    evidence: list[Statement] = []
+    assertions: list[Statement] = []
