@@ -82,6 +82,7 @@ class MciTransformer(Transformer):
                 specifiedBy=ev_item.specifiedBy,
                 reportedIn=ev_line.reportedIn,
             )
+            statement.specifiedBy.id = "mci.method:1"
             statement.strength.id = (
                 f"amp_asc_cap:{statement.strength.primaryCoding.code.root}"
             )
