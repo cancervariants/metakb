@@ -17,7 +17,7 @@ WHERE cv.id STARTS WITH "metakb"
 RETURN {label: 'num_variations', count: count(cv)} AS info
   UNION ALL
 MATCH (s:Statement)
-WHERE s.id NOT STARTS WITH "metakb"
+WHERE NOT (s.id STARTS WITH "metakb")
 RETURN {label: 'num_source_statements', count: count(s)} AS info
   UNION ALL
 MATCH (d:Document)
