@@ -41,7 +41,7 @@ class MciTransformer(Transformer):
         * Collapse the evidence line and clinical significance assertion to reconstruct
           a non-AMP/ASCO/CAP statement (which is not supported by MetaKB).
         * Add ID to statement. This is unstable because it's dependent on a hash of the
-          proposition -- would be nice to get an upstream fix
+          proposition -- we expect an upstream fix to this in the future.
         * Add IDs to all proposition entities. Add name to catvar.
 
         :param harvested_data: FDA-PODA harvested data
@@ -53,11 +53,16 @@ class MciTransformer(Transformer):
         assertions: dict[str, Statement] = {}
         for ev_item in tqdm(harvested_data.statements):
             if len(ev_item.hasEvidenceLines) != 1:
-                _logger.debug(
+                _logger.info(
                     "Encountered MCI clin sig stmt with multiple evidence lines; unable to collate to a supported proposition type"
                 )
                 continue
             ev_line = ev_item.hasEvidenceLines[0]
+            if ev_line.hasEvidenceItems:
+                _logger.info(
+                    "Encountered MCI clin sig stmt with evidence items underneath the evidence line. This is a drift in structure and will require additional work on the transformer to support ingestion."
+                )
+                continue
             proposition = ev_line.targetProposition
             ev_allele = proposition.subjectVariant.root
             proposition.subjectVariant = CategoricalVariant(
