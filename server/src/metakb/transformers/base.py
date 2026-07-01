@@ -410,7 +410,6 @@ class Transformer(ABC):
 
         * The transformer workflow's assertions tracker is borrowed and updated in-place.
         * If the proposition cannot be normalized, no assertion is created.
-        * Clinical significance statements
 
         :param evidence_item: source statement to incorporate as evidence
         :param assertions_map: mapping of assertion_id -> Statement, updated in place
