@@ -122,22 +122,6 @@ class MciTransformer(Transformer):
             evidence=statements, assertions=list(assertions.values())
         )
 
-    def _ensure_condition_id(self, condition: Condition) -> Condition:
-        """Ensure that a condition has a populated root identifier
-
-        Used to create IDs for loading in the DB and for generating higher level
-        hashed IDs
-        """
-        if not condition.root.id:
-            if isinstance(condition.root, MappableConcept):
-                if condition.root.primaryCoding:
-                    condition.root.id = condition.root.primaryCoding.code.root
-                else:
-                    condition.root.id = condition.root.name
-            else:
-                self._ensure_conditionset_id(condition.root)
-        return condition
-
     def _ensure_entity_ids(
         self, prop: ClinicalVariantProposition
     ) -> ClinicalVariantProposition:
@@ -145,7 +129,7 @@ class MciTransformer(Transformer):
         if isinstance(
             prop, (VariantDiagnosticProposition, VariantPrognosticProposition)
         ):
-            prop.objectCondition = self._ensure_condition_id(prop.objectCondition)
+            self._ensure_conditionset_id(prop.objectCondition.root)
         else:
             msg = "Encountered unexpected proposition type -- has the underlying data changed?"
             _logger.exception("Unexpected proposition type: %s", prop)
