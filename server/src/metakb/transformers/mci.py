@@ -14,6 +14,9 @@ from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
     ClinicalVariantProposition,
     Condition,
+    ConditionSet,
+    MembershipOperator,
+    # MembershipOperator,
     Statement,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
@@ -23,6 +26,7 @@ from tqdm import tqdm
 
 from metakb.harvesters.mci import MciHarvestedData
 from metakb.schemas.data import TransformedData
+from metakb.transformers import phenotypes
 from metakb.transformers.base import Transformer
 from metakb.transformers.identifiers import hash_proposition
 
@@ -44,6 +48,7 @@ class MciTransformer(Transformer):
         * Add ID to statement. This is unstable because it's dependent on a hash of the
           proposition -- we expect an upstream fix to this in the future.
         * Add IDs to all proposition entities. Add name to catvar.
+        * Add "pediatric onset" phenotype to all diseases
 
         :param harvested_data: FDA-PODA harvested data
         :return: transformed statements
@@ -77,6 +82,18 @@ class MciTransformer(Transformer):
                         )
                     )
                 ],
+            )
+            proposition_disease: MappableConcept = proposition.objectCondition.root
+            if not proposition_disease.id:
+                if not proposition_disease.primaryCoding:
+                    proposition_disease.id = f"mci.disease:{proposition_disease.name}"
+                else:
+                    proposition_disease.id = proposition_disease.primaryCoding.code.root
+            proposition.objectCondition = Condition(
+                root=ConditionSet(
+                    conditions=[proposition_disease, phenotypes.PEDIATRIC_ONSET],
+                    membershipOperator=MembershipOperator.AND,
+                )
             )
             proposition = self._ensure_entity_ids(proposition)
             statement = Statement(
@@ -118,7 +135,7 @@ class MciTransformer(Transformer):
                 else:
                     condition.root.id = condition.root.name
             else:
-                raise ValueError
+                self._ensure_conditionset_id(condition.root)
         return condition
 
     def _ensure_entity_ids(
