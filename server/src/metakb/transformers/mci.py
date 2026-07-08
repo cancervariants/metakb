@@ -12,16 +12,13 @@ from ga4gh.cat_vrs.models import (
 from ga4gh.cat_vrs.relations import LIFTOVER_TO_RELATION
 from ga4gh.core.models import Extension, MappableConcept
 from ga4gh.va_spec.base import (
-    ClinicalVariantProposition,
     Condition,
     ConditionSet,
     MembershipOperator,
-    # MembershipOperator,
     Statement,
     VariantDiagnosticProposition,
-    VariantPrognosticProposition,
 )
-from ga4gh.vrs.models import MoleculeType
+from ga4gh.vrs.models import Allele, MoleculeType
 from tqdm import tqdm
 
 from metakb.harvesters.mci import MciHarvestedData
@@ -70,32 +67,21 @@ class MciTransformer(Transformer):
                 )
                 continue
             proposition = ev_line.targetProposition
-            ev_allele = proposition.subjectVariant.root
-            proposition.subjectVariant = CategoricalVariant(
-                id=f"mci.cv:{ev_allele.id.replace(':', '_')}",
-                name=proposition.subjectVariant.root.expressions[0].value,
-                constraints=[
-                    Constraint(
-                        root=DefiningAlleleConstraint(
-                            allele=proposition.subjectVariant.root,
-                            relations=[LIFTOVER_TO_RELATION],
-                        )
-                    )
-                ],
-            )
-            proposition_disease: MappableConcept = proposition.objectCondition.root
-            if not proposition_disease.id:
-                if not proposition_disease.primaryCoding:
-                    proposition_disease.id = f"mci.disease:{proposition_disease.name}"
-                else:
-                    proposition_disease.id = proposition_disease.primaryCoding.code.root
-            proposition.objectCondition = Condition(
-                root=ConditionSet(
-                    conditions=[proposition_disease, phenotypes.PEDIATRIC_ONSET],
-                    membershipOperator=MembershipOperator.AND,
+            if not isinstance(proposition, VariantDiagnosticProposition):
+                _logger.error(
+                    "Ev line proposition is not a diagnostic claim -- this is not currently supported by the MCI transformer: %s",
+                    ev_item,
                 )
+                continue
+            proposition.subjectVariant = self._transform_variant(
+                proposition.subjectVariant.root
             )
-            proposition = self._ensure_entity_ids(proposition)
+            proposition.objectCondition = self._transform_disease(
+                proposition.objectCondition.root
+            )
+            proposition.geneContextQualifier = self._transform_gene(
+                proposition.geneContextQualifier
+            )
             statement = Statement(
                 id=f"mci.statement:{hash_proposition(proposition)}",
                 strength=ev_line.strengthOfEvidenceProvided,
@@ -122,19 +108,51 @@ class MciTransformer(Transformer):
             evidence=statements, assertions=list(assertions.values())
         )
 
-    def _ensure_entity_ids(
-        self, prop: ClinicalVariantProposition
-    ) -> ClinicalVariantProposition:
-        prop.geneContextQualifier.id = f"mci.gene:{prop.geneContextQualifier.name}"
-        if isinstance(
-            prop, (VariantDiagnosticProposition, VariantPrognosticProposition)
-        ):
-            self._ensure_conditionset_id(prop.objectCondition.root)
-        else:
-            msg = "Encountered unexpected proposition type -- has the underlying data changed?"
-            _logger.exception("Unexpected proposition type: %s", prop)
-            raise TypeError(msg)
-        return prop
+    def _transform_disease(self, disease: MappableConcept) -> Condition:
+        """Add pediatric_onset phenotype to MCI disease
+
+        These items weren't originally curated to include this phenotype, but for the purposes
+        of MetaKB, we can infer them with a generic pediatric onset phenotype.
+        """
+        if not disease.id:
+            if not disease.primaryCoding:
+                disease.id = f"mci.disease:{disease.name}"
+            else:
+                disease.id = disease.primaryCoding.code.root
+        conditionset = ConditionSet(
+            conditions=[disease, phenotypes.PEDIATRIC_ONSET],
+            membershipOperator=MembershipOperator.AND,
+        )
+
+        self._ensure_conditionset_id(conditionset)
+        return Condition(root=conditionset)
+
+    def _transform_variant(self, variant: Allele) -> CategoricalVariant:
+        """Format incoming variant as a MetaKB-compliant catvar
+
+        * impute an ID
+        * pull a name from the variant expressions array
+        * fill in relations per transformer policy (this is WIP)
+        """
+        if len(variant.expressions or []) < 1:
+            raise ValueError
+        return CategoricalVariant(
+            id=f"mci.cv:{variant.id.replace(':', '_')}",
+            name=variant.expressions[0].value,
+            constraints=[
+                Constraint(
+                    root=DefiningAlleleConstraint(
+                        allele=variant,
+                        relations=[LIFTOVER_TO_RELATION],
+                    )
+                )
+            ],
+        )
+
+    def _transform_gene(self, gene: MappableConcept) -> MappableConcept:
+        """Ensure gene has a simple ID so that it can be registered in the MetaKB DB"""
+        gene.id = f"mci.gene:{gene.name}"
+        return gene
 
     async def _normalize_variant(
         self, variant: CategoricalVariant
