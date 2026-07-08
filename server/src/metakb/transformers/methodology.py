@@ -58,7 +58,6 @@ from ga4gh.core.models import Coding, Extension, Relation, code
 from ga4gh.va_spec.aac_2017 import (
     AmpAscoCapEvidenceLineStrength,
     AmpAscoCapStrengthCode,
-    VariantClinicalSignificanceStatement,
 )
 from ga4gh.va_spec.base import (
     Direction,
@@ -67,7 +66,6 @@ from ga4gh.va_spec.base import (
     Method,
     Statement,
     System,
-    VariantClinicalSignificanceProposition,
     VariantDiagnosticProposition,
     VariantPrognosticProposition,
     VariantTherapeuticResponseProposition,
@@ -395,8 +393,6 @@ def src_strength_to_vicc_code(strength: MappableConcept) -> MappableConcept | No
             )
             raise ValueError
         vicc_vocab_entry = VICC_CODE_EXACT_MAPPING_INDEX[src_level]
-    # if not vicc_vocab_entry.aac_mapping:
-    #     return None
 
     mappings = [
         ConceptMapping(
@@ -500,7 +496,7 @@ def initialize_assertion(
     proposition: VariantDiagnosticProposition
     | VariantPrognosticProposition
     | VariantTherapeuticResponseProposition,
-    evidence_item: Statement | VariantClinicalSignificanceStatement,
+    evidence_item: Statement,
 ) -> Statement:
     """Create a new metakb assertion given some previously-computed parameters
 
@@ -513,28 +509,6 @@ def initialize_assertion(
     :return: full metakb assertion containing a single evidence line
     """
     evidence_line = _initialize_evidence_line(evidence_item)
-    if isinstance(proposition, VariantClinicalSignificanceProposition) and isinstance(
-        evidence_item, VariantClinicalSignificanceStatement
-    ):
-        return VariantClinicalSignificanceStatement(
-            id=assertion_id,
-            proposition=proposition,
-            direction=evidence_line.directionOfEvidenceProvided,
-            strength=evidence_line.strengthOfEvidenceProvided,
-            classification=evidence_item.classification,
-            specifiedBy=METAKB_METHOD,
-            hasEvidenceLines=[evidence_line],
-            extensions=[
-                Extension(
-                    name="metakb_star_rating",
-                    value=evidence_line.evidenceOutcome.model_dump(exclude_none=True),
-                ),
-                Extension(
-                    name="metakb_star_rating_reason",
-                    value=evidence_line.extensions[0].value,
-                ),
-            ],
-        )
     return Statement(
         id=assertion_id,
         proposition=proposition,

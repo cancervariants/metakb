@@ -134,7 +134,6 @@ def test_aac_evline_strength_to_vicc_code():
 
 
 def test_aac_significance_to_vicc_code():
-    """Note: these are all wrong"""
     aac = MappableConcept(
         id="amp_asco_cap:strong",
         extensions=[Extension(name="metakb_display_value", value="A")],
