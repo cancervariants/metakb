@@ -94,7 +94,7 @@ class MciTransformer(Transformer):
             )
             statement.specifiedBy.id = "mci.method:1"
             statement.strength.id = (
-                f"amp_asc_cap:{statement.strength.primaryCoding.code.root}"
+                f"amp_asco_cap:{statement.strength.primaryCoding.code.root}"
             )
             statement.strength.extensions = [
                 Extension(
