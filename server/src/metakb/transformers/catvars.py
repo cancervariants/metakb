@@ -14,25 +14,13 @@ from ga4gh.cat_vrs.models import (
     DefiningAlleleConstraint,
     DefiningLocationConstraint,
     FeatureContextConstraint,
-    Relation,
 )
-from ga4gh.cat_vrs.recipes import CategoricalCnv, ProteinSequenceConsequence, SystemUri
+from ga4gh.cat_vrs.recipes import CategoricalCnv, ProteinSequenceConsequence
+from ga4gh.cat_vrs.relations import LIFTOVER_TO_RELATION, TRANSLATION_OF_RELATION
 from ga4gh.core.models import Coding, MappableConcept, code
 from ga4gh.vrs.models import Allele, CopyNumberChange
 
 _logger = logging.getLogger(__name__)
-
-LIFTOVER_TO_RELATION = MappableConcept(
-    primaryCoding=Coding(
-        system=SystemUri.GKS_ALLELE_RELATION, code=code(Relation.LIFTOVER_TO)
-    )
-)
-TRANSLATION_OF_RELATION = MappableConcept(
-    primaryCoding=Coding(
-        system=SystemUri.SEQUENCE_ONTOLOGY,
-        code=code(Relation.TRANSLATION_OF),
-    ),
-)
 
 
 def build_copynumberchange_catvar(variant: CopyNumberChange) -> CategoricalCnv:

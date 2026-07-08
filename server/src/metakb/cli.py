@@ -32,6 +32,7 @@ from metakb.harvesters import (
     MoaHarvester,
 )
 from metakb.harvesters.base import FetchMode, Harvester
+from metakb.harvesters.mci import MciHarvester
 from metakb.log_config import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -43,15 +44,16 @@ from metakb.normalizers import (
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.base import AbstractRepository
-from metakb.repository.neo4j_repository import (
-    Neo4jRepository,
-    get_driver,
-)
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
 from metakb.services.load_data import load_from_json
 from metakb.source_data import SourceDataStore
-from metakb.transformers import CivicTransformer, MoaTransformer
-from metakb.transformers.fda_poda import FdaPodaTransformer
+from metakb.transformers import (
+    CivicTransformer,
+    FdaPodaTransformer,
+    MciTransformer,
+    MoaTransformer,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -732,6 +734,7 @@ def _harvest_sources(
         SourceName.MOA: MoaHarvester,
         SourceName.FDA_PODA: FdaPodaHarvester,
         SourceName.CBIOPORTAL: CBioPortalHarvester,
+        SourceName.MCI: MciHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
@@ -768,6 +771,7 @@ async def _transform_source(
         SourceName.CIVIC: CivicTransformer,
         SourceName.MOA: MoaTransformer,
         SourceName.FDA_PODA: FdaPodaTransformer,
+        SourceName.MCI: MciTransformer,
     }
     _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()

@@ -49,6 +49,7 @@ from ga4gh.va_spec.base import (
     Method,
     PrognosticPredicate,
     Statement,
+    System,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -65,6 +66,8 @@ from ga4gh.vrs.models import (
     VrsType,
 )
 from pydantic import BaseModel, Field, RootModel
+
+from metakb.transformers import methodology
 
 _logger = logging.getLogger(__name__)
 
@@ -804,13 +807,13 @@ class ClassificationNode(BaseNode):
     def from_gks(cls, classification: MappableConcept) -> Self:
         """Construct node representation of classification coding object."""
         match classification.primaryCoding.system:
-            case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
+            case methodology.CIVIC_SYSTEM:
                 node_id = f"civic.strength:{classification.primaryCoding.code.root}"
-            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
+            case System.AMP_ASCO_CAP:
                 node_id = (
                     f"amp-asco-cap.strength:{classification.primaryCoding.code.root}"
                 )
-            case "https://moalmanac.org/about":
+            case methodology.MOA_SYSTEM:
                 node_id = f"moalmanac.strength:{classification.primaryCoding.code.root}"
             case _:
                 msg = f"Unrecognized strength concept: {classification}"
