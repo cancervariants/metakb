@@ -15,6 +15,7 @@ MERGE (member_drug:Therapeutic:Drug {id: m.id})
         name: m.name,
         mappings: m.mappings,
         aliases: m.aliases,
-        extensions: m.extensions
+        extensions: m.extensions,
+        primary_coding: m.primary_coding
       }
 MERGE (thg)-[:HAS_THERAPY]->(member_drug)

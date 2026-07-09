@@ -6,5 +6,6 @@ MERGE (g:Gene {id: $gene.id})
         name: $gene.name,
         aliases: $gene.aliases,
         mappings: $gene.mappings,
-        extensions: $gene.extensions
+        extensions: $gene.extensions,
+        primary_coding: $gene.primary_coding
       }
