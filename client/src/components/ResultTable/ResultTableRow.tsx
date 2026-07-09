@@ -1,5 +1,14 @@
-import { useState, FC } from 'react'
-import { Box, Collapse, IconButton, Link, TableCell, TableRow, useTheme } from '@mui/material'
+import { useState, FC, Fragment } from 'react'
+import {
+  Box,
+  Collapse,
+  IconButton,
+  Link,
+  TableCell,
+  TableRow,
+  Tooltip,
+  useTheme,
+} from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { EvidenceLine } from '../../models/domain'
@@ -77,7 +86,26 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                   displayLevel in theme.palette.evidence
                     ? theme.palette.evidence[displayLevel as keyof typeof theme.palette.evidence]
                     : '#ccc'
-
+                const pmids = (statement.reportedIn ?? [])
+                  .filter(
+                    (x): x is { pmid: string } =>
+                      typeof x === 'object' && x !== null && 'pmid' in x,
+                  )
+                  .map((x) => x.pmid)
+                const references = pmids.map((pmid, i) => (
+                  <Fragment key={pmid}>
+                    {i > 0 && ', '}
+                    <Tooltip title={`PMID: ${pmid}`} arrow>
+                      <Link
+                        href={`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        [{i + 1}]
+                      </Link>
+                    </Tooltip>
+                  </Fragment>
+                ))
                 return (
                   <Box
                     key={item.id}
@@ -116,6 +144,11 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                     {item.description && (
                       <div>
                         <strong>Description:</strong> {item.description}
+                      </div>
+                    )}
+                    {pmids.length > 0 && (
+                      <div>
+                        <strong>References:</strong> {references}
                       </div>
                     )}
                   </Box>
