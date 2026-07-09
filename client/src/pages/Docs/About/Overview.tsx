@@ -1,7 +1,12 @@
 import { Typography, Box } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
+import { useEffect } from 'react'
 
 export default function OverviewPage() {
+  useEffect(() => {
+    document.title = 'VICC MetaKB Jr. | Overview'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={2} fontWeight="bold">

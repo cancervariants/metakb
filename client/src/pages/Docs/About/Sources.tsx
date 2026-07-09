@@ -1,7 +1,12 @@
 import { Typography, Box, Link, Stack, Divider } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
+import { useEffect } from 'react'
 
 export default function SourcesPage() {
+  useEffect(() => {
+    document.title = 'VICC MetaKB Jr. | Sources'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={2} fontWeight="bold">

@@ -51,6 +51,10 @@ const HomePage = () => {
     return () => controller.abort()
   }, [])
 
+  useEffect(() => {
+    document.title = 'VICC MetaKB Jr.'
+  }, [])
+
   return (
     <ContentContainer>
       <Box component="main">

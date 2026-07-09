@@ -1,7 +1,7 @@
 import { Typography, Box } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
+import { useEffect } from 'react'
 
-// TODO: Make this an external component
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
     <Box sx={{ py: 2 }}>
@@ -17,6 +17,10 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function FAQPage() {
+  useEffect(() => {
+    document.title = 'VICC MetaKB Jr. | FAQ'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={1} fontWeight="bold">
