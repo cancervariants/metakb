@@ -24,9 +24,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline'
 import ResultTableRow from './ResultTableRow'
 import { ResultColumn } from './types'
 import { AssertionResult, TherapyInteractionType } from '../../utils'
-import { getEvidenceGrade } from '../../utils/results'
-import { EvidenceLevel } from '../../models/codings'
-import { PieChart, Pie, Cell } from 'recharts'
+import { EvidenceSummaryCell } from './EvidenceSummaryCell'
 import theme from '../../theme'
 import { EvidenceLegend } from './EvidenceLegend'
 
@@ -144,97 +142,8 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
     {
       field: 'evidence_summary',
       headerName: 'Evidence Summary',
-      width: 100,
-      render: (value: AssertionResult) => {
-        const supportingEvidence = value.grouped_evidence
-        // get array of normalized codes from supporting evidence
-        const codeGroups = supportingEvidence.map((evidence) =>
-          getEvidenceGrade(evidence.strengthOfEvidenceProvided),
-        )
-
-        // format into object with counts
-        const counts = codeGroups.reduce<Record<EvidenceLevel, number>>(
-          (acc, code) => {
-            if (code && Object.values(EvidenceLevel).includes(code as EvidenceLevel)) {
-              acc[code as EvidenceLevel] = (acc[code as EvidenceLevel] || 0) + 1
-            }
-            return acc
-          },
-          { A: 0, B: 0, C: 0, D: 0, E: 0 },
-        )
-        // format object with counts into expected object format for recharts Pie
-        const data = Object.entries(counts)
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          .filter(([_, value]) => value > 0)
-          .map(([level, value]) => ({
-            name: level,
-            value,
-          }))
-        const levelColor = theme.palette.evidence
-
-        return (
-          <Box id="evidence-level-container" display="flex" flexDirection="column">
-            <Tooltip
-              arrow
-              followCursor
-              enterDelay={100}
-              title={
-                <Box id="evidence-level-breakdown-tooltip">
-                  {data.map((d) => (
-                    <div key={d.name}>
-                      {d.name}: {d.value}
-                    </div>
-                  ))}
-                </Box>
-              }
-            >
-              <Box
-                sx={{
-                  position: 'relative',
-                  width: 40,
-                  height: 40,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <PieChart width={40} height={40}>
-                  <Pie
-                    data={data}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={12}
-                    outerRadius={20}
-                    paddingAngle={2}
-                    label={false}
-                    animationDuration={200}
-                  >
-                    {data.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={levelColor[entry.name as EvidenceLevel]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    fontSize: 12,
-                    fontWeight: 600,
-                    pointerEvents: 'none', // this is so the cursor will remain the same on hover
-                    color: theme.palette.text.primary,
-                  }}
-                >
-                  {value?.evidence_level}
-                </Box>
-              </Box>
-            </Tooltip>
-            <Box sx={{ fontSize: 12, color: theme.palette.text.secondary }}>
-              {value.grouped_evidence.length}{' '}
-              {`record${value.grouped_evidence.length > 1 ? 's' : ''}`}
-            </Box>
-          </Box>
-        )
-      },
+      width: 120,
+      render: (value: AssertionResult) => <EvidenceSummaryCell value={value} />,
     },
     {
       field: 'disease',
