@@ -226,6 +226,7 @@ class CivicTransformer(Transformer):
                 ev_line = clinsig_statement.hasEvidenceLines[0]
                 statement = Statement(
                     id=clinsig_statement.id,
+                    description=clinsig_statement.description,
                     strength=ev_line.strengthOfEvidenceProvided,
                     proposition=ev_line.targetProposition,
                     direction=clinsig_statement.direction,
