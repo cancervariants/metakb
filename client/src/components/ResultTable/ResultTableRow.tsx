@@ -1,20 +1,13 @@
-import { useState, FC, Fragment } from 'react'
-import {
-  Box,
-  Collapse,
-  IconButton,
-  Link,
-  TableCell,
-  TableRow,
-  Tooltip,
-  useTheme,
-} from '@mui/material'
+import { useState, FC } from 'react'
+import { Box, Collapse, IconButton, Link, TableCell, TableRow, useTheme } from '@mui/material'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { EvidenceLine } from '../../models/domain'
 import { ResultColumn } from './types'
 import { getEvidenceLabelUrl, getEvidenceSource, AssertionResult } from '../../utils'
 import { getEvidenceGrade, isStatement } from '../../utils/results'
+import { DocumentLink } from './DocumentLink'
+import { DocumentReference, toDocumentReference } from '../../utils/documents'
 
 /* Dictate order that evidence appears underneath assertion **/
 const gradeOrder: Record<string, number> = {
@@ -32,6 +25,7 @@ const getFirstEvidenceItemId = (line: EvidenceLine): string => {
   const item = line.hasEvidenceItems?.[0]
   return isStatement(item) ? (item.id ?? '') : ''
 }
+
 const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
   row,
   columns,
@@ -86,26 +80,10 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                   displayLevel in theme.palette.evidence
                     ? theme.palette.evidence[displayLevel as keyof typeof theme.palette.evidence]
                     : '#ccc'
-                const pmids = (statement.reportedIn ?? [])
-                  .filter(
-                    (x): x is { pmid: string } =>
-                      typeof x === 'object' && x !== null && 'pmid' in x,
-                  )
-                  .map((x) => x.pmid)
-                const references = pmids.map((pmid, i) => (
-                  <Fragment key={pmid}>
-                    {i > 0 && ', '}
-                    <Tooltip title={`PMID: ${pmid}`} arrow>
-                      <Link
-                        href={`https://pubmed.ncbi.nlm.nih.gov/${pmid}/`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        [{i + 1}]
-                      </Link>
-                    </Tooltip>
-                  </Fragment>
-                ))
+                const documentRefLinks = (statement.reportedIn ?? [])
+                  .filter((x): x is Document => typeof x === 'object' && x !== null)
+                  .map(toDocumentReference)
+                  .filter((ref): ref is DocumentReference => ref !== null)
                 return (
                   <Box
                     key={item.id}
@@ -146,9 +124,12 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                         <strong>Description:</strong> {item.description}
                       </div>
                     )}
-                    {pmids.length > 0 && (
+                    {documentRefLinks.length > 0 && (
                       <div>
-                        <strong>References:</strong> {references}
+                        <strong>References:</strong>{' '}
+                        {documentRefLinks.map((document, i) => (
+                          <DocumentLink reference={document} index={i} />
+                        ))}
                       </div>
                     )}
                   </Box>
