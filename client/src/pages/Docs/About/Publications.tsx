@@ -1,8 +1,12 @@
 import { Typography, Box, Stack, Link, Divider } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
+import { useEffect } from 'react'
 
-// TODO: Make this an external component and import it
 export default function PublicationsPage() {
+  useEffect(() => {
+    document.title = 'Publications | MetaKB Jr.'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={2} fontWeight="bold">
