@@ -18,7 +18,7 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 
 export default function FAQPage() {
   useEffect(() => {
-    document.title = 'MetaKB Jr. | FAQ'
+    document.title = 'FAQ | MetaKB Jr.'
   }, [])
 
   return (
