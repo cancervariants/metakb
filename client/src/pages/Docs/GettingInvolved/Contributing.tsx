@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function ContributingPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Contributing'
+    document.title = 'Contributing | MetaKB Jr.'
   }, [])
 
   return (

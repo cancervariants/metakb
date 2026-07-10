@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function MethodsPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Methods'
+    document.title = 'Methods | MetaKB Jr.'
   }, [])
 
   return (

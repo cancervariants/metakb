@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 
 export default function ReportingIssuesPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Reporting Issues'
+    document.title = 'Reporting Issues | MetaKB Jr.'
   }, [])
 
   return (

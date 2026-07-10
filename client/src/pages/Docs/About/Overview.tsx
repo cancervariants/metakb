@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function OverviewPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Overview'
+    document.title = 'Overview | MetaKB Jr.'
   }, [])
 
   return (

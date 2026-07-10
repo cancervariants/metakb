@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function LicensePage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | License'
+    document.title = 'License | MetaKB Jr.'
   }, [])
 
   return (

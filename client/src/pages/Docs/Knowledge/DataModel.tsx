@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function DataModelPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Data Model'
+    document.title = 'Data Model | MetaKB Jr.'
   }, [])
 
   return (

@@ -35,7 +35,7 @@ function TeamMember({
 
 export default function TeamPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Team'
+    document.title = 'Team | MetaKB Jr.'
   }, [])
 
   return (

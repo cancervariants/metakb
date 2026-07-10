@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function PublicationsPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Publications'
+    document.title = 'Publications | MetaKB Jr.'
   }, [])
 
   return (

@@ -52,7 +52,7 @@ const HomePage = () => {
   }, [])
 
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr.'
+    document.title = 'MetaKB Jr.'
   }, [])
 
   return (

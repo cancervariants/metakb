@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 
 export default function DownloadsPage() {
   useEffect(() => {
-    document.title = 'VICC MetaKB Jr. | Downloads'
+    document.title = 'Downloads | MetaKB Jr.'
   }, [])
 
   return (
