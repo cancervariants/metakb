@@ -6,21 +6,15 @@ import asyncio
 import importlib.metadata as importlib_metadata
 import logging
 import os
-import re
-import tempfile
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
 from urllib.parse import urlparse
-from zipfile import ZipFile
 
-import boto3
 import click
-from boto3.exceptions import ResourceLoadException
-from botocore import UNSIGNED
-from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 
 from metakb import __version__
@@ -46,7 +40,7 @@ from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
-from metakb.services.load_data import load_from_json
+from metakb.services import load_from_json, save_db_snapshot
 from metakb.source_data import SourceDataStore
 from metakb.transformers import (
     CivicTransformer,
@@ -67,19 +61,6 @@ def _echo_info(msg: str, quiet: bool = False) -> None:
     if not quiet:
         click.echo(msg)
     _logger.info(msg)
-
-
-def _help_msg(msg: str = "") -> None:
-    """Handle invalid user input.
-
-    :param msg: Error message to display to user.
-    """
-    ctx = click.get_current_context()
-    _logger.fatal(msg)
-
-    click.echo(msg) if msg else click.echo(ctx.get_help())
-
-    ctx.exit()
 
 
 def _get_transform_env_diagnostics(normalizer_db_url: str | None) -> list[str]:
@@ -816,61 +797,39 @@ async def _transform_sources(
     )
 
 
-def _retrieve_s3_cdms() -> str:
-    """Retrieve most recent CDM files from VICC S3 bucket.
+@cli.group()
+def snapshot() -> None:
+    """Create and manage snapshots of MetaKB data."""
 
-    Expects to find files in a path like the following:
-        s3://vicc-metakb/cdm/20220201/civic_cdm_20220201.json.zip
 
-    :return: date string from retrieved files to use when loading to DB.
-    :raise ResourceLoadException: if S3 initialization fails
-    :raise FileNotFoundError:  if unable to find files matching expected pattern in
-        VICC MetaKB bucket.
-    """
-    _echo_info("Attempting to fetch CDM files from S3 bucket")
-    s3 = boto3.resource(
-        "s3", config=Config(region_name="us-east-2", signature_version=UNSIGNED)
-    )
+def _get_snapshot_dir() -> Path:
+    snapshot_dir = get_config().data_dir / "snapshots"
+    snapshot_dir.mkdir(exist_ok=True, parents=True)
+    return snapshot_dir
 
-    if not s3:
-        msg = "Unable to initiate AWS S3 Resource"
-        raise ResourceLoadException(msg)
 
-    bucket = sorted(  # noqa: C414
-        list(s3.Bucket("vicc-metakb").objects.filter(Prefix="cdm").all()),
-        key=lambda f: f.key,
-        reverse=True,
-    )
-    newest_version: str | None = None
+async def _create_snapshot(db_url: str, file: Path | None, quiet: bool) -> None:
+    if not file:
+        snapshot_dir = _get_snapshot_dir()
+        timestamp = datetime.now(UTC).strftime(SourceDataStore.TIMESTAMP_FMT)
+        file = snapshot_dir / f"metakb_snapshot_{timestamp}.json"
 
-    for file in bucket:
-        match = re.match(
-            re.compile(r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip"), file.key
-        )
+    async with _get_repository(db_url) as repo:
+        await save_db_snapshot(repo, file, quiet)
 
-        if match:
-            source = match.group(1)
-            if newest_version is None:
-                newest_version = match.group(2)
-            elif match.group(2) != newest_version:
-                continue
-        else:
-            continue
 
-        tmp_path = Path(tempfile.gettempdir()) / "metakb_dl_tmp"
-        with tmp_path.open("wb") as f:
-            file.Object().download_fileobj(f)
-
-        cdm_dir = get_config().data_dir / source / "transformers"
-        cdm_zip = ZipFile(tmp_path, "r")
-        cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
-
-    if newest_version is None:
-        msg = "Unable to locate files matching expected resource pattern in VICC s3 bucket"
-        raise FileNotFoundError(msg)
-
-    _echo_info(f"Retrieved CDM files dated {newest_version}")
-    return newest_version
+@snapshot.command("create")
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.option(
+    "--file",
+    "-f",
+    help="Destination path for the snapshot JSON file.",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+)
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+def create_snapshot(db_url: str, quiet: bool, file: Path | None = None) -> None:
+    """Create a MetaKB snapshot"""
+    asyncio.run(_create_snapshot(db_url, file, quiet))
 
 
 if __name__ == "__main__":
