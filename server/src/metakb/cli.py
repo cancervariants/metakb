@@ -6,20 +6,15 @@ import asyncio
 import importlib.metadata as importlib_metadata
 import logging
 import os
-import re
-import tempfile
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from timeit import default_timer as timer
-from zipfile import ZipFile
+from urllib.parse import urlparse
 
-import boto3
 import click
-from boto3.exceptions import ResourceLoadException
-from botocore import UNSIGNED
-from botocore.config import Config
 from botocore.exceptions import ClientError, EndpointConnectionError
 
 from metakb import __version__
@@ -31,6 +26,7 @@ from metakb.harvesters import (
     MoaHarvester,
 )
 from metakb.harvesters.base import FetchMode, Harvester
+from metakb.harvesters.mci import MciHarvester
 from metakb.log_config import configure_logs
 from metakb.normalizers import (
     NORMALIZER_AWS_ENV_VARS,
@@ -42,39 +38,29 @@ from metakb.normalizers import (
 )
 from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.base import AbstractRepository
-from metakb.repository.neo4j_repository import (
-    Neo4jRepository,
-    get_driver,
-)
+from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
-from metakb.services.load_data import load_from_json
+from metakb.services import load_from_json, save_db_snapshot
 from metakb.source_data import SourceDataStore
-from metakb.transformers import CivicTransformer, MoaTransformer
-from metakb.transformers.fda_poda import FdaPodaTransformer
+from metakb.transformers import (
+    CivicTransformer,
+    FdaPodaTransformer,
+    MciTransformer,
+    MoaTransformer,
+)
 
 _logger = logging.getLogger(__name__)
 
 
-def _echo_info(msg: str) -> None:
+def _echo_info(msg: str, quiet: bool = False) -> None:
     """Log (as INFO) and echo given message.
 
     :param msg: message to emit
+    :param quiet: if true, suppress console output
     """
-    click.echo(msg)
+    if not quiet:
+        click.echo(msg)
     _logger.info(msg)
-
-
-def _help_msg(msg: str = "") -> None:
-    """Handle invalid user input.
-
-    :param msg: Error message to display to user.
-    """
-    ctx = click.get_current_context()
-    _logger.fatal(msg)
-
-    click.echo(msg) if msg else click.echo(ctx.get_help())
-
-    ctx.exit()
 
 
 def _get_transform_env_diagnostics(normalizer_db_url: str | None) -> list[str]:
@@ -503,92 +489,118 @@ def clear_db(db_url: str) -> None:
     asyncio.run(_clear_db(db_url))
 
 
-async def _load_cdm(db_url: str, from_s3: bool, cdm_files: tuple[Path, ...]) -> None:
-    """Load cdms from an asyncio event loop"""
-    if from_s3 and cdm_files:
-        _help_msg("Error: Cannot use both cdm_file args and --from_s3 option.")
+def _confirm_remote(uri: str, assume_yes: bool) -> None:
+    if not uri:
+        uri = os.environ.get("METAKB_DB_URL", "")
+    host = urlparse(uri).hostname
+    if assume_yes or host in {"localhost", "127.0.0.1", "::1", None}:
+        return
 
-    start = timer()
-    _echo_info("Loading Neo4j database...")
-
-    async with _get_repository(db_url) as repository:
-        if cdm_files:
-            for file in cdm_files:
-                await load_from_json(file, repository, silent=False)
-        elif from_s3:
-            version = _retrieve_s3_cdms()
-            for src in sorted([s.value for s in SourceName]):
-                if src == SourceName.CBIOPORTAL:
-                    continue  # TODO implement in GH issue #729
-                pattern = f"{src}_cdm_{version}.json"
-                globbed = (get_config().data_dir / src / "transformers").glob(pattern)
-
-                try:
-                    path = sorted(globbed)[-1]
-                except IndexError as e:
-                    msg = f"No valid transformation file found matching pattern: {pattern}"
-                    raise FileNotFoundError(msg) from e
-
-                await load_from_json(path, repository, silent=False)
-        else:
-            for src in sorted(SourceName):
-                if src == SourceName.CBIOPORTAL:
-                    continue  # TODO implement in GH issue #729
-                src_data = SourceDataStore(src_name=src)
-                cdm_file = src_data.get_latest_transformed_file()
-                await load_from_json(cdm_file, repository, silent=False)
-
-    end = timer()
-    _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
+    click.confirm(
+        f"You are about to load data into a remote Neo4j instance:\n\n"
+        f"    {host}\n\n"
+        "Continue?",
+        abort=True,
+    )
 
 
-@cli.command()
-@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
-@click.option(
-    "--from_s3",
-    "-s",
-    is_flag=True,
-    help="Retrieves most recent data snapshot from the VICC S3 bucket and loads it. Mutually exclusive with target file arguments.",
-)
-@click.argument(
-    "cdm_files",
-    metavar="[CDM_FILE]...",
-    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
-    nargs=-1,
-)
-def load_cdm(
-    db_url: str,
-    from_s3: bool,
-    cdm_files: tuple[Path, ...],
+@cli.group()
+def load() -> None:
+    """Load transformed source data into the MetaKB database."""
+
+
+async def _load_sources(
+    db_url: str, sources: tuple[SourceName, ...], quiet: bool
 ) -> None:
-    """Load one or more CDM_FILEs into Neo4j graph.
+    async with _get_repository(db_url) as repository:
+        for source in sources:
+            if source == SourceName.CBIOPORTAL:
+                continue  # not yet supported
+            src_data = SourceDataStore(src_name=source)
+            cdm_file = src_data.get_latest_transformed_file()
+            await load_from_json(cdm_file, repository, silent=quiet)
 
-    If no arguments are provided, load latest available from default transformed data
-    location for each MetaKB source:
 
-        $ metakb load-cdm
+@load.command("all")
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+@click.option("-y", "--yes", is_flag=True, help="Skip confirmation prompts.")
+def load_all(db_url: str, quiet: bool, yes: bool) -> None:
+    """Load the latest transformed data artifacts for each source into the MetaKB database.
 
-    Pass path to file(s) to load from a custom location:
-
-        $ metakb load-cdm path/to/file1.json path/to/file2.json
-
-    Use --from_s3 option to instead fetch snapshot files from the MetaKB S3 bucket:
-
-        $ metakb load-cdm --from_s3
+        $ metakb load all
 
     Note that the Neo4j database URL, username, and password can either be set by a CLI
     options, or by the environment variable METAKB_DB_URL. For example:
 
-        $ metakb load-cdm --db_url=bolt://username:password@localhost:7687
+        $ metakb load all --db_url=bolt://username:password@localhost:7687
+    """
+    _confirm_remote(db_url, yes)
+    asyncio.run(_load_sources(db_url, tuple(SourceName), quiet))
 
-    \f
-    :param db_url: URL endpoint for the application Neo4j database.
-    :param from_s3: Skip data harvest/transform and load latest existing CDM files from
-        VICC S3 bucket. Exclusive with ``cdm_file`` arguments.
-    :param cdm_files: tuple of specific file(s) to load from. If empty, just get latest
-        available locally for each source.
-    """  # noqa: D301
-    asyncio.run(_load_cdm(db_url, from_s3, cdm_files))
+
+@load.command("sources")
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.argument(
+    "sources",
+    metavar=_print_enum_metavar(SourceName),
+    type=click.Choice(list(SourceName), case_sensitive=False),
+    nargs=-1,
+)
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+@click.option("-y", "--yes", is_flag=True, help="Skip confirmation prompts.")
+def load_sources(
+    db_url: str, sources: tuple[SourceName, ...], quiet: bool, yes: bool
+) -> None:
+    """Load latest transformed artifacts for the named source(s) into the MetaKB database.
+
+        $ metakb load sources moa civic
+
+    Note that the Neo4j database URL, username, and password can either be set by a CLI
+    options, or by the environment variable METAKB_DB_URL. For example:
+
+        $ metakb load sources --db_url=bolt://username:password@localhost:7687 civic
+    """
+    _confirm_remote(db_url, yes)
+    asyncio.run(_load_sources(db_url, sources, quiet))
+
+
+async def _load_files(db_url: str, files: tuple[Path, ...], quiet: bool) -> None:
+    async with _get_repository(db_url) as repository:
+        for file in files:
+            await load_from_json(file, repository, silent=quiet)
+
+
+@load.command("files")
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.argument(
+    "files",
+    metavar="[CDM_FILE]...",
+    type=click.Path(exists=True, dir_okay=False, readable=True, path_type=Path),
+    nargs=-1,
+)
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+@click.option("-y", "--yes", is_flag=True, help="Skip confirmation prompts.")
+def load_files(db_url: str, files: tuple[Path, ...], quiet: bool, yes: bool) -> None:
+    """Load specific transformed data artifacts into the MetaKB database.
+
+        $ metakb load files path/to/file1.json path/to/file2.json
+
+    Note that the Neo4j database URL, username, and password can either be set by a CLI
+    options, or by the environment variable METAKB_DB_URL. For example:
+
+        $ metakb load files --db_url=bolt://username:password@localhost:7687 myfile.json
+    """
+    _confirm_remote(db_url, yes)
+    start = timer()
+    if not quiet:
+        click.echo("Loading files into MetaKB database...")
+    asyncio.run(_load_files(db_url, files, quiet))
+    end = timer()
+    _echo_info(
+        f"Successfully loaded files into MetaKB database in {(end - start):.5f} s",
+        quiet,
+    )
 
 
 async def _update(
@@ -596,13 +608,14 @@ async def _update(
     normalizer_db_url: str | None,
     refresh_source_caches: bool,
     sources: tuple[SourceName, ...],
+    quiet: bool,
 ) -> None:
     """Update a source or sources from a sync click function"""
     _harvest_sources(sources, refresh_source_caches)
     await _transform_sources(sources, normalizer_db_url)
 
     start = timer()
-    _echo_info("Loading Neo4j database...")
+    _echo_info("Loading Neo4j database...", quiet)
 
     if not sources:
         sources = tuple(SourceName)
@@ -617,10 +630,12 @@ async def _update(
                 msg = f"No valid transformation files found matching pattern: {pattern}"
                 raise FileNotFoundError(msg) from e
 
-            await load_from_json(path, repository)
+            await load_from_json(path, repository, silent=quiet)
 
         end = timer()
-        _echo_info(f"Successfully loaded neo4j database in {(end - start):.5f} s")
+        _echo_info(
+            f"Successfully loaded neo4j database in {(end - start):.5f} s", quiet
+        )
 
 
 @cli.command()
@@ -641,11 +656,15 @@ async def _update(
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+@click.option("-y", "--yes", is_flag=True, help="Skip confirmation prompts.")
 async def update(
     db_url: str,
     normalizer_db_url: str | None,
     refresh_source_caches: bool,
     sources: tuple[SourceName, ...],
+    quiet: bool,
+    yes: bool,
 ) -> None:
     """Execute data harvest and transformation from resources and upload to graph
     datastore.
@@ -674,7 +693,10 @@ async def update(
         ``False``.
     :param sources: source name(s) to update. If empty, update all sources.
     """  # noqa: D301
-    asyncio.run(_update(db_url, normalizer_db_url, refresh_source_caches, sources))
+    _confirm_remote(db_url, yes)
+    asyncio.run(
+        _update(db_url, normalizer_db_url, refresh_source_caches, sources, quiet=quiet)
+    )
 
 
 def _harvest_sources(
@@ -693,6 +715,7 @@ def _harvest_sources(
         SourceName.MOA: MoaHarvester,
         SourceName.FDA_PODA: FdaPodaHarvester,
         SourceName.CBIOPORTAL: CBioPortalHarvester,
+        SourceName.MCI: MciHarvester,
     }
     if sources:
         harvester_sources = {k: v for k, v in harvester_sources.items() if k in sources}
@@ -729,6 +752,7 @@ async def _transform_source(
         SourceName.CIVIC: CivicTransformer,
         SourceName.MOA: MoaTransformer,
         SourceName.FDA_PODA: FdaPodaTransformer,
+        SourceName.MCI: MciTransformer,
     }
     _echo_info(f"Transforming {source.as_print_case()}...")
     start = timer()
@@ -773,61 +797,39 @@ async def _transform_sources(
     )
 
 
-def _retrieve_s3_cdms() -> str:
-    """Retrieve most recent CDM files from VICC S3 bucket.
+@cli.group()
+def snapshot() -> None:
+    """Create and manage snapshots of MetaKB data."""
 
-    Expects to find files in a path like the following:
-        s3://vicc-metakb/cdm/20220201/civic_cdm_20220201.json.zip
 
-    :return: date string from retrieved files to use when loading to DB.
-    :raise ResourceLoadException: if S3 initialization fails
-    :raise FileNotFoundError:  if unable to find files matching expected pattern in
-        VICC MetaKB bucket.
-    """
-    _echo_info("Attempting to fetch CDM files from S3 bucket")
-    s3 = boto3.resource(
-        "s3", config=Config(region_name="us-east-2", signature_version=UNSIGNED)
-    )
+def _get_snapshot_dir() -> Path:
+    snapshot_dir = get_config().data_dir / "snapshots"
+    snapshot_dir.mkdir(exist_ok=True, parents=True)
+    return snapshot_dir
 
-    if not s3:
-        msg = "Unable to initiate AWS S3 Resource"
-        raise ResourceLoadException(msg)
 
-    bucket = sorted(  # noqa: C414
-        list(s3.Bucket("vicc-metakb").objects.filter(Prefix="cdm").all()),
-        key=lambda f: f.key,
-        reverse=True,
-    )
-    newest_version: str | None = None
+async def _create_snapshot(db_url: str, file: Path | None, quiet: bool) -> None:
+    if not file:
+        snapshot_dir = _get_snapshot_dir()
+        timestamp = datetime.now(UTC).strftime(SourceDataStore.TIMESTAMP_FMT)
+        file = snapshot_dir / f"metakb_snapshot_{timestamp}.json"
 
-    for file in bucket:
-        match = re.match(
-            re.compile(r"cdm/20[23]\d[01]\d[0123]\d/(.*)_cdm_(.*).json.zip"), file.key
-        )
+    async with _get_repository(db_url) as repo:
+        await save_db_snapshot(repo, file, quiet)
 
-        if match:
-            source = match.group(1)
-            if newest_version is None:
-                newest_version = match.group(2)
-            elif match.group(2) != newest_version:
-                continue
-        else:
-            continue
 
-        tmp_path = Path(tempfile.gettempdir()) / "metakb_dl_tmp"
-        with tmp_path.open("wb") as f:
-            file.Object().download_fileobj(f)
-
-        cdm_dir = get_config().data_dir / source / "transformers"
-        cdm_zip = ZipFile(tmp_path, "r")
-        cdm_zip.extract(f"{source}_cdm_{newest_version}.json", cdm_dir)
-
-    if newest_version is None:
-        msg = "Unable to locate files matching expected resource pattern in VICC s3 bucket"
-        raise FileNotFoundError(msg)
-
-    _echo_info(f"Retrieved CDM files dated {newest_version}")
-    return newest_version
+@snapshot.command("create")
+@click.option("--db_url", "-u", default="", help=_neo4j_db_url_description)
+@click.option(
+    "--file",
+    "-f",
+    help="Destination path for the snapshot JSON file.",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+)
+@click.option("-q", "--quiet", is_flag=True, help="Suppress non-error output.")
+def create_snapshot(db_url: str, quiet: bool, file: Path | None = None) -> None:
+    """Create a MetaKB snapshot"""
+    asyncio.run(_create_snapshot(db_url, file, quiet))
 
 
 if __name__ == "__main__":

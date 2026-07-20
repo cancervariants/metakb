@@ -49,6 +49,7 @@ from ga4gh.va_spec.base import (
     Method,
     PrognosticPredicate,
     Statement,
+    System,
     TherapeuticResponsePredicate,
     TherapyGroup,
     VariantDiagnosticProposition,
@@ -65,6 +66,8 @@ from ga4gh.vrs.models import (
     VrsType,
 )
 from pydantic import BaseModel, Field, RootModel
+
+from metakb.transformers import methodology
 
 _logger = logging.getLogger(__name__)
 
@@ -361,12 +364,34 @@ class CategoricalVariantNode(BaseNode):
         )
 
 
-class GeneNode(BaseNode):
-    """Node model for Gene."""
+class _MappableConceptNode(BaseNode):
+    """Base class for mappable concept entity nodes.
+
+    Provide some basic shared properties/functions.
+    """
 
     id: str
     name: str
     mappings: str
+    primary_coding: str
+
+    @classmethod
+    def _dump_primary_coding(cls, concept: MappableConcept) -> str:
+        return (
+            concept.primaryCoding.model_dump_json(exclude_none=True)
+            if concept.primaryCoding
+            else ""
+        )
+
+    def _load_primary_coding(self) -> Coding | None:
+        return (
+            Coding(**json.loads(self.primary_coding)) if self.primary_coding else None
+        )
+
+
+class GeneNode(_MappableConceptNode):
+    """Node model for Gene."""
+
     extensions: str
     description: str
 
@@ -386,6 +411,7 @@ class GeneNode(BaseNode):
             extensions=_Extensions(gene.extensions or []).model_dump_json(
                 exclude_none=True
             ),
+            primary_coding=cls._dump_primary_coding(gene),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -393,18 +419,15 @@ class GeneNode(BaseNode):
         return MappableConcept(
             id=self.id,
             conceptType="Gene",
-            name=self.name if self.name else None,
+            name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root or None,
             extensions=_Extensions(json.loads(self.extensions)).root or None,
+            primaryCoding=self._load_primary_coding(),
         )
 
 
-class DiseaseNode(BaseNode):
+class DiseaseNode(_MappableConceptNode):
     """Node model for an individual Disease."""
-
-    id: str
-    name: str
-    mappings: str
 
     @classmethod
     def from_gks(cls, disease: MappableConcept) -> Self:
@@ -415,6 +438,7 @@ class DiseaseNode(BaseNode):
             mappings=_Mappings(disease.mappings or []).model_dump_json(
                 exclude_none=True
             ),
+            primary_coding=cls._dump_primary_coding(disease),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -424,6 +448,7 @@ class DiseaseNode(BaseNode):
             conceptType="Disease",
             name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root,
+            primaryCoding=self._load_primary_coding(),
         )
 
 
@@ -517,13 +542,10 @@ def _get_condition_node(
     return ConditionSetNode.from_gks(condition)
 
 
-class DrugNode(BaseNode):
+class DrugNode(_MappableConceptNode):
     """Node model for Drug."""
 
-    id: str
-    name: str
     extensions: str
-    mappings: str
 
     @classmethod
     def from_gks(cls, therapy: MappableConcept) -> Self:
@@ -537,6 +559,7 @@ class DrugNode(BaseNode):
             extensions=_Extensions(therapy.extensions or []).model_dump_json(
                 exclude_none=True
             ),
+            primary_coding=cls._dump_primary_coding(therapy),
         )
 
     def to_gks(self) -> MappableConcept:
@@ -547,6 +570,7 @@ class DrugNode(BaseNode):
             name=self.name or None,
             mappings=_Mappings(json.loads(self.mappings)).root,
             extensions=_Extensions(json.loads(self.extensions)).root,
+            primaryCoding=self._load_primary_coding(),
         )
 
 
@@ -804,13 +828,13 @@ class ClassificationNode(BaseNode):
     def from_gks(cls, classification: MappableConcept) -> Self:
         """Construct node representation of classification coding object."""
         match classification.primaryCoding.system:
-            case "https://civic.readthedocs.io/en/latest/model/evidence/level.html":
+            case methodology.CIVIC_SYSTEM:
                 node_id = f"civic.strength:{classification.primaryCoding.code.root}"
-            case "AMP/ASCO/CAP (AAC) Guidelines, 2017":
+            case System.AMP_ASCO_CAP:
                 node_id = (
                     f"amp-asco-cap.strength:{classification.primaryCoding.code.root}"
                 )
-            case "https://moalmanac.org/about":
+            case methodology.MOA_SYSTEM:
                 node_id = f"moalmanac.strength:{classification.primaryCoding.code.root}"
             case _:
                 msg = f"Unrecognized strength concept: {classification}"

@@ -96,6 +96,7 @@ export interface AssertionResult {
   /** Sources (databases) that contributed evidence to this row */
   sources: string[]
   star_rating: StarRating
+  direction: string
 }
 
 /**
@@ -269,6 +270,7 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         sources: getSources(groupedStatements),
         grouped_evidence: groupedEvidence,
         star_rating: starRating,
+        direction: assertion.direction,
       },
     ]
   })

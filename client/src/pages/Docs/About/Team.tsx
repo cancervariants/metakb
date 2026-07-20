@@ -1,8 +1,8 @@
 import { Typography, Box, Divider, Link, IconButton, Grid } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 import EmailIcon from '@mui/icons-material/Email'
+import { useEffect } from 'react'
 
-// TODO: Move this to an external component and import
 function TeamMember({
   name,
   role,
@@ -34,6 +34,10 @@ function TeamMember({
 }
 
 export default function TeamPage() {
+  useEffect(() => {
+    document.title = 'Team | MetaKB Jr.'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={2} fontWeight="bold">

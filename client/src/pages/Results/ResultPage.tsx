@@ -211,9 +211,9 @@ const ResultPage = () => {
 
   useEffect(() => {
     if (searchQuery) {
-      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | VICC MetaKB Jr.`
+      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | MetaKB Jr.`
     } else {
-      document.title = 'VICC | MetaKB Jr.'
+      document.title = 'MetaKB Jr.'
     }
   }, [activeTab, searchQuery])
 

@@ -29,6 +29,32 @@ def _hash_array(str_array: list[str]) -> str:
     return sha512t24u(blob)
 
 
+def hash_proposition(
+    proposition: VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition,
+) -> str:
+    """Create deterministic hash from a proposition"""
+    member_ids: list[str] = [
+        str(proposition.predicate),
+        proposition.subjectVariant.id,
+        proposition.geneContextQualifier.id,
+    ]
+    if isinstance(proposition, VariantTherapeuticResponseProposition):
+        member_ids += [
+            proposition.conditionQualifier.root.id,
+            proposition.objectTherapeutic.root.id,
+        ]
+    elif isinstance(
+        proposition, (VariantDiagnosticProposition, VariantPrognosticProposition)
+    ):
+        member_ids += [proposition.objectCondition.root.id]
+    else:
+        raise TypeError
+
+    return _hash_array(member_ids)
+
+
 def compute_assertion_id(
     proposition: VariantTherapeuticResponseProposition
     | VariantDiagnosticProposition
@@ -44,21 +70,7 @@ def compute_assertion_id(
     :param proposition: proposed proposition object
     :return: assertion ID
     """
-    member_ids: list[str] = [
-        str(proposition.predicate),
-        proposition.subjectVariant.id,
-        proposition.geneContextQualifier.id,
-    ]
-    if isinstance(proposition, VariantTherapeuticResponseProposition):
-        member_ids += [
-            proposition.conditionQualifier.root.id,
-            proposition.objectTherapeutic.root.id,
-        ]
-    else:
-        member_ids += [proposition.objectCondition.root.id]
-
-    digest = _hash_array(member_ids)
-
+    digest = hash_proposition(proposition)
     return f"metakb.assertion:{digest}"
 
 

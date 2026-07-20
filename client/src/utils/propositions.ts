@@ -187,7 +187,6 @@ function getConditionInfo(condition: string | Condition | undefined): ConditionI
   }
 
   visit(condition)
-  console.log(result)
   return result
 }
 

@@ -10,6 +10,7 @@ class SourceName(StrEnum):
     MOA = "moa"
     CBIOPORTAL = "cbioportal"
     FDA_PODA = "fda_poda"
+    MCI = "mci"
 
     def as_print_case(self) -> str:
         """Provide enum value with natural print casing (i.e. value-specific for
@@ -26,6 +27,8 @@ class SourceName(StrEnum):
             return "cBioPortal"
         if self == self.FDA_PODA:
             return "FDA PODA"
+        if self == self.MCI:
+            return "MCI"
         raise ValueError
 
     def __repr__(self) -> str:
