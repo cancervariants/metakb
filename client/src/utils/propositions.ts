@@ -19,6 +19,7 @@ import {
   TherapyGroup,
   Condition,
 } from '../models/domain'
+import { AGE_OF_ONSET_TERMS, AgeOfOnset } from './ageOfOnset'
 import { NormalizedTherapy, TherapyInteractionType } from './results'
 
 /**
@@ -115,22 +116,12 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
 
 type ConditionInfo = {
   diseases: string[]
-  hasPediatricOnset: boolean
+  ageOfOnset: AgeOfOnset | null
 }
-
-const PEDIATRIC_ONSET_TERMS = new Set<string>([
-  'HP:0410280',
-  'HP:0003623',
-  'HP:0011463',
-  'HP:0003593',
-  'HP:0003621',
-  'HP:0025708',
-  'HP:0011462',
-])
 
 const emptyConditionInfo = (): ConditionInfo => ({
   diseases: [],
-  hasPediatricOnset: false,
+  ageOfOnset: null,
 })
 
 const getNamedValue = (value: unknown): string | undefined => {
@@ -173,8 +164,9 @@ function getConditionInfo(condition: string | Condition | undefined): ConditionI
 
     if (isPhenotype(value)) {
       const phenotypeId = getIdValue(value)
-      if (phenotypeId && PEDIATRIC_ONSET_TERMS.has(phenotypeId)) {
-        result.hasPediatricOnset = true
+      if (phenotypeId && phenotypeId in AGE_OF_ONSET_TERMS) {
+        result.ageOfOnset = AGE_OF_ONSET_TERMS[phenotypeId]
+        console.log(result.ageOfOnset)
       }
 
       return

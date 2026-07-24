@@ -30,6 +30,7 @@ import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
 import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
 import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
+import AgeOfOnsetFilter from '../../components/SearchFilters/AgeOfOnsetFilter'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -362,6 +363,12 @@ const ResultPage = () => {
                         setSelected={setSelectedDiseases}
                       />
                       <hr />
+                      <AgeOfOnsetFilter
+                        options={diseaseOptions}
+                        selected={selectedDiseases}
+                        setSelected={setSelectedDiseases}
+                      />
+                      <hr />
                       <>
                         {activeTab === 'therapeutic' && (
                           <>
@@ -384,12 +391,10 @@ const ResultPage = () => {
                       />
                       <hr />
                       <StarRatingFilter
-                        title="Star Rating"
                         options={starRatingOptions}
                         selected={selectedStarRatings}
                         setSelected={setSelectedStarRatings}
                       />
-
                       <hr />
                       <ChecklistFilter
                         title="Significance"

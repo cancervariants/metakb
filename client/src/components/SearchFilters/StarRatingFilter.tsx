@@ -12,13 +12,21 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
-import type { FilterProps } from './types'
+
+export interface StarRatingFilterProps {
+  // literal options to select from (eg disease names, star ratings, etc)
+  options: string[]
+  // subset of options indicating what's selected by the user
+  selected: string[]
+  // setter to set selections
+  setSelected: (values: string[]) => void
+}
 
 const RATINGS = ['1', '2', '3', '4']
 
 const getRatingLabel = (rating: string) => (rating === '4' ? '4 stars' : `${rating}+ stars`)
 
-const StarRatingFilter = ({ title, selected, setSelected }: FilterProps) => {
+const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const [hoveredRating, setHoveredRating] = useState<string | null>(null)
 
   const selectedThreshold = selected.length > 0 ? Math.min(...selected.map(Number)) : null
@@ -49,7 +57,7 @@ const StarRatingFilter = ({ title, selected, setSelected }: FilterProps) => {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">{title}</Typography>
+          <Typography fontWeight="bold">Star Rating</Typography>
 
           {selected.length > 0 && (
             <Button
