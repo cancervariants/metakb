@@ -128,10 +128,10 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                       <div>
                         <strong>References:</strong>{' '}
                         {documentRefLinks.map((document, i) => (
-                          <>
+                          <Box key={i}>
                             {i > 0 && ', '}
                             <DocumentLink reference={document} index={i} />
-                          </>
+                          </Box>
                         ))}
                       </div>
                     )}
