@@ -166,7 +166,6 @@ function getConditionInfo(condition: string | Condition | undefined): ConditionI
       const phenotypeId = getIdValue(value)
       if (phenotypeId && phenotypeId in AGE_OF_ONSET_TERMS) {
         result.ageOfOnset = AGE_OF_ONSET_TERMS[phenotypeId]
-        console.log(result.ageOfOnset)
       }
 
       return

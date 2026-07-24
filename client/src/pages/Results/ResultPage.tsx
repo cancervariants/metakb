@@ -73,6 +73,7 @@ const ResultPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<string[]>([])
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
+  const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<string[]>([])
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
@@ -82,6 +83,7 @@ const ResultPage = () => {
   const selectedFilters = {
     variants: selectedVariants,
     diseases: selectedDiseases,
+    agesOfOnset: selectedAgesOfOnset,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
     starRatings: selectedStarRatings,
@@ -223,6 +225,13 @@ const ResultPage = () => {
   const diseaseOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
   )
+  const ageOfOnsetOptions = Array.from(
+    new Set(
+      results[activeTab]
+        .map((r) => r.ageOfOnset?.conceptId)
+        .filter((id): id is string => id != null),
+    ),
+  )
   const therapyOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.therapy.therapyNames).filter(Boolean)),
   )
@@ -244,6 +253,7 @@ const ResultPage = () => {
   const clearAllFilters = () => {
     setSelectedVariants([])
     setSelectedDiseases([])
+    setSelectedAgesOfOnset([])
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
     setSelectedStarRatings([])
@@ -254,6 +264,7 @@ const ResultPage = () => {
   const activeFilters = [
     ...selectedVariants.map((v) => ({ type: 'variant', value: v })),
     ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
+    ...selectedAgesOfOnset.map((a) => ({ type: 'age_of_onset', value: a })),
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
     ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
@@ -268,6 +279,9 @@ const ResultPage = () => {
         break
       case 'disease':
         setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
+        break
+      case 'age_of_onset':
+        setSelectedAgesOfOnset((prev) => prev.filter((a) => a !== filter.value))
         break
       case 'therapy':
         setSelectedTherapies((prev) => prev.filter((t) => t !== filter.value))
@@ -364,7 +378,7 @@ const ResultPage = () => {
                       />
                       <hr />
                       <AgeOfOnsetFilter
-                        options={diseaseOptions}
+                        options={ageOfOnsetOptions}
                         selected={selectedDiseases}
                         setSelected={setSelectedDiseases}
                       />

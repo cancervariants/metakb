@@ -265,7 +265,7 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         variant_name: getVariantNameFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
         disease: conditions.diseases,
-        hasPediatricOnset: conditions.hasPediatricOnset,
+        ageOfOnset: conditions.ageOfOnset,
         therapy: getTherapyFromProposition(assertion.proposition),
         significance: assertion.proposition?.predicate
           ? formatSignificance(assertion.proposition.predicate)

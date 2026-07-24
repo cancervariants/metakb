@@ -65,6 +65,7 @@ export const applyFilters = (
   selected: {
     variants: string[]
     diseases: string[]
+    agesOfOnset: string[]
     therapies: string[]
     evidenceLevels: string[]
     starRatings: string[]
@@ -77,7 +78,9 @@ export const applyFilters = (
       selected.variants.length === 0 || selected.variants.includes(r.variant_name)
     const diseaseMatch =
       selected.diseases.length === 0 || r.disease.some((d: string) => selected.diseases.includes(d))
-
+    const ageOfOnsetMatch =
+      selected.agesOfOnset.length === 0 ||
+      (r.ageOfOnset && selected.agesOfOnset.includes(r.ageOfOnset.name))
     const therapyMatch =
       selected.therapies.length === 0 ||
       r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
@@ -95,6 +98,7 @@ export const applyFilters = (
     return (
       variantMatch &&
       diseaseMatch &&
+      ageOfOnsetMatch &&
       therapyMatch &&
       levelMatch &&
       starRatingMatch &&

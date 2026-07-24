@@ -70,3 +70,14 @@ export const getTermAndChildrenIds = (termId: string): string[] => {
     .flatMap((child) => getTermAndChildrenIds(child.conceptId))
   return [termId, ...childIds]
 }
+
+/**
+ * Get concept IDs that are associated with root/parent terms (for the purposes of our lil mini ontology)
+ *
+ * @returns list of parent IDs
+ */
+export const getParentIds = (): string[] => {
+  return Object.values(AGE_OF_ONSET_TERMS)
+    .filter((term) => !term.parentConceptId)
+    .map((term) => term.conceptId)
+}
