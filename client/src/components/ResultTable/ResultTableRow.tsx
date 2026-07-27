@@ -125,15 +125,15 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                       </div>
                     )}
                     {documentRefLinks.length > 0 && (
-                      <div>
+                      <>
                         <strong>References:</strong>{' '}
                         {documentRefLinks.map((document, i) => (
-                          <Box key={i}>
+                          <Box component="span" key={i}>
                             {i > 0 && ', '}
                             <DocumentLink reference={document} index={i} />
                           </Box>
                         ))}
-                      </div>
+                      </>
                     )}
                   </Box>
                 )

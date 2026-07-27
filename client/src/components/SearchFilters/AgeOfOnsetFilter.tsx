@@ -1,3 +1,4 @@
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   Accordion,
   AccordionDetails,
@@ -8,16 +9,23 @@ import {
   FormControlLabel,
   Typography,
 } from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { AGE_OF_ONSET_TERMS, getParentIds, getTermAndChildrenIds } from '../../utils/ageOfOnset'
 
+export type AgeOfOnsetSelection = {
+  conceptIds: string[]
+  includeNotSpecified: boolean
+}
+
 export interface AgeOfOnsetFilterProps {
-  // literal age-of-onset options to select from
+  // Literal age-of-onset concept ID options present in the results.
+  // TODO: use this to hide unused options.
   options: string[]
-  // subset of options indicating what's selected by the user
-  selected: string[]
-  // setter to set selections
-  setSelected: (values: string[]) => void
+
+  // Current age-of-onset filter selection.
+  value: AgeOfOnsetSelection
+
+  // Update the age-of-onset filter selection.
+  onChange: (value: AgeOfOnsetSelection) => void
 }
 
 const getChildTermIds = (parentId: string): string[] =>
@@ -25,25 +33,75 @@ const getChildTermIds = (parentId: string): string[] =>
     .filter((term) => term.parentConceptId === parentId)
     .map((term) => term.conceptId)
 
-const AgeOfOnsetFilter = ({ selected, setSelected }: AgeOfOnsetFilterProps) => {
-  const handleChange = (termId: string, checked: boolean) => {
-    const affectedIds = getTermAndChildrenIds(termId)
+const AgeOfOnsetFilter = ({ options, value, onChange }: AgeOfOnsetFilterProps) => {
+  const { conceptIds, includeNotSpecified } = value
 
-    if (checked) {
-      setSelected([...new Set([...selected, ...affectedIds])])
-    } else {
-      setSelected(selected.filter((selectedId) => !affectedIds.includes(selectedId)))
-    }
+  const optionIds = new Set(options)
+
+  /**
+   * Return whether the given term or any descendant is present in the
+   * available age-of-onset options.
+   */
+  const branchHasOptions = (termId: string): boolean =>
+    getTermAndChildrenIds(termId).some((id) => optionIds.has(id))
+
+  const visibleRootIds = getParentIds().filter(branchHasOptions)
+
+  const visibleConceptIds = Object.keys(AGE_OF_ONSET_TERMS).filter((id) => optionIds.has(id))
+
+  const handleConceptIdsChange = (nextConceptIds: string[]) => {
+    onChange({
+      ...value,
+      conceptIds: nextConceptIds,
+    })
   }
 
-  const renderTerm = (termId: string, depth = 0) => {
-    const term = AGE_OF_ONSET_TERMS[termId]
-    const childIds = getChildTermIds(termId)
-    const affectedIds = getTermAndChildrenIds(termId)
+  const handleNotSpecifiedChange = (nextIncludeNotSpecified: boolean) => {
+    onChange({
+      ...value,
+      includeNotSpecified: nextIncludeNotSpecified,
+    })
+  }
 
-    const selectedChildCount = affectedIds.filter((id) => selected.includes(id)).length
-    const checked = affectedIds.every((id) => selected.includes(id))
-    const indeterminate = selectedChildCount > 0 && !checked
+  const handleTermChange = (termId: string, checked: boolean) => {
+    const affectedIds = getTermAndChildrenIds(termId).filter((id) => optionIds.has(id))
+
+    if (checked) {
+      handleConceptIdsChange([...new Set([...conceptIds, ...affectedIds])])
+      return
+    }
+
+    handleConceptIdsChange(conceptIds.filter((selectedId) => !affectedIds.includes(selectedId)))
+  }
+
+  const handleSpecifiedChange = (checked: boolean) => {
+    handleConceptIdsChange(checked ? visibleConceptIds : [])
+  }
+
+  const specifiedChecked =
+    visibleConceptIds.length > 0 && visibleConceptIds.every((id) => conceptIds.includes(id))
+
+  const specifiedIndeterminate =
+    visibleConceptIds.some((id) => conceptIds.includes(id)) && !specifiedChecked
+
+  const hasSelection = conceptIds.length > 0 || includeNotSpecified
+
+  const renderTerm = (termId: string, depth = 0) => {
+    if (!branchHasOptions(termId)) {
+      return null
+    }
+
+    const term = AGE_OF_ONSET_TERMS[termId]
+
+    const childIds = getChildTermIds(termId).filter(branchHasOptions)
+
+    const affectedIds = getTermAndChildrenIds(termId).filter((id) => optionIds.has(id))
+
+    const selectedCount = affectedIds.filter((id) => conceptIds.includes(id)).length
+
+    const checked = affectedIds.length > 0 && affectedIds.every((id) => conceptIds.includes(id))
+
+    const indeterminate = selectedCount > 0 && !checked
 
     return (
       <Box key={termId}>
@@ -53,7 +111,7 @@ const AgeOfOnsetFilter = ({ selected, setSelected }: AgeOfOnsetFilterProps) => {
             <Checkbox
               checked={checked}
               indeterminate={indeterminate}
-              onChange={(event) => handleChange(termId, event.target.checked)}
+              onChange={(event) => handleTermChange(termId, event.target.checked)}
             />
           }
           label={term.name}
@@ -63,7 +121,7 @@ const AgeOfOnsetFilter = ({ selected, setSelected }: AgeOfOnsetFilterProps) => {
       </Box>
     )
   }
-  console.log(getParentIds())
+
   return (
     <Accordion
       defaultExpanded
@@ -86,13 +144,16 @@ const AgeOfOnsetFilter = ({ selected, setSelected }: AgeOfOnsetFilterProps) => {
         <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
           <Typography fontWeight="bold">Age of Onset</Typography>
 
-          {selected.length > 0 && (
+          {hasSelection && (
             <Button
               size="small"
               color="success"
               onClick={(event) => {
                 event.stopPropagation()
-                setSelected([])
+                onChange({
+                  conceptIds: [],
+                  includeNotSpecified: false,
+                })
               }}
             >
               Clear
@@ -102,7 +163,32 @@ const AgeOfOnsetFilter = ({ selected, setSelected }: AgeOfOnsetFilterProps) => {
       </AccordionSummary>
 
       <AccordionDetails sx={{ px: 0 }}>
-        {getParentIds().map((termId) => renderTerm(termId))}
+        {visibleRootIds.length > 0 && (
+          <>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={specifiedChecked}
+                  indeterminate={specifiedIndeterminate}
+                  onChange={(event) => handleSpecifiedChange(event.target.checked)}
+                />
+              }
+              label="Age of onset specified"
+            />
+
+            <Box sx={{ ml: 2 }}>{visibleRootIds.map((termId) => renderTerm(termId))}</Box>
+          </>
+        )}
+
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={includeNotSpecified}
+              onChange={(event) => handleNotSpecifiedChange(event.target.checked)}
+            />
+          }
+          label="Age of onset not specified"
+        />
       </AccordionDetails>
     </Accordion>
   )

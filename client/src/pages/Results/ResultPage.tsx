@@ -30,7 +30,10 @@ import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
 import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
 import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
-import AgeOfOnsetFilter from '../../components/SearchFilters/AgeOfOnsetFilter'
+import AgeOfOnsetFilter, {
+  AgeOfOnsetSelection,
+} from '../../components/SearchFilters/AgeOfOnsetFilter'
+import { getTermAndChildrenIds } from '../../utils/ageOfOnset'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -73,7 +76,10 @@ const ResultPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<string[]>([])
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
-  const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<string[]>([])
+  const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<AgeOfOnsetSelection>({
+    conceptIds: [],
+    includeNotSpecified: false,
+  })
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
@@ -253,7 +259,7 @@ const ResultPage = () => {
   const clearAllFilters = () => {
     setSelectedVariants([])
     setSelectedDiseases([])
-    setSelectedAgesOfOnset([])
+    setSelectedAgesOfOnset({ conceptIds: [], includeNotSpecified: false })
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
     setSelectedStarRatings([])
@@ -264,37 +270,61 @@ const ResultPage = () => {
   const activeFilters = [
     ...selectedVariants.map((v) => ({ type: 'variant', value: v })),
     ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
-    ...selectedAgesOfOnset.map((a) => ({ type: 'age_of_onset', value: a })),
+    ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
+      type: 'age_of_onset',
+      value: conceptId,
+    })),
+    ...(selectedAgesOfOnset.includeNotSpecified
+      ? [{ type: 'age_of_onset_not_specified', value: 'not_specified' }]
+      : []),
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
     ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
     ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
     ...selectedSources.map((src) => ({ type: 'source', value: src })),
   ]
-
   const removeFilter = (filter: { type: string; value: string }) => {
     switch (filter.type) {
       case 'variant':
         setSelectedVariants((prev) => prev.filter((v) => v !== filter.value))
         break
+
       case 'disease':
         setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
         break
-      case 'age_of_onset':
-        setSelectedAgesOfOnset((prev) => prev.filter((a) => a !== filter.value))
+
+      case 'age_of_onset': {
+        const affectedIds = getTermAndChildrenIds(filter.value)
+
+        setSelectedAgesOfOnset((prev) => ({
+          ...prev,
+          conceptIds: prev.conceptIds.filter((id) => !affectedIds.includes(id)),
+        }))
         break
+      }
+      case 'age_of_onset_not_specified':
+        setSelectedAgesOfOnset((prev) => ({
+          ...prev,
+          includeNotSpecified: false,
+        }))
+        break
+
       case 'therapy':
         setSelectedTherapies((prev) => prev.filter((t) => t !== filter.value))
         break
+
       case 'evidence_level':
         setSelectedEvidenceLevels((prev) => prev.filter((e) => e !== filter.value))
         break
+
       case 'star_rating':
         setSelectedStarRatings((prev) => prev.filter((s) => s !== filter.value))
         break
+
       case 'significance':
         setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
         break
+
       case 'source':
         setSelectedSources((prev) => prev.filter((s) => s !== filter.value))
         break
@@ -379,8 +409,8 @@ const ResultPage = () => {
                       <hr />
                       <AgeOfOnsetFilter
                         options={ageOfOnsetOptions}
-                        selected={selectedDiseases}
-                        setSelected={setSelectedDiseases}
+                        value={selectedAgesOfOnset}
+                        onChange={setSelectedAgesOfOnset}
                       />
                       <hr />
                       <>
