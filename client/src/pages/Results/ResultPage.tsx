@@ -13,7 +13,6 @@ import {
 } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable/ResultTable'
-import FilterSection from '../../components/FilterSection/FilterSection'
 import {
   AssertionResult,
   buildCountMap,
@@ -29,6 +28,8 @@ import GeneInfo from '../../components/EntityInfo/GeneInfo'
 import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
+import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
+import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -346,25 +347,25 @@ const ResultPage = () => {
                           </Stack>
                         )}
                       </Box>
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <ChecklistFilter
                         title="Variant"
                         options={variantOptions}
                         selected={selectedVariants}
                         setSelected={setSelectedVariants}
                       />
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <ChecklistFilter
                         title="Disease"
                         options={diseaseOptions}
                         selected={selectedDiseases}
                         setSelected={setSelectedDiseases}
                       />
-                      <hr></hr>
+                      <hr />
                       <>
                         {activeTab === 'therapeutic' && (
                           <>
-                            <FilterSection
+                            <ChecklistFilter
                               title="Therapy"
                               options={therapyOptions}
                               selected={selectedTherapies}
@@ -375,28 +376,29 @@ const ResultPage = () => {
                         )}
                       </>
 
-                      <FilterSection
+                      <ChecklistFilter
                         title="Evidence Level"
                         options={evidenceLevelOptions}
                         selected={selectedEvidenceLevels}
                         setSelected={setSelectedEvidenceLevels}
                       />
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <StarRatingFilter
                         title="Star Rating"
                         options={starRatingOptions}
                         selected={selectedStarRatings}
                         setSelected={setSelectedStarRatings}
                       />
-                      <hr></hr>
-                      <FilterSection
+
+                      <hr />
+                      <ChecklistFilter
                         title="Significance"
                         options={significanceOptions}
                         selected={selectedSignificance}
                         setSelected={setSelectedSignificance}
                       />
                       <hr />
-                      <FilterSection
+                      <ChecklistFilter
                         title="Source"
                         options={sourceOptions}
                         selected={selectedSources}

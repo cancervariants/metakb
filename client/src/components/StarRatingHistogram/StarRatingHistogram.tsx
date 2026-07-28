@@ -61,7 +61,7 @@ export function StarRatingHistogram({ data }: Props) {
       >
         Assertions by Star Rating
       </Typography>
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
         <BarChart data={chartData} margin={{ top: 8, right: 16, left: 24, bottom: 24 }}>
           <XAxis
             dataKey="stars"
