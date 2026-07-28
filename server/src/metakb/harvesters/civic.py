@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-from civicpy import LOCAL_CACHE_PATH
 from civicpy import civic as civicpy
 
 from metakb.harvesters.base import FetchMode, Harvester
@@ -19,5 +18,5 @@ class CivicHarvester(Harvester):
         """
         if fetch_mode == FetchMode.FORCE_REFRESH:
             civicpy.update_cache()
-        civicpy_cache_path = Path(LOCAL_CACHE_PATH)
+        civicpy_cache_path = Path(civicpy.LOCAL_CACHE_PATH)
         return self.src_data_dir.save_harvested_file(civicpy_cache_path)

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
-    CivicGksAssertion,
+    CivicGksClinSigAssertion,
     CivicGksEvidence,
     CivicGksRecordError,
 )
@@ -219,7 +219,7 @@ class CivicTransformer(Transformer):
         # item is an assertion
         elif isinstance(item, civicpy.Assertion):
             try:
-                clinsig_statement = CivicGksAssertion(item)
+                clinsig_statement = CivicGksClinSigAssertion(item)
                 if len(clinsig_statement.hasEvidenceLines or []) != 1:
                     msg = "Assumption of 1 evidence line is broken"
                     raise ValueError(msg)
