@@ -1,5 +1,5 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 
@@ -140,12 +140,7 @@ client/.env
 client/.vite
 
 # server (Python)
-server/__pycache__/
-server/.venv/
-server/venv/
-server/.env
-# data files
-server/src/metakb/data/*
+**/.venv/
 
 # Turborepo
 .turbo/

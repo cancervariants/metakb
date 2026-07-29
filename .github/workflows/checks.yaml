@@ -38,7 +38,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --extra tests --extra dev --extra notebooks
+        run: uv sync --extra tests --extra dev --extra ingest --extra notebooks
 
       - name: Run tests
         working-directory: ./server
@@ -153,7 +153,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --extra docs
+        run: uv sync --extra docs --extra ingest
         working-directory: ./server
 
       - name: Attempt docs build
