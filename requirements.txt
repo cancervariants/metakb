@@ -19,7 +19,7 @@ canonicaljson==2.0.0
 cattrs==25.3.0
 certifi==2026.1.4
 charset-normalizer==3.4.4
-civicpy @ git+https://github.com/griffithlab/civicpy@a3594d63f2eff8e49c9f996cb54f21e8457a631d
+civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552
 click==8.3.1
 coloredlogs==15.0.1
 configparser==7.2.0
@@ -32,7 +32,7 @@ executing==2.2.1
 fastapi==0.128.8
 fastobo==0.14.1
 ga4gh-cat-vrs==0.8.0a2
-ga4gh-va-spec==0.5.0a1
+ga4gh-va-spec==0.5.0a0
 ga4gh-vrs==2.4.0a1
 gene-normalizer==0.11.5
 gffutils==0.13
