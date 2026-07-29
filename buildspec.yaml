@@ -16,10 +16,15 @@ phases:
       - git rev-parse --is-inside-work-tree
       - git fetch --tags --force
       - git describe --tags --always
+      - cd server && python -m setuptools_scm && cd ..
 
   build:
     commands:
       - ./deployment/elastic-beanstalk/build.sh
+      - test -f build/elastic-beanstalk/bundle/application.py
+      - test -f build/elastic-beanstalk/bundle/Procfile
+      - test -f build/elastic-beanstalk/bundle/requirements.txt
+      - find build/elastic-beanstalk/bundle/wheels -name '*.whl' -print -quit | grep .
 
 artifacts:
   base-directory: build/elastic-beanstalk/bundle

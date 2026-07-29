@@ -43,7 +43,7 @@ if [[ -d "${PROJECT_ROOT}/.platform" ]]; then
 fi
 
 # Copy the application entrypoint and any other files EB needs.
-cp "${PROJECT_ROOT}/application.py" "${BUNDLE_DIR}/"
+cp "${PROJECT_ROOT}/deployment/elastic-beanstalk/application.py" "${BUNDLE_DIR}/"
 
 # Generate the requirements file EB will install.
 runtime_requirements="${PROJECT_ROOT}/deployment/elastic-beanstalk/requirements-runtime.txt"
@@ -58,7 +58,11 @@ printf '\n./wheels/%s\n' "${wheel_name}" >> "${BUNDLE_DIR}/requirements.txt"
 
 # Record deployment provenance for diagnostics.
 git rev-parse HEAD > "${BUNDLE_DIR}/COMMIT_SHA"
-python -m setuptools_scm > "${BUNDLE_DIR}/VERSION"
+version="$(
+  cd "${PROJECT_ROOT}/server/"
+  python -m setuptools_scm
+)"
+printf '%s\n' "${version}" > "${BUNDLE_DIR}/VERSION"
 
 echo "Built Elastic Beanstalk bundle:"
 echo "  ${BUNDLE_DIR}"

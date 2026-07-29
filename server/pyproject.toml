@@ -29,35 +29,36 @@ dependencies = [
     "ga4gh.vrs[extras]~=2.4.0-a1",
     "ga4gh.cat_vrs~=0.8.0-a2",
     "ga4gh.va_spec==0.5.0-a0",
-    "cool-seq-tool ~= 0.16.0",
     "gene-normalizer[etl]~=0.11.5",
     "variation-normalizer~=0.15.4",
     "disease-normalizer[etl]~=0.11.2",
     "thera-py[etl]~=0.11.0",
-    "civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552",
     "requests",
     "pydantic==2.*",
     "pydantic-settings",
-    "requests-cache",
     "neo4j==5.*",
-    "uvicorn",
-    "fastapi",
-    "boto3",
+    "fastapi[standard]",
     "botocore",
     "click",
     "jinja2",
-    "pandas>=2.3.3, <3.0",
     "async-lru",
     "tqdm",
 ]
 
 [project.optional-dependencies]
-deploy = [
+ingest = [
+    "pandas>=2.3.3, <3.0",
+    "cool-seq-tool ~= 0.16.0",
+    "civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552",
+]
+elasticbeanstalk = [
+    "uvicorn",
+    "gunicorn",
+    "uvicorn-worker",
     "uvloop",
     "websockets",
     "httptools",
     "typing-extensions",
-    "mangum",
 ]
 tests = [
     "pytest",
@@ -72,7 +73,6 @@ tests = [
 dev = [
     "prek>=0.2.23",
     "ruff==0.14.10",
-    "fastapi[standard]",
     "ipdb",
     "psycopg2-binary>=2.9.10",
 ]
