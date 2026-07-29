@@ -14,9 +14,11 @@ import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
 
 export interface StarRatingFilterProps {
-  // literal options to select from (eg disease names, star ratings, etc)
+  // literal star rating options to select from ('1', '2', etc)
   options: string[]
-  // subset of options indicating what's selected by the user
+  // subset of options indicating what should be shown to the user
+  // note that this is interpreted as a minimum: if a user
+  // selects '2', the setter function will fire with ['2', '3', '4']
   selected: string[]
   // setter to set selections
   setSelected: (values: string[]) => void

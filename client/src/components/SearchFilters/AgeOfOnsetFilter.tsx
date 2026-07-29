@@ -13,17 +13,16 @@ import { AGE_OF_ONSET_TERMS, getParentIds, getTermAndChildrenIds } from '../../u
 
 export type AgeOfOnsetSelection = {
   conceptIds: string[]
+  // many MetaKB records don't have an age-of-onset phenotype at all -- this flag
+  // sets whether they should be shown/hidden
   includeNotSpecified: boolean
 }
 
 export interface AgeOfOnsetFilterProps {
   // Literal age-of-onset concept ID options present in the results.
-  // TODO: use this to hide unused options.
   options: string[]
-
   // Current age-of-onset filter selection.
   value: AgeOfOnsetSelection
-
   // Update the age-of-onset filter selection.
   onChange: (value: AgeOfOnsetSelection) => void
 }
