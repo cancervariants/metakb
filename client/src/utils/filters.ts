@@ -6,6 +6,7 @@
  * and counts for the sidebar UI.
  */
 
+import { AgeOfOnsetSelection } from '../components/SearchFilters/AgeOfOnsetFilter'
 import { AssertionResult } from './results'
 
 /**
@@ -39,32 +40,26 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
 }
 
 /**
- * Filters an array of `NormalizedResult` rows against the currently
+ * Filters an array of `AssertionResult` rows against the currently
  * selected filter criteria.
  *
- * Each filter category (variants, diseases, therapies, evidenceLevels,
- * starRatings, significance, sources) is optional — if no values are
- * selected in a category, all items pass that category. Otherwise, an
- * item must match at least one of the selected values for each active
- * category.
+ * Each filter category is optional. If no values are selected in a category,
+ * all items pass that category. Otherwise, an item must match at least one
+ * selected value in each active category.
  *
- * @param items - Array of `NormalizedResult` rows to filter.
+ * Age-of-onset filtering supports both selected HPO concept IDs and results
+ * where no tracked age-of-onset term is specified.
+ *
+ * @param items - Array of `AssertionResult` rows to filter.
  * @param selected - Object containing the active filter selections.
- *   - `variants`: Variant names to match.
- *   - `diseases`: Disease names to match (checks against all diseases in a row - in case of a ConditionSet).
- *   - `therapies`: Therapies to match.
- *   - `evidenceLevels`: Evidence levels to match.
- *   - `starRatings`: Star ratings to match.
- *   - `significance`: Clinical significance values to match.
- *   - `sources`: Evidence sources to match (checks if row contains any selected source).
- *
- * @returns Array of `NormalizedResult` rows that satisfy all active filters.
+ * @returns Rows that satisfy all active filters.
  */
 export const applyFilters = (
   items: AssertionResult[],
   selected: {
     variants: string[]
     diseases: string[]
+    agesOfOnset: AgeOfOnsetSelection
     therapies: string[]
     evidenceLevels: string[]
     starRatings: string[]
@@ -75,17 +70,30 @@ export const applyFilters = (
   return items.filter((r) => {
     const variantMatch =
       selected.variants.length === 0 || selected.variants.includes(r.variant_name)
+
     const diseaseMatch =
       selected.diseases.length === 0 || r.disease.some((d: string) => selected.diseases.includes(d))
+
+    const ageOfOnsetFilterActive =
+      selected.agesOfOnset.conceptIds.length > 0 || selected.agesOfOnset.includeNotSpecified
+
+    const ageOfOnsetMatch =
+      !ageOfOnsetFilterActive ||
+      (r.ageOfOnset
+        ? selected.agesOfOnset.conceptIds.includes(r.ageOfOnset.conceptId)
+        : selected.agesOfOnset.includeNotSpecified)
 
     const therapyMatch =
       selected.therapies.length === 0 ||
       r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
+
     const levelMatch =
       selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)
+
     const starRatingMatch =
       selected.starRatings.length === 0 ||
       selected.starRatings.includes(String(r.star_rating.starRating))
+
     const significanceMatch =
       selected.significance.length === 0 || selected.significance.includes(r.significance)
 
@@ -95,6 +103,7 @@ export const applyFilters = (
     return (
       variantMatch &&
       diseaseMatch &&
+      ageOfOnsetMatch &&
       therapyMatch &&
       levelMatch &&
       starRatingMatch &&
