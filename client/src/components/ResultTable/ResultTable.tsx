@@ -152,19 +152,25 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       render: (value: AssertionResult) => value?.disease,
     },
     {
-      field: 'hasPediatricOnset',
+      field: 'ageOfOnset',
       headerName: 'Pediatric Onset',
       width: 60,
       render: (value: AssertionResult) =>
-        value?.hasPediatricOnset ? (
+        value?.ageOfOnset ? (
           <Tooltip
-            title="This assertion pertains to a condition associated with pediatric onset phenotypes."
+            title={
+              <div>
+                <strong>{value.ageOfOnset.name}</strong>
+                <div>{value.ageOfOnset.description}</div>
+                <div>{value.ageOfOnset.conceptId}</div>
+              </div>
+            }
             arrow
           >
             <span>🍎</span>
           </Tooltip>
         ) : (
-          ''
+          <>{value.ageOfOnset}</>
         ),
     },
     {
