@@ -1,0 +1,29 @@
+version: 0.2
+
+env:
+  shell: bash
+
+phases:
+  install:
+    runtime-versions:
+      python: "3.13"
+    commands:
+      - python -m pip install --upgrade pip
+      - python -m pip install build setuptools-scm
+
+  pre_build:
+    commands:
+      - git rev-parse --is-inside-work-tree
+      - git fetch --tags --force
+      - git describe --tags --always
+
+  build:
+    commands:
+      - ./deployment/elastic-beanstalk/build.sh
+
+artifacts:
+  base-directory: build/elastic-beanstalk/bundle
+  files:
+    - "**/*"
+    - ".ebextensions/**/*"
+    - ".platform/**/*"
