@@ -1,6 +1,6 @@
 [project]
 name = "metakb"
-version = "2.0.0-a1"
+dynamic = ["version"]
 authors = [
     {name = "Alex H Wagner"},
     {name = "Kori Kuzma"},
@@ -57,6 +57,7 @@ deploy = [
     "websockets",
     "httptools",
     "typing-extensions",
+    "mangum",
 ]
 tests = [
     "pytest",
@@ -104,7 +105,7 @@ Source = "https://github.com/cancervariants/metakb"
 metakb = "metakb.cli:cli"
 
 [build-system]
-requires = ["setuptools>=77.0"]
+requires = ["setuptools>=80", "setuptools-scm[simple]>=9.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -112,6 +113,9 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 metakb = ["*.cypher"]
+
+[tool.setuptools_scm]
+root = ".."
 
 [tool.pytest.ini_options]
 addopts = "--cov=src --cov-report term-missing -m 'not ci_only'"
