@@ -12,13 +12,23 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
-import type { FilterProps } from './types'
+
+export interface StarRatingFilterProps {
+  // literal star rating options to select from ('1', '2', etc)
+  options: string[]
+  // subset of options indicating what should be shown to the user
+  // note that this is interpreted as a minimum: if a user
+  // selects '2', the setter function will fire with ['2', '3', '4']
+  selected: string[]
+  // setter to set selections
+  setSelected: (values: string[]) => void
+}
 
 const RATINGS = ['1', '2', '3', '4']
 
 const getRatingLabel = (rating: string) => (rating === '4' ? '4 stars' : `${rating}+ stars`)
 
-const StarRatingFilter = ({ title, selected, setSelected }: FilterProps) => {
+const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const [hoveredRating, setHoveredRating] = useState<string | null>(null)
 
   const selectedThreshold = selected.length > 0 ? Math.min(...selected.map(Number)) : null
@@ -49,7 +59,7 @@ const StarRatingFilter = ({ title, selected, setSelected }: FilterProps) => {
         }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">{title}</Typography>
+          <Typography fontWeight="bold">Star Rating</Typography>
 
           {selected.length > 0 && (
             <Button
