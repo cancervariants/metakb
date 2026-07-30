@@ -70,7 +70,7 @@ def _update_gene_from_civic_gid(
                     name="gene_description",
                     value={
                         "source": civic_gene.id,
-                        "description": civic_description.value,
+                        "description": civic_description[0].value,
                     },
                 )
             )

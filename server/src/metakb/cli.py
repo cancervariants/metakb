@@ -435,7 +435,7 @@ async def _transform_file(
 @click.argument(
     "source_name", type=click.Choice(list(SourceName), case_sensitive=False), nargs=1
 )
-async def transform_file(
+def transform_file(
     normalizer_db_url: str | None,
     harvest_file: Path,
     source_name: SourceName,
@@ -608,8 +608,10 @@ async def _update(
         sources = tuple(SourceName)
     async with _get_repository(db_url) as repository:
         for src in sorted([s.value for s in sources]):
+            if src == SourceName.CBIOPORTAL:
+                continue  # TODO implement in GH issue #729
             pattern = f"{src}_cdm_*.json"
-            globbed = (get_config().data_dir / src / "transformers").glob(pattern)
+            globbed = (get_config().data_dir / src / "transformed").glob(pattern)
 
             try:
                 path = sorted(globbed)[-1]
@@ -641,7 +643,7 @@ async def _update(
     type=click.Choice(list(SourceName), case_sensitive=False),
     nargs=-1,
 )
-async def update(
+def update(
     db_url: str,
     normalizer_db_url: str | None,
     refresh_source_caches: bool,
@@ -765,6 +767,8 @@ async def _transform_sources(
     normalizer_handler = await _get_preflighted_normalizers(normalizer_db_url)
     total_start = timer()
     for source in sources:
+        if source == SourceName.CBIOPORTAL:
+            continue  # TODO implement in GH issue #729
         await _transform_source(source, normalizer_handler)
     total_end = timer()
     _echo_info(
