@@ -17,6 +17,7 @@ export enum SourceName {
   Civic = 'CIViC',
   Moalmanac = 'MOAlmanac',
   FdaPoda = 'FDA',
+  Mci = 'MCI',
 }
 
 /**
@@ -26,6 +27,7 @@ export enum SourceNamespacePrefix {
   Civic = 'civic',
   Moalmanac = 'moa',
   FdaPoda = 'fda_poda',
+  Mci = 'mci',
 }
 
 /**
@@ -56,6 +58,9 @@ export function getEvidenceLabelUrl(evidenceIdentifier: string): {
     evidenceLabel = `${SourceName.FdaPoda}`
     evidenceUrl =
       'https://www.fda.gov/about-fda/oncology-center-excellence/pediatric-oncology-drug-approvals'
+  } else if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Mci)) {
+    evidenceLabel = `${SourceName.Mci}`
+    evidenceUrl = 'https://github.com/GenomicMedLab/mci-knowledge-pilot/'
   }
   return {
     evidenceLabel: evidenceLabel,
@@ -79,6 +84,8 @@ export function getEvidenceSource(evidenceIdentifier: string): SourceName | null
     return SourceName.Civic
   } else if (evidenceIdentifier.startsWith(SourceNamespacePrefix.FdaPoda)) {
     return SourceName.FdaPoda
+  } else if (evidenceIdentifier.startsWith(SourceNamespacePrefix.Mci)) {
+    return SourceName.Mci
   }
   return null
 }

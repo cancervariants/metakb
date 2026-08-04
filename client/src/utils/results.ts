@@ -21,6 +21,7 @@ import {
   VariantPrognosticProposition,
   VariantTherapeuticResponseProposition,
 } from '../models/domain'
+import { AgeOfOnset } from './ageOfOnset'
 import {
   getConditionsFromProposition,
   getTherapyFromProposition,
@@ -85,8 +86,8 @@ export interface AssertionResult {
   evidence_level: string
   /** Associated diseases, may include multiple names */
   disease: string[]
-  /** Associated phenotype options */
-  hasPediatricOnset: boolean
+  /** Associated age of onset */
+  ageOfOnset: AgeOfOnset | null
   /** Therapy or combination therapy (if applicable) */
   therapy: NormalizedTherapy
   /** Clinical significance string */
@@ -95,7 +96,10 @@ export interface AssertionResult {
   grouped_evidence: EvidenceLine[]
   /** Sources (databases) that contributed evidence to this row */
   sources: string[]
+  /** Base star rating + associated metadata */
   star_rating: StarRating
+  /** Direction of the assertion (ie supporting/disputing/neutral) */
+  direction: string
 }
 
 /**
@@ -261,7 +265,7 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         variant_name: getVariantNameFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
         disease: conditions.diseases,
-        hasPediatricOnset: conditions.hasPediatricOnset,
+        ageOfOnset: conditions.ageOfOnset,
         therapy: getTherapyFromProposition(assertion.proposition),
         significance: assertion.proposition?.predicate
           ? formatSignificance(assertion.proposition.predicate)
@@ -269,6 +273,7 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
         sources: getSources(groupedStatements),
         grouped_evidence: groupedEvidence,
         star_rating: starRating,
+        direction: assertion.direction,
       },
     ]
   })

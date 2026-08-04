@@ -5,5 +5,6 @@ MERGE (drug:Therapeutic:Drug {id: $drug.id})
         name: $drug.name,
         mappings: $drug.mappings,
         aliases: $drug.aliases,
-        extensions: $drug.extensions
+        extensions: $drug.extensions,
+        primary_coding: $drug.primary_coding
       }

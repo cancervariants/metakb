@@ -1,0 +1,203 @@
+{
+  "statements": [
+    {
+      "type": "Statement",
+      "description": "Variant has Tier I (strong) clinical significance as a diagnostic inclusion criterion in sinus histiocytosis with massive lymphadenopathy, based on the following evidence: 1) Documented in one or more cancer databases (e.g., St. Jude Pecan, COSMIC, CIViC, OncoKB). 2) Appears in one or more well-established professional guidelines (e.g., World Health Organization [WHO]; National Comprehensive Cancer Network [NCCN]) as providing diagnostic, prognostic, or therapeutic information. 3) Information in the literature supports potential biologic effect of variant (PMIDs: 3043178, 3540608, 35202574). 4) Diagnostic for a specific tumor type/classification based on well-powered studies with expert-level consensus (Evidence Level B; PMIDs: 26566875, 31768065, 29720485, 32601132).",
+      "extensions": [
+        { "name": "in_mci_project", "value": false },
+        {
+          "name": "applied_variant_info_checklist",
+          "value": [
+            {
+              "description": "Documented in one or more cancer databases (e.g., St. Jude Pecan, COSMIC, CIViC, OncoKB)"
+            },
+            {
+              "description": "Appears in one or more well-established professional guidelines (e.g., World Health Organization [WHO]; National Comprehensive Cancer Network [NCCN]) as providing diagnostic, prognostic, or therapeutic information"
+            },
+            {
+              "description": "Information in the literature supports potential biologic effect of variant",
+              "reportedIn": [
+                {
+                  "id": "pubmed:3043178",
+                  "type": "Document",
+                  "urls": ["https://pubmed.ncbi.nlm.nih.gov/3043178"],
+                  "pmid": "3043178"
+                },
+                {
+                  "id": "pubmed:3540608",
+                  "type": "Document",
+                  "urls": ["https://pubmed.ncbi.nlm.nih.gov/3540608"],
+                  "pmid": "3540608"
+                },
+                {
+                  "id": "pubmed:35202574",
+                  "type": "Document",
+                  "urls": ["https://pubmed.ncbi.nlm.nih.gov/35202574"],
+                  "pmid": "35202574"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "specifiedBy": {
+        "type": "Method",
+        "name": "AMP/ASCO/CAP Guidelines, 2017",
+        "reportedIn": {
+          "id": "pmid:27993330",
+          "type": "Document",
+          "title": "Standards and Guidelines for the Interpretation and Reporting of Sequence Variants in Cancer: A Joint Consensus Recommendation of the Association for Molecular Pathology, American Society of Clinical Oncology, and College of American Pathologists",
+          "urls": [
+            "https://doi.org/10.1016/j.jmoldx.2016.10.002",
+            "https://pubmed.ncbi.nlm.nih.gov/27993330/"
+          ],
+          "doi": "10.1016/j.jmoldx.2016.10.002",
+          "pmid": "27993330"
+        }
+      },
+      "contributions": [
+        {
+          "type": "Contribution",
+          "contributor": { "type": "Agent", "agentType": "analyst" },
+          "activityType": "reviewed",
+          "date": "2024-11-14T00:00:00"
+        },
+        {
+          "type": "Contribution",
+          "contributor": { "type": "Agent", "agentType": "clinical_director" },
+          "activityType": "reviewed",
+          "date": "2024-11-19T00:00:00"
+        }
+      ],
+      "proposition": {
+        "type": "VariantClinicalSignificanceProposition",
+        "subjectVariant": {
+          "id": "ga4gh:VA.5ajmZMdX9tr2XjgGNlw-wNl4_yG_FaDe",
+          "type": "Allele",
+          "digest": "5ajmZMdX9tr2XjgGNlw-wNl4_yG_FaDe",
+          "expressions": [
+            { "syntax": "hgvs.c", "value": "NM_002524.5:c.175G>A" }
+          ],
+          "location": {
+            "id": "ga4gh:SL.GgCRVSWQEylnhx4waHyZ5hmrNaJyn3Kr",
+            "type": "SequenceLocation",
+            "digest": "GgCRVSWQEylnhx4waHyZ5hmrNaJyn3Kr",
+            "sequenceReference": {
+              "type": "SequenceReference",
+              "refgetAccession": "SQ.sMBMPz32WlhQGTxBagnyMCUdy2OD2M--",
+              "moleculeType": "RNA"
+            },
+            "start": 305,
+            "end": 306
+          },
+          "state": { "type": "LiteralSequenceExpression", "sequence": "A" }
+        },
+        "geneContextQualifier": { "conceptType": "Gene", "name": "NRAS" },
+        "alleleOriginQualifier": { "name": "somatic" },
+        "predicate": "hasClinicalSignificanceFor",
+        "objectCondition": {
+          "extensions": [{ "name": "used_internal_map", "value": true }],
+          "conceptType": "Disease",
+          "name": "sinus histiocytosis with massive lymphadenopathy",
+          "primaryCoding": {
+            "id": "MONDO_0006412",
+            "name": "sinus histiocytosis with massive lymphadenopathy",
+            "system": "https://purl.obolibrary.org/obo/",
+            "code": "MONDO:0006412"
+          }
+        }
+      },
+      "direction": "supports",
+      "strength": {
+        "primaryCoding": {
+          "system": "AMP/ASCO/CAP Guidelines, 2017",
+          "code": "strong"
+        }
+      },
+      "classification": {
+        "name": "Tier I",
+        "primaryCoding": {
+          "system": "AMP/ASCO/CAP Guidelines, 2017",
+          "code": "tier i"
+        }
+      },
+      "hasEvidenceLines": [
+        {
+          "type": "EvidenceLine",
+          "description": "Diagnostic for a specific tumor type/classification based on well-powered studies with expert-level consensus",
+          "reportedIn": [
+            {
+              "id": "pubmed:26566875",
+              "type": "Document",
+              "urls": ["https://pubmed.ncbi.nlm.nih.gov/26566875"],
+              "pmid": "26566875"
+            },
+            {
+              "id": "pubmed:31768065",
+              "type": "Document",
+              "urls": ["https://pubmed.ncbi.nlm.nih.gov/31768065"],
+              "pmid": "31768065"
+            },
+            {
+              "id": "pubmed:29720485",
+              "type": "Document",
+              "urls": ["https://pubmed.ncbi.nlm.nih.gov/29720485"],
+              "pmid": "29720485"
+            },
+            {
+              "id": "pubmed:32601132",
+              "type": "Document",
+              "urls": ["https://pubmed.ncbi.nlm.nih.gov/32601132"],
+              "pmid": "32601132"
+            }
+          ],
+          "targetProposition": {
+            "type": "VariantDiagnosticProposition",
+            "subjectVariant": {
+              "id": "ga4gh:VA.5ajmZMdX9tr2XjgGNlw-wNl4_yG_FaDe",
+              "type": "Allele",
+              "digest": "5ajmZMdX9tr2XjgGNlw-wNl4_yG_FaDe",
+              "expressions": [
+                { "syntax": "hgvs.c", "value": "NM_002524.5:c.175G>A" }
+              ],
+              "location": {
+                "id": "ga4gh:SL.GgCRVSWQEylnhx4waHyZ5hmrNaJyn3Kr",
+                "type": "SequenceLocation",
+                "digest": "GgCRVSWQEylnhx4waHyZ5hmrNaJyn3Kr",
+                "sequenceReference": {
+                  "type": "SequenceReference",
+                  "refgetAccession": "SQ.sMBMPz32WlhQGTxBagnyMCUdy2OD2M--",
+                  "moleculeType": "RNA"
+                },
+                "start": 305,
+                "end": 306
+              },
+              "state": { "type": "LiteralSequenceExpression", "sequence": "A" }
+            },
+            "geneContextQualifier": { "conceptType": "Gene", "name": "NRAS" },
+            "alleleOriginQualifier": { "name": "somatic" },
+            "predicate": "isDiagnosticInclusionCriterionFor",
+            "objectCondition": {
+              "extensions": [{ "name": "used_internal_map", "value": true }],
+              "conceptType": "Disease",
+              "name": "sinus histiocytosis with massive lymphadenopathy",
+              "primaryCoding": {
+                "id": "MONDO_0006412",
+                "name": "sinus histiocytosis with massive lymphadenopathy",
+                "system": "https://purl.obolibrary.org/obo/",
+                "code": "MONDO:0006412"
+              }
+            }
+          },
+          "directionOfEvidenceProvided": "supports",
+          "strengthOfEvidenceProvided": {
+            "primaryCoding": {
+              "system": "AMP/ASCO/CAP Guidelines, 2017",
+              "code": "B"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

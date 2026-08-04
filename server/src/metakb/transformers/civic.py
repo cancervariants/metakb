@@ -7,9 +7,9 @@ from uuid import uuid4
 
 from civicpy import civic as civicpy
 from civicpy.exports.civic_gks_record import (
+    CivicGksClinSigAssertion,
     CivicGksEvidence,
     CivicGksRecordError,
-    create_gks_record_from_assertion,
 )
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import ConceptMapping, Extension, MappableConcept, iriReference
@@ -91,17 +91,6 @@ class MolecularProfileNameComponents:
 class CivicTransformer(Transformer):
     """A class for transforming CIViC to the common data model."""
 
-    @staticmethod
-    def _assertion_has_vcep_approval(item: civicpy.Assertion) -> bool:
-        """Check if any of the assertion's approvals is from a VCEP-approved org.
-        :param item: The civicpy Assertion to check
-        :return: True if an approval was found where the organization that approved it is an SC-VCEP
-        """
-        return any(
-            getattr(getattr(approval, "organization", None), "is_approved_vcep", False)
-            for approval in (getattr(item, "approvals", None) or [])
-        )
-
     async def transform(self, harvested_data_path: Path) -> TransformedData:
         """Transform CIViC evidence and assertions to common data model.
 
@@ -127,6 +116,7 @@ class CivicTransformer(Transformer):
                     type(item),
                 )
                 continue
+
             statements.append(transformed_statement)
 
             await self._upsert_assertion_from_evidence(
@@ -167,6 +157,17 @@ class CivicTransformer(Transformer):
             [th.id for th in therapy_group.therapies],
         )
 
+    @staticmethod
+    def _assertion_has_vcep_approval(item: civicpy.Assertion) -> bool:
+        """Check if any of the assertion's approvals is from a VCEP-approved org.
+        :param item: The civicpy Assertion to check
+        :return: True if an approval was found where the organization that approved it is an SC-VCEP
+        """
+        return any(
+            getattr(getattr(approval, "organization", None), "is_approved_vcep", False)
+            for approval in (getattr(item, "approvals", None) or [])
+        )
+
     def _civic_claim_to_statement(
         self,
         item: civicpy.Evidence | CivicGksEvidence | civicpy.Assertion,
@@ -184,6 +185,7 @@ class CivicTransformer(Transformer):
         :raise TypeError: if unrecognized item type is given
         """
         statement = None
+        # item is an independent statement
         if isinstance(item, civicpy.Evidence):
             try:
                 statement = Statement(**CivicGksEvidence(item).model_dump())
@@ -202,6 +204,7 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
+        # item is a statement supporting an assertion
         elif isinstance(item, CivicGksEvidence):
             statement = Statement(**item.model_dump())
             statement.strength.extensions = [
@@ -213,9 +216,25 @@ class CivicTransformer(Transformer):
             statement.strength.id = (
                 f"civic.strength:{statement.strength.primaryCoding.code.root}"
             )
+        # item is an assertion
         elif isinstance(item, civicpy.Assertion):
             try:
-                statement = create_gks_record_from_assertion(item)
+                clinsig_statement = CivicGksClinSigAssertion(item)
+                if len(clinsig_statement.hasEvidenceLines or []) != 1:
+                    msg = "Assumption of 1 evidence line is broken"
+                    raise ValueError(msg)
+                ev_line = clinsig_statement.hasEvidenceLines[0]
+                statement = Statement(
+                    id=clinsig_statement.id,
+                    description=clinsig_statement.description,
+                    strength=ev_line.strengthOfEvidenceProvided,
+                    proposition=ev_line.targetProposition,
+                    direction=clinsig_statement.direction,
+                    hasEvidenceLines=[ev_line],
+                    specifiedBy=clinsig_statement.specifiedBy,
+                    reportedIn=clinsig_statement.reportedIn,  # TODO might need to deref this
+                )
+
                 # TODO: Put VCEP approval flag in civicpy instead.
                 # Added here for now to get the functionality in
                 statement_exts = statement.extensions or []
@@ -229,16 +248,21 @@ class CivicTransformer(Transformer):
                 statement.strength.extensions = [
                     Extension(
                         name="metakb_display_value",
-                        value=statement.strength.primaryCoding.code.root.removeprefix(
-                            "Level "
-                        ),
+                        value=statement.strength.primaryCoding.code.root,
                     )
                 ]
                 statement.strength.id = (
                     f"amp_asco_cap:{statement.strength.primaryCoding.code.root}"
                 )
                 for evline in statement.hasEvidenceLines:
-                    self._ensure_evidenceline_id(evline)
+                    try:
+                        self._ensure_evidenceline_id(evline)
+                    except ValueError:
+                        _logger.exception(
+                            "CIViC item %s appears to have malformed evidence lines",
+                            statement.id,
+                        )
+                        return None
             except (NotImplementedError, CivicGksRecordError):
                 _logger.warning(
                     "unable to convert CIViC assertion %s to a Statement: unsupported type",

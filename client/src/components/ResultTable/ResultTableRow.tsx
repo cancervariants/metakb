@@ -6,6 +6,8 @@ import { EvidenceLine } from '../../models/domain'
 import { ResultColumn } from './types'
 import { getEvidenceLabelUrl, getEvidenceSource, AssertionResult } from '../../utils'
 import { getEvidenceGrade, isStatement } from '../../utils/results'
+import { DocumentLink } from './DocumentLink'
+import { DocumentReference, toDocumentReference } from '../../utils/documents'
 
 /* Dictate order that evidence appears underneath assertion **/
 const gradeOrder: Record<string, number> = {
@@ -23,6 +25,7 @@ const getFirstEvidenceItemId = (line: EvidenceLine): string => {
   const item = line.hasEvidenceItems?.[0]
   return isStatement(item) ? (item.id ?? '') : ''
 }
+
 const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
   row,
   columns,
@@ -77,7 +80,10 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                   displayLevel in theme.palette.evidence
                     ? theme.palette.evidence[displayLevel as keyof typeof theme.palette.evidence]
                     : '#ccc'
-
+                const documentRefLinks = (statement.reportedIn ?? [])
+                  .filter((x): x is Document => typeof x === 'object' && x !== null)
+                  .map(toDocumentReference)
+                  .filter((ref): ref is DocumentReference => ref !== null)
                 return (
                   <Box
                     key={item.id}
@@ -111,8 +117,24 @@ const ResultTableRow: FC<{ row: AssertionResult; columns: ResultColumn[] }> = ({
                       ) : null}
                     </div>
                     <div>
-                      <strong>Description:</strong> {item.description}
+                      <strong>Evidence Direction:</strong> {item.direction}
                     </div>
+                    {item.description && (
+                      <div>
+                        <strong>Description:</strong> {item.description}
+                      </div>
+                    )}
+                    {documentRefLinks.length > 0 && (
+                      <>
+                        <strong>References:</strong>{' '}
+                        {documentRefLinks.map((document, i) => (
+                          <Box component="span" key={i}>
+                            {i > 0 && ', '}
+                            <DocumentLink reference={document} index={i} />
+                          </Box>
+                        ))}
+                      </>
+                    )}
                   </Box>
                 )
               })}

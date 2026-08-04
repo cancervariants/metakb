@@ -13,7 +13,6 @@ import {
 } from '@mui/material'
 import { useSearchParams } from 'react-router-dom'
 import ResultTable from '../../components/ResultTable/ResultTable'
-import FilterSection from '../../components/FilterSection/FilterSection'
 import {
   AssertionResult,
   buildCountMap,
@@ -29,6 +28,12 @@ import GeneInfo from '../../components/EntityInfo/GeneInfo'
 import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
+import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
+import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
+import AgeOfOnsetFilter, {
+  AgeOfOnsetSelection,
+} from '../../components/SearchFilters/AgeOfOnsetFilter'
+import { getTermAndChildrenIds } from '../../utils/ageOfOnset'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -71,6 +76,10 @@ const ResultPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<string[]>([])
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
+  const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<AgeOfOnsetSelection>({
+    conceptIds: [],
+    includeNotSpecified: false,
+  })
   const [selectedTherapies, setSelectedTherapies] = useState<string[]>([])
   const [selectedEvidenceLevels, setSelectedEvidenceLevels] = useState<string[]>([])
   const [selectedStarRatings, setSelectedStarRatings] = useState<string[]>([])
@@ -80,6 +89,7 @@ const ResultPage = () => {
   const selectedFilters = {
     variants: selectedVariants,
     diseases: selectedDiseases,
+    agesOfOnset: selectedAgesOfOnset,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
     starRatings: selectedStarRatings,
@@ -211,15 +221,22 @@ const ResultPage = () => {
 
   useEffect(() => {
     if (searchQuery) {
-      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | VICC MetaKB Jr.`
+      document.title = `${TAB_LABELS[activeTab]} results for "${searchQuery}" | MetaKB Jr.`
     } else {
-      document.title = 'VICC | MetaKB Jr.'
+      document.title = 'MetaKB Jr.'
     }
   }, [activeTab, searchQuery])
 
   const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
   const diseaseOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
+  )
+  const ageOfOnsetOptions = Array.from(
+    new Set(
+      results[activeTab]
+        .map((r) => r.ageOfOnset?.conceptId)
+        .filter((id): id is string => id != null),
+    ),
   )
   const therapyOptions = Array.from(
     new Set(results[activeTab].flatMap((r) => r.therapy.therapyNames).filter(Boolean)),
@@ -242,6 +259,7 @@ const ResultPage = () => {
   const clearAllFilters = () => {
     setSelectedVariants([])
     setSelectedDiseases([])
+    setSelectedAgesOfOnset({ conceptIds: [], includeNotSpecified: false })
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
     setSelectedStarRatings([])
@@ -252,33 +270,61 @@ const ResultPage = () => {
   const activeFilters = [
     ...selectedVariants.map((v) => ({ type: 'variant', value: v })),
     ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
+    ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
+      type: 'age_of_onset',
+      value: conceptId,
+    })),
+    ...(selectedAgesOfOnset.includeNotSpecified
+      ? [{ type: 'age_of_onset_not_specified', value: 'not_specified' }]
+      : []),
     ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
     ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
     ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
     ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
     ...selectedSources.map((src) => ({ type: 'source', value: src })),
   ]
-
   const removeFilter = (filter: { type: string; value: string }) => {
     switch (filter.type) {
       case 'variant':
         setSelectedVariants((prev) => prev.filter((v) => v !== filter.value))
         break
+
       case 'disease':
         setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
         break
+
+      case 'age_of_onset': {
+        const affectedIds = getTermAndChildrenIds(filter.value)
+
+        setSelectedAgesOfOnset((prev) => ({
+          ...prev,
+          conceptIds: prev.conceptIds.filter((id) => !affectedIds.includes(id)),
+        }))
+        break
+      }
+      case 'age_of_onset_not_specified':
+        setSelectedAgesOfOnset((prev) => ({
+          ...prev,
+          includeNotSpecified: false,
+        }))
+        break
+
       case 'therapy':
         setSelectedTherapies((prev) => prev.filter((t) => t !== filter.value))
         break
+
       case 'evidence_level':
         setSelectedEvidenceLevels((prev) => prev.filter((e) => e !== filter.value))
         break
+
       case 'star_rating':
         setSelectedStarRatings((prev) => prev.filter((s) => s !== filter.value))
         break
+
       case 'significance':
         setSelectedSignificance((prev) => prev.filter((s) => s !== filter.value))
         break
+
       case 'source':
         setSelectedSources((prev) => prev.filter((s) => s !== filter.value))
         break
@@ -346,25 +392,31 @@ const ResultPage = () => {
                           </Stack>
                         )}
                       </Box>
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <ChecklistFilter
                         title="Variant"
                         options={variantOptions}
                         selected={selectedVariants}
                         setSelected={setSelectedVariants}
                       />
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <ChecklistFilter
                         title="Disease"
                         options={diseaseOptions}
                         selected={selectedDiseases}
                         setSelected={setSelectedDiseases}
                       />
-                      <hr></hr>
+                      <hr />
+                      <AgeOfOnsetFilter
+                        options={ageOfOnsetOptions}
+                        value={selectedAgesOfOnset}
+                        onChange={setSelectedAgesOfOnset}
+                      />
+                      <hr />
                       <>
                         {activeTab === 'therapeutic' && (
                           <>
-                            <FilterSection
+                            <ChecklistFilter
                               title="Therapy"
                               options={therapyOptions}
                               selected={selectedTherapies}
@@ -375,28 +427,27 @@ const ResultPage = () => {
                         )}
                       </>
 
-                      <FilterSection
+                      <ChecklistFilter
                         title="Evidence Level"
                         options={evidenceLevelOptions}
                         selected={selectedEvidenceLevels}
                         setSelected={setSelectedEvidenceLevels}
                       />
-                      <hr></hr>
-                      <FilterSection
-                        title="Star Rating"
+                      <hr />
+                      <StarRatingFilter
                         options={starRatingOptions}
                         selected={selectedStarRatings}
                         setSelected={setSelectedStarRatings}
                       />
-                      <hr></hr>
-                      <FilterSection
+                      <hr />
+                      <ChecklistFilter
                         title="Significance"
                         options={significanceOptions}
                         selected={selectedSignificance}
                         setSelected={setSelectedSignificance}
                       />
                       <hr />
-                      <FilterSection
+                      <ChecklistFilter
                         title="Source"
                         options={sourceOptions}
                         selected={selectedSources}

@@ -18,6 +18,7 @@ MERGE (g:Gene {id: $cv.has_constraint.has_feature_context.id})
         name: $cv.has_constraint.has_feature_context.name,
         aliases: $cv.has_constraint.has_feature_context.aliases,
         mappings: $cv.has_constraint.has_feature_context.mappings,
-        extensions: $cv.has_constraint.has_feature_context.extensions
+        extensions: $cv.has_constraint.has_feature_context.extensions,
+        primary_coding: $cv.has_constraint.has_feature_context.primary_coding
       }
 MERGE (constr)-[:HAS_FEATURE_CONTEXT]->(g)

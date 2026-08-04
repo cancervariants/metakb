@@ -13,14 +13,18 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-interface FilterSectionProps {
+export interface ChecklistFilterProps {
+  // title of filter section
   title: string
+  // literal options to select from (eg disease names, star ratings, etc)
   options: string[]
+  // subset of options indicating what's selected by the user
   selected: string[]
+  // setter to set selections
   setSelected: (values: string[]) => void
 }
 
-const FilterSection = ({ title, options, selected, setSelected }: FilterSectionProps) => {
+const ChecklistFilter = ({ title, options, selected, setSelected }: ChecklistFilterProps) => {
   // expand/collapse value for accordion for filter section
   const [expanded, setExpanded] = useState(true)
   // we only show the top 5 filters at a time, so this tracks if the user clicked a button to show all or not
@@ -116,4 +120,4 @@ const FilterSection = ({ title, options, selected, setSelected }: FilterSectionP
   )
 }
 
-export default FilterSection
+export default ChecklistFilter

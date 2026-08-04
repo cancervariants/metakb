@@ -1,8 +1,13 @@
 import { Typography, Box, Link } from '@mui/material'
 import DocsLayout from '../../../components/docs/DocsLayout/DocsLayout'
 import GitHubIcon from '@mui/icons-material/GitHub'
+import { useEffect } from 'react'
 
 export default function ReportingIssuesPage() {
+  useEffect(() => {
+    document.title = 'Reporting Issues | MetaKB Jr.'
+  }, [])
+
   return (
     <DocsLayout>
       <Typography variant="h4" mb={2} fontWeight="bold">
