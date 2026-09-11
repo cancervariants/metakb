@@ -35,7 +35,7 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
       .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
   return (
-    <Box id="results-info-container" sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}>
+    <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
         <Box>
           <Typography variant="h4" mb={2} fontWeight="bold">
@@ -83,7 +83,7 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
           </span>
         ))}
       </InfoRow>
-    </Box>
+    </>
   )
 }
 
