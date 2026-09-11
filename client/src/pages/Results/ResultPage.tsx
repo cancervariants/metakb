@@ -34,6 +34,7 @@ import AgeOfOnsetFilter, {
   AgeOfOnsetSelection,
 } from '../../components/SearchFilters/AgeOfOnsetFilter'
 import { getTermAndChildrenIds } from '../../utils/ageOfOnset'
+import EvidenceLevelFilter from '../../components/SearchFilters/EvidenceLevelFilter'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -344,11 +345,16 @@ const ResultPage = () => {
             <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
               Showing results for {typeFromUrl}: {searchQuery}
             </Typography>
-            {entityState?.type === 'gene' && <GeneInfo data={entityState.data} />}
-            {entityState?.type === 'variation' && <VariationInfo data={entityState.data} />}{' '}
+            <Box
+              id="results-info-container"
+              sx={{ backgroundColor: 'white', padding: '35px', borderRadius: 2 }}
+            >
+              {entityState?.type === 'gene' && <GeneInfo data={entityState.data} />}
+              {entityState?.type === 'variation' && <VariationInfo data={entityState.data} />}{' '}
+            </Box>
             <Box
               id="results-table-container"
-              sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2, marginTop: 2 }}
+              sx={{ backgroundColor: 'white', padding: '35px', borderRadius: 2, marginTop: 2 }}
             >
               <Tabs
                 onChange={(_, value) => setActiveTab(value)}
@@ -362,7 +368,7 @@ const ResultPage = () => {
                 <Tab label={`Diagnostic (${filteredByTab.diagnostic.length})`} value="diagnostic" />
                 <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
               </Tabs>
-              <Box id="search-type-label" m={2}>
+              <Box id="search-type-label">
                 <Typography variant="h6" fontWeight="bold" mb={2}>
                   {TAB_LABELS[activeTab]} Search Results ({filteredResults?.length})
                 </Typography>
@@ -370,7 +376,7 @@ const ResultPage = () => {
               {hasInitialResults ? (
                 <Box display="flex">
                   <Box id="filter-container">
-                    <Box width={250} p={2} sx={{ borderRight: '1px solid #ddd' }}>
+                    <Box width={250} paddingRight={2} sx={{ borderRight: '1px solid #ddd' }}>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <strong>Filters</strong>
                         <Button variant="outlined" size="small" onClick={clearAllFilters}>
@@ -427,8 +433,7 @@ const ResultPage = () => {
                         )}
                       </>
 
-                      <ChecklistFilter
-                        title="Evidence Level"
+                      <EvidenceLevelFilter
                         options={evidenceLevelOptions}
                         selected={selectedEvidenceLevels}
                         setSelected={setSelectedEvidenceLevels}

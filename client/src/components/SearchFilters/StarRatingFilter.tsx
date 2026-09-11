@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   IconButton,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -25,8 +24,6 @@ export interface StarRatingFilterProps {
 }
 
 const RATINGS = ['1', '2', '3', '4']
-
-const getRatingLabel = (rating: string) => (rating === '4' ? '4 stars' : `${rating}+ stars`)
 
 const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const [hoveredRating, setHoveredRating] = useState<string | null>(null)
@@ -77,7 +74,12 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
       </AccordionSummary>
 
       <AccordionDetails sx={{ px: 0 }}>
-        <Box display="flex" alignItems="center" onMouseLeave={() => setHoveredRating(null)}>
+        <Box
+          display="flex"
+          alignItems="center"
+          onMouseLeave={() => setHoveredRating(null)}
+          paddingTop="8px"
+        >
           {RATINGS.map((rating) => {
             const numericRating = Number(rating)
 
@@ -86,27 +88,27 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
             const isHoverPreview = hoveredRating !== null && isActive
 
             return (
-              <Tooltip key={rating} title={getRatingLabel(rating)} arrow>
-                <IconButton
-                  size="small"
-                  aria-label={`Filter by ${getRatingLabel(rating)}`}
-                  onMouseEnter={() => setHoveredRating(rating)}
-                  onFocus={() => setHoveredRating(rating)}
-                  onBlur={() => setHoveredRating(null)}
-                  onClick={() => selectMinimumRating(rating)}
-                  sx={{
-                    color: isHoverPreview
-                      ? 'text.secondary'
-                      : isActive
-                        ? 'warning.main'
-                        : 'action.disabled',
-                  }}
-                >
-                  {isActive ? <StarIcon /> : <StarBorderIcon />}
-                </IconButton>
-              </Tooltip>
+              <IconButton
+                key={rating}
+                size="small"
+                aria-label={`Filter by ${rating}`}
+                onMouseEnter={() => setHoveredRating(rating)}
+                onFocus={() => setHoveredRating(rating)}
+                onBlur={() => setHoveredRating(null)}
+                onClick={() => selectMinimumRating(rating)}
+                sx={{
+                  color: isHoverPreview
+                    ? 'text.secondary'
+                    : isActive
+                      ? 'warning.main'
+                      : 'action.disabled',
+                }}
+              >
+                {isActive ? <StarIcon /> : <StarBorderIcon />}
+              </IconButton>
             )
           })}
+          <Typography sx={{ transform: 'translate(5px, 1px)' }}>& up</Typography>
         </Box>
       </AccordionDetails>
     </Accordion>
