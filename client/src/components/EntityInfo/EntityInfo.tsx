@@ -14,7 +14,7 @@ export const InfoRow = ({ label, children, show = true }: InfoRowProps) => {
 
   return (
     <Box display="flex">
-      <Box sx={{ width: 160, flexShrink: 0 }}>
+      <Box sx={{ width: 170, flexShrink: 0 }}>
         <Typography fontWeight="bold">{label}</Typography>
       </Box>
       <Box flex={1}>{children}</Box>
