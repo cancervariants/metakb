@@ -38,11 +38,10 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
 
   return (
     <Accordion
-      defaultExpanded
+      defaultExpanded={false}
       sx={{
         boxShadow: 'none',
         '&:before': { display: 'none' },
-        backgroundColor: 'transparent',
       }}
     >
       <AccordionSummary

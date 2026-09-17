@@ -24,11 +24,10 @@ const LEVELS = ['A', 'B', 'C', 'D']
 const EvidenceLevelFilter = ({ options, selected, setSelected }: EvidenceLevelFilterProps) => {
   return (
     <Accordion
-      defaultExpanded
+      defaultExpanded={false}
       sx={{
         boxShadow: 'none',
         '&:before': { display: 'none' },
-        backgroundColor: 'transparent',
       }}
     >
       <AccordionSummary

@@ -375,8 +375,8 @@ const ResultPage = () => {
               </Box>
               {hasInitialResults ? (
                 <Box display="flex">
-                  <Box id="filter-container">
-                    <Box width={250} paddingRight={2} sx={{ borderRight: '1px solid #ddd' }}>
+                  <Box id="filter-container" sx={{ borderRight: '1px solid #ddd' }}>
+                    <Box width={250} paddingRight={2}>
                       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                         <strong>Filters</strong>
                         <Button variant="outlined" size="small" onClick={clearAllFilters}>

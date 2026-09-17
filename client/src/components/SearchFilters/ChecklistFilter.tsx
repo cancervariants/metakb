@@ -25,8 +25,6 @@ export interface ChecklistFilterProps {
 }
 
 const ChecklistFilter = ({ title, options, selected, setSelected }: ChecklistFilterProps) => {
-  // expand/collapse value for accordion for filter section
-  const [expanded, setExpanded] = useState(true)
   // we only show the top 5 filters at a time, so this tracks if the user clicked a button to show all or not
   const [showMore, setShowMore] = useState(false)
   const [search, setSearch] = useState('')
@@ -44,12 +42,11 @@ const ChecklistFilter = ({ title, options, selected, setSelected }: ChecklistFil
 
   return (
     <Accordion
-      expanded={expanded}
-      onChange={() => setExpanded(!expanded)}
+      defaultExpanded={false}
       sx={{
         boxShadow: 'none',
         '&:before': { display: 'none' },
-        backgroundColor: 'transparent',
+        '& .Mui-expanded': { margin: 0 },
       }}
     >
       <AccordionSummary
