@@ -7,9 +7,10 @@ import { ExpandableText } from '../common/ExpandableText'
 
 type VariantInfoProps = {
   data: CategoricalVariant
+  searchTerm: string
 }
 
-const VariationInfo = ({ data }: VariantInfoProps) => {
+const VariationInfo = ({ data, searchTerm }: VariantInfoProps) => {
   const sourcedDescription = getExtension<{
     description: string
     source: string
@@ -38,7 +39,7 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
         <Box>
-          <Typography variant="h4" mb={2} fontWeight="bold">
+          <Typography variant="h4" fontWeight="bold">
             {data.name}
           </Typography>
         </Box>
@@ -47,7 +48,6 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
             variant="subtitle1"
             sx={{
               px: 1.5,
-              py: 0.5,
               borderRadius: 1,
               backgroundColor: 'grey.100',
               color: 'text.secondary',
@@ -58,6 +58,9 @@ const VariationInfo = ({ data }: VariantInfoProps) => {
           </Typography>
         </Box>
       </Box>
+      <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
+        Resolved from <strong>{searchTerm}</strong>
+      </Typography>
       <InfoRow label="Description" show={!!sourcedDescription}>
         {' '}
         {cleanDescription && descriptionUrl && (

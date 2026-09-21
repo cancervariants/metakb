@@ -342,15 +342,16 @@ const ResultPage = () => {
         {error && <Alert severity="error">{error}</Alert>}
         {!loading && !error && (
           <Box>
-            <Typography variant="h5" color="primary" fontWeight="bold" mb={2}>
-              Showing results for {typeFromUrl}: {searchQuery}
-            </Typography>
             <Box
               id="results-info-container"
               sx={{ backgroundColor: 'white', padding: '35px', borderRadius: 2 }}
             >
-              {entityState?.type === 'gene' && <GeneInfo data={entityState.data} />}
-              {entityState?.type === 'variation' && <VariationInfo data={entityState.data} />}{' '}
+              {entityState?.type === 'gene' && (
+                <GeneInfo data={entityState.data} searchTerm={searchQuery} />
+              )}
+              {entityState?.type === 'variation' && (
+                <VariationInfo data={entityState.data} searchTerm={searchQuery} />
+              )}{' '}
             </Box>
             <Box
               id="results-table-container"

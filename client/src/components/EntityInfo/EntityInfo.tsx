@@ -23,14 +23,14 @@ export const InfoRow = ({ label, children, show = true }: InfoRowProps) => {
 }
 
 type EntityInfoProps =
-  | { type: 'gene'; data: MappableConcept }
-  | { type: 'variant'; data: CategoricalVariant }
+  | { type: 'gene'; data: MappableConcept; searchTerm: string }
+  | { type: 'variant'; data: CategoricalVariant; searchTerm: string }
 
 export const EntityInfo = (props: EntityInfoProps) => {
   switch (props.type) {
     case 'gene':
-      return <GeneInfo data={props.data} />
+      return <GeneInfo data={props.data} searchTerm={props.searchTerm} />
     case 'variant':
-      return <VariationInfo data={props.data} />
+      return <VariationInfo data={props.data} searchTerm={props.searchTerm} />
   }
 }
