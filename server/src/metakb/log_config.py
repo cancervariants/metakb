@@ -22,8 +22,20 @@ def _quiet_upstream_libs() -> None:
     ):
         logging.getLogger(lib).setLevel(logging.INFO)
 
+    for lib in (
+        "botocore.tokens",
+        "cool_seq_tool.handlers.seqrepo_access",
+        "cool_seq_tool.mappers.mane_transcript",
+        "cool_seq_tool.sources.uta_database",
+    ):
+        logging.getLogger(lib).setLevel(logging.ERROR)
 
-def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -> None:
+
+def configure_logs(
+    log_level: int = logging.INFO,
+    quiet_upstream: bool = True,
+    console: bool = False,
+) -> None:
     """Configure logging.
 
     MetaKB is a downstream consumer of a *lot* of different data libraries that produce
@@ -33,6 +45,7 @@ def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -
 
     :param log_level: global log level to set
     :param quiet_upstream: if True, turn off debug logging for a selection of libraries
+    :param console: if True, emit MetaKB logs to stderr in addition to the log file
     """
     if quiet_upstream:
         _quiet_upstream_libs()
@@ -51,8 +64,9 @@ def configure_logs(log_level: int = logging.INFO, quiet_upstream: bool = True) -
     logger = logging.getLogger("metakb")
     logger.setLevel(log_level)
 
-    if is_deployed:
-        # force debug logging in production server
+    if is_deployed and console:
+        # The API process writes logs to stderr for its runtime log collector. CLI
+        # commands intentionally leave this disabled.
         logger.handlers = []
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)

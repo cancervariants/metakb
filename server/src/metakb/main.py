@@ -30,7 +30,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
-    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
+    configure_logs(
+        logging.DEBUG if get_config().debug else logging.INFO,
+        console=True,
+    )
     driver = get_driver()
     app.state.driver = driver
     app.state.normalizer = ViccNormalizers()

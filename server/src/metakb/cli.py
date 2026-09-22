@@ -222,7 +222,9 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
-    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
+    configure_logs(
+        logging.DEBUG, console=False
+    ) if get_config().debug else configure_logs(console=False)
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
