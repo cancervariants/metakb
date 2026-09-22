@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from functools import lru_cache
 from os import environ
+from typing import TypeVar
 
 from async_lru import alru_cache
 from botocore.exceptions import TokenRetrievalError
@@ -50,6 +51,10 @@ _logger = logging.getLogger(__name__)
 DEFAULT_CACHE_SIZE = 1024
 
 
+NormalizerResponse = NormalizedGene | NormalizedDisease | NormalizedTherapy
+TNormalized = TypeVar("TNormalized", bound=NormalizerResponse)
+
+
 class ViccNormalizers:
     """Manage VICC concept normalization services.
 
@@ -85,11 +90,17 @@ class ViccNormalizers:
             use an unbounded cache (ie no max size).
         """
         gene_query_handler = GeneQueryHandler(create_gene_db(db_url))
-        self._normalize_gene = lru_cache(cache_size)(gene_query_handler.normalize)
+        self._normalize_gene: Callable[[str], NormalizedGene] = lru_cache(cache_size)(
+            gene_query_handler.normalize
+        )
         disease_query_handler = DiseaseQueryHandler(create_disease_db(db_url))
-        self._normalize_disease = lru_cache(cache_size)(disease_query_handler.normalize)
+        self._normalize_disease: Callable[[str], NormalizedDisease] = lru_cache(
+            cache_size
+        )(disease_query_handler.normalize)
         therapy_query_handler = TherapyQueryHandler(create_therapy_db(db_url))
-        self._normalize_therapy = lru_cache(cache_size)(therapy_query_handler.normalize)
+        self._normalize_therapy: Callable[[str], NormalizedTherapy] = lru_cache(
+            cache_size
+        )(therapy_query_handler.normalize)
         variation_query_handler = VariationQueryHandler(
             gene_query_handler=gene_query_handler
         )
@@ -233,9 +244,9 @@ class ViccNormalizers:
     @staticmethod
     def _normalize_concept(
         query: str,
-        normalizer_callback: Callable,
+        normalizer_callback: Callable[[str], TNormalized],
         concept_name: str,
-    ) -> tuple[NormalizedGene | NormalizedDisease | NormalizedTherapy, str | None]:
+    ) -> tuple[TNormalized, str | None]:
         """Attempt to normalize a concept
 
         :param query: Query to normalize
@@ -244,7 +255,6 @@ class ViccNormalizers:
         :raises TokenRetrievalError: If AWS credentials are expired
         :return: Normalizer response and normalized ID, if available.
         """
-        normalizer_resp = None
         normalized_id = None
 
         try:
@@ -257,6 +267,7 @@ class ViccNormalizers:
                 concept_name.capitalize(),
                 query,
             )
+            raise
         else:
             if normalizer_resp.match_type:
                 normalized_id = getattr(normalizer_resp, concept_name).id.split(
