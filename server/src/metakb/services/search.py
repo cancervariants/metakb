@@ -2,7 +2,7 @@
 
 import logging
 
-from metakb.normalizers import ViccNormalizers
+from metakb.core.normalizers import ViccNormalizers
 from metakb.repository.base import AbstractRepository
 from metakb.schemas.api import SearchResult, SearchTerm, SearchTermType
 

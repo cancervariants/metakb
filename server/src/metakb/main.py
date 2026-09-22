@@ -12,9 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from metakb import __version__
-from metakb.config import get_config
-from metakb.log_config import configure_logs
-from metakb.normalizers import ViccNormalizers
+from metakb.core.config import configure_logs, get_config
+from metakb.core.normalizers import ViccNormalizers
 from metakb.repository.neo4j_repository import get_driver
 from metakb.restapi.meta import api_router as meta_router
 from metakb.restapi.search import api_router as search_router

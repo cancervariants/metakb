@@ -73,7 +73,7 @@ from ga4gh.va_spec.base import (
 from gene.query import ConceptMapping, MappableConcept
 from pydantic import BaseModel, StrictStr
 
-from metakb.transformers.identifiers import generate_metakb_evidenceline_id
+from metakb.core.identifiers import generate_metakb_evidenceline_id
 
 _logger = logging.getLogger(__name__)
 

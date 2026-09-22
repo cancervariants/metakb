@@ -13,8 +13,8 @@ from ga4gh.core.models import (
 )
 from ga4gh.va_spec.base import MembershipOperator, Therapeutic, TherapyGroup
 
+from metakb.core.source_data import SourceDataStore
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 from metakb.transformers.moa import MoaTransformer
 
 
