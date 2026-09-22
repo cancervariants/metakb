@@ -9,9 +9,9 @@ from ga4gh.cat_vrs.models import (
     DefiningAlleleConstraint,
 )
 from ga4gh.vrs import models
+from metakb.transformers.catvars import get_normalized_protein_consequence_name
 
 from metakb.repository.neo4j_models import CategoricalVariantNode
-from metakb.transformers.catvars import get_normalized_protein_consequence_name
 
 
 @pytest.fixture
