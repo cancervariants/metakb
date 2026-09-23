@@ -55,7 +55,6 @@ def _quiet_upstream_libs() -> None:
         "hgvs.parser",
         "biocommons.seqrepo.seqaliasdb.seqaliasdb",
         "biocommons.seqrepo.fastadir.fastadir",
-        "requests_cache.patcher",
         "blib2to3.pgen2.driver",
         "neo4j",
         "asyncio",
