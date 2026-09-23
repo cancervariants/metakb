@@ -123,7 +123,7 @@ const AgeOfOnsetFilter = ({ options, value, onChange }: AgeOfOnsetFilterProps) =
 
   return (
     <Accordion
-      defaultExpanded
+      defaultExpanded={false}
       sx={{
         boxShadow: 'none',
         '&:before': { display: 'none' },
