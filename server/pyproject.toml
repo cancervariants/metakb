@@ -54,6 +54,7 @@ ingest = [
     "civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552",
     "pandas>=2.3.3, <3.0",
     "tqdm",
+    "requests",
 ]
 deploy = [
     "uvloop",
