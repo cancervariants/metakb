@@ -102,7 +102,19 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
                         : 'action.disabled',
                   }}
                 >
-                  {isActive ? <StarIcon /> : <StarBorderIcon />}
+                  <Box sx={{ position: 'relative', display: 'flex' }}>
+                    <StarBorderIcon
+                      sx={{
+                        position: 'absolute',
+                        opacity: isActive ? 0 : 1,
+                      }}
+                    />
+                    <StarIcon
+                      sx={{
+                        opacity: isActive ? 1 : 0,
+                      }}
+                    />
+                  </Box>
                 </IconButton>
               </Tooltip>
             )
