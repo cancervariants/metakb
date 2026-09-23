@@ -152,7 +152,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --extra docs
+        run: uv sync --extra docs --extra ingest
         working-directory: ./server
 
       - name: Attempt docs build
