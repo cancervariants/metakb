@@ -7,9 +7,9 @@ from pathlib import Path
 import click
 from tqdm import tqdm
 
+from metakb.core.methodology import merge_assertions
 from metakb.repository.base import AbstractRepository
 from metakb.schemas.data import TransformedData
-from metakb.transformers.methodology import merge_assertions
 
 _logger = logging.getLogger(__name__)
 

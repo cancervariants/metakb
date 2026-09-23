@@ -12,9 +12,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from metakb import __version__
-from metakb.config import get_config
-from metakb.log_config import configure_logs
-from metakb.normalizers import ViccNormalizers
+from metakb.core.config import configure_logs, get_config
+from metakb.core.normalizers import ViccNormalizers
 from metakb.repository.neo4j_repository import get_driver
 from metakb.restapi.meta import api_router as meta_router
 from metakb.restapi.search import api_router as search_router
@@ -30,7 +29,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator:
     :param app: FastAPI app instance
     :return: async context handler
     """
-    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
+    configure_logs(
+        logging.DEBUG if get_config().debug else logging.INFO,
+        console=True,
+    )
     driver = get_driver()
     app.state.driver = driver
     app.state.normalizer = ViccNormalizers()

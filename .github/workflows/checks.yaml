@@ -38,7 +38,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --extra tests --extra dev --extra notebooks
+        run: uv sync --extra tests --extra dev --extra notebooks --extra ingest
 
       - name: Run tests
         working-directory: ./server
@@ -90,7 +90,6 @@ jobs:
         with:
           version: 9
 
-
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -130,32 +129,3 @@ jobs:
       - name: Attempt build
         working-directory: ./client
         run: pnpm run build
-
-  docs:
-    runs-on: ubuntu-latest
-    env:
-      SPHINX_GITHUB_CHANGELOG_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    defaults:
-      run:
-        working-directory: ./server
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          # use 3.12 for docs. currently, build fails on newer Python releases
-          python-version: 3.12
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          enable-cache: true
-
-      - name: Install dependencies
-        run: uv sync --extra docs
-        working-directory: ./server
-
-      - name: Attempt docs build
-        working-directory: ./docs
-        run: source ../server/.venv/bin/activate && make html

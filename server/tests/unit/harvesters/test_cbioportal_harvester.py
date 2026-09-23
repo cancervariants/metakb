@@ -2,9 +2,9 @@ from pathlib import Path
 
 from tests.conftest import check_source_harvest
 
+from metakb.core.source_data import SourceDataStore
 from metakb.harvesters.cbioportal import CBioPortalHarvester
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 
 
 def test_cbioportal_harvester(tmp_path: Path):
