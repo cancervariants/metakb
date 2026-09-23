@@ -21,6 +21,10 @@ from ga4gh.va_spec.base import (
 from metakb.normalizers import ViccNormalizers
 from metakb.schemas.data import TransformedData
 from metakb.source_data import SourceDataStore
+from metakb.transformers.disease_categories import (
+    get_category_for_mondo_term,
+    get_mondo_handler,
+)
 from metakb.transformers.identifiers import (
     compute_assertion_id,
     compute_combo_id,
@@ -62,6 +66,7 @@ class Transformer(ABC):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
+        self._mondo_handle = get_mondo_handler()  # use for disease categorization
 
     ### Basic/public behavior
 
@@ -109,13 +114,27 @@ class Transformer(ABC):
             result = self.vicc_normalizers.normalize_disease(query)[0]
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
             result = result.model_copy(deep=True)
+
             if result.disease:
                 normalized_disease = result.disease
                 normalized_disease.id = normalized_disease.id.replace(":", "_")
                 normalized_disease.id = normalized_disease.id.replace(
                     "normalize.disease.", "metakb.disease:"
                 )
-                normalized_disease.mappings = None
+                category_mapping = None
+                if normalized_disease.mappings:
+                    mondo_xrefs = [
+                        m.coding.code.root
+                        for m in normalized_disease.mappings
+                        if m.coding.code.root.startswith("MONDO")
+                    ]
+                    if mondo_xrefs:
+                        category_mapping = get_category_for_mondo_term(
+                            self._mondo_handle, mondo_xrefs[0]
+                        )
+                normalized_disease.mappings = (
+                    [category_mapping] if category_mapping else None
+                )
                 normalized_disease.extensions = None
                 return normalized_disease
         return None

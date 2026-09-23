@@ -265,6 +265,7 @@ const ResultTable: FC<ResultTableProps> = ({ results, resultType }) => {
       <TableFooter>
         <TableRow>
           <TablePagination
+            sx={{ borderBottom: 0 }}
             rowsPerPageOptions={[5, 10, 25]}
             ActionsComponent={TablePaginationActions}
             count={results.length}

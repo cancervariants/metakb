@@ -49,6 +49,7 @@ dependencies = [
     "pandas>=2.3.3, <3.0",
     "async-lru",
     "tqdm",
+    "fastobo",
 ]
 
 [project.optional-dependencies]
