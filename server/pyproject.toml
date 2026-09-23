@@ -84,7 +84,10 @@ codegen = [
     "astor>=0.8.1",
     "typing_extensions>=4.8.0",
 ]
-notebooks = ["ipykernel", "jupyterlab"]
+notebooks = [
+    "ipykernel",
+    "jupyterlab",
+]
 
 [project.urls]
 Homepage = "https://github.com/cancervariants/metakb"
