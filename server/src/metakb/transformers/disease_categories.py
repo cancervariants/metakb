@@ -132,7 +132,40 @@ def get_category_for_mondo_term(
         coding=Coding(
             id=mapping_result,
             system=ONCOTREE_SYSTEM,
-            code=code(mapping_result.split(":", 1)[-1]),
+            code=code(root=mapping_result.split(":", 1)[-1]),
+        ),
+    )
+
+
+_MANUAL_CATEGORY_MAPPING = {
+    "metakb.disease:ncit_C133187": "oncotree:HNMUCM",
+    "metakb.disease:mondo_0005103": "oncotree:LIPO",
+    "metakb.disease:ncit_C129325": "oncotree:DIFG",
+    "metakb.disease:mondo_0957197": "oncotree:DIFG",
+    "metakb.disease:mondo_0019313": "oncotree:SBL",
+    "metakb.disease:mondo_0016682": "oncotree:DIFG",
+    "metakb.disease:ncit_C39944": "oncotree:SCST",
+    "metakb.disease:mondo_0859615": "oncotree:DASTR",
+    "metakb.disease:mondo_0018437": "oncotree:AMLNPM1",
+    "metakb.disease:ncit_C35837": "oncotree:SBL",
+}
+
+
+def get_manually_curated_category_for_term(term_id: str) -> ConceptMapping | None:
+    """Provide manually-curated mappings where no computable option is available
+
+    :param term_id: raw metakb term
+    :return: concept mapping for oncotree, if known
+    """
+    oncotree_id = _MANUAL_CATEGORY_MAPPING.get(term_id)
+    if not oncotree_id:
+        return None
+    return ConceptMapping(
+        relation=Relation.BROAD_MATCH,
+        coding=Coding(
+            id=oncotree_id,
+            system=ONCOTREE_SYSTEM,
+            code=code(root=oncotree_id.split(":", 1)[-1]),
         ),
     )
 

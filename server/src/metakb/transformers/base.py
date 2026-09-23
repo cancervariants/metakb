@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TypeVar
 
+from disease.schemas import SourceName as DiseaseSourceName
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import ConceptMapping, MappableConcept, Relation
 from ga4gh.va_spec.base import (
@@ -23,6 +24,7 @@ from metakb.schemas.data import TransformedData
 from metakb.source_data import SourceDataStore
 from metakb.transformers.disease_categories import (
     get_category_for_mondo_term,
+    get_manually_curated_category_for_term,
     get_mondo_handler,
 )
 from metakb.transformers.identifiers import (
@@ -104,6 +106,20 @@ class Transformer(ABC):
                         raise ValueError
         return queries
 
+    @staticmethod
+    def _get_mapping_by_disease_source(
+        mappings: list[ConceptMapping] | None, source: DiseaseSourceName
+    ) -> ConceptMapping | None:
+        """Use for extracting xrefs when resolving categorizations"""
+        if not mappings:
+            return None
+        source_mappings = [
+            m for m in mappings if m.coding.id.lower().startswith(source.value.lower())
+        ]
+        if source_mappings:
+            return source_mappings[0]
+        return None
+
     def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
         """Retrieve normalized disease concept
 
@@ -122,19 +138,29 @@ class Transformer(ABC):
                     "normalize.disease.", "metakb.disease:"
                 )
                 category_mapping = None
-                if normalized_disease.mappings:
-                    mondo_xrefs = [
-                        m.coding.code.root
-                        for m in normalized_disease.mappings
-                        if m.coding.code.root.startswith("MONDO")
-                    ]
-                    if mondo_xrefs:
-                        category_mapping = get_category_for_mondo_term(
-                            self._mondo_handle, mondo_xrefs[0]
+                if oncotree_mapping := self._get_mapping_by_disease_source(
+                    normalized_disease.mappings, DiseaseSourceName.ONCOTREE
+                ):
+                    normalized_disease.mappings = [oncotree_mapping]
+                elif mondo_mapping := self._get_mapping_by_disease_source(
+                    normalized_disease.mappings, DiseaseSourceName.MONDO
+                ):
+                    if category_mapping := get_category_for_mondo_term(
+                        self._mondo_handle, mondo_mapping.coding.code.root
+                    ):
+                        normalized_disease.mappings = [category_mapping]
+                elif category_mapping := get_manually_curated_category_for_term(
+                    normalized_disease.id
+                ):
+                    normalized_disease.mappings = [category_mapping]
+                else:
+                    if not normalized_disease.id.startswith("metakb.disease:oncotree"):
+                        _logger.info(
+                            "Unable to get disease category for %s",
+                            normalized_disease.id,
                         )
-                normalized_disease.mappings = (
-                    [category_mapping] if category_mapping else None
-                )
+                    normalized_disease.mappings = None
+
                 normalized_disease.extensions = None
                 return normalized_disease
         return None
