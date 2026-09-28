@@ -165,6 +165,10 @@ class Transformer(ABC):
                             "Unable to get disease category for %s",
                             normalized_disease.id,
                         )
+                if category_mapping:
+                    normalized_disease.mappings = [category_mapping]
+                else:
+                    normalized_disease.mappings = None
 
                 normalized_disease.extensions = None
                 return normalized_disease
