@@ -138,28 +138,27 @@ class Transformer(ABC):
                     "normalize.disease.", "metakb.disease:"
                 )
                 category_mapping = None
-                if oncotree_mapping := self._get_mapping_by_disease_source(
-                    normalized_disease.mappings, DiseaseSourceName.ONCOTREE
-                ):
-                    normalized_disease.mappings = [oncotree_mapping]
-                elif mondo_mapping := self._get_mapping_by_disease_source(
-                    normalized_disease.mappings, DiseaseSourceName.MONDO
-                ):
-                    if category_mapping := get_category_for_mondo_term(
-                        self._mondo_handle, mondo_mapping.coding.code.root
-                    ):
-                        normalized_disease.mappings = [category_mapping]
-                elif category_mapping := get_manually_curated_category_for_term(
+                if manual_mapping := get_manually_curated_category_for_term(
                     normalized_disease.id
                 ):
-                    normalized_disease.mappings = [category_mapping]
+                    category_mapping = manual_mapping
                 else:
-                    if not normalized_disease.id.startswith("metakb.disease:oncotree"):
-                        _logger.info(
+                    if oncotree_mapping := self._get_mapping_by_disease_source(
+                        normalized_disease.mappings, DiseaseSourceName.ONCOTREE
+                    ):
+                        category_mapping = oncotree_mapping
+                    elif mondo_mapping := self._get_mapping_by_disease_source(  # noqa: SIM102
+                        normalized_disease.mappings, DiseaseSourceName.MONDO
+                    ):
+                        if mondo_mapping := get_category_for_mondo_term(
+                            self._mondo_handle, mondo_mapping.coding.code.root
+                        ):
+                            category_mapping = mondo_mapping
+                    if not category_mapping and "oncotree" not in normalized_disease.id:
+                        _logger.warning(
                             "Unable to get disease category for %s",
                             normalized_disease.id,
                         )
-                    normalized_disease.mappings = None
 
                 normalized_disease.extensions = None
                 return normalized_disease

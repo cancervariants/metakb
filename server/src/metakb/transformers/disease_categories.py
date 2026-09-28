@@ -88,14 +88,14 @@ def _get_best_oncotree_mapping(
 
     if len(parent_xref_mappings) > 1:
         # could perform conflict resolution in the future
-        _logger.info(
+        _logger.debug(
             "Unable to resolve parentage for %s: %s",
             str(term_frame.id),
             [f"{i[0]} (via {i[1]})" for i in parent_xref_mappings],
         )
         return None
     if len(parent_xref_mappings) == 0:
-        _logger.info("No available oncotree terms for %s", str(term_frame.id))
+        _logger.debug("No available oncotree terms for %s", str(term_frame.id))
         return None
     return parent_xref_mappings[0][0]
 
@@ -148,6 +148,54 @@ _MANUAL_CATEGORY_MAPPING = {
     "metakb.disease:mondo_0859615": "oncotree:DASTR",
     "metakb.disease:mondo_0018437": "oncotree:AMLNPM1",
     "metakb.disease:ncit_C35837": "oncotree:SBL",
+    "metakb.disease:ncit_C6917": "oncotree:BL",
+    "metakb.disease:ncit_C7400": "oncotree:BL",
+    "metakb.disease:ncit_C40036": "oncotree:MBOV",
+    "metakb.disease:ncit_C9300": "oncotree:MNM",
+    "metakb.disease:ncit_C8644": "oncotree:BLL",
+    "metakb.disease:ncit_C8851": "oncotree:MBN",
+    "metakb.disease:ncit_C3167": "oncotree:LNM",
+    "metakb.disease:ncit_C39947": "oncotree:GRCT",
+    "metakb.disease:ncit_C4325": "oncotree:DIFG",
+    "metakb.disease:ncit_C27005": "oncotree:SOFT_TISSUE",
+    "metakb.disease:ncit_C5243": "oncotree:OVT",
+    "metakb.disease:ncit_C3696": "oncotree:DIFG",
+    "metakb.disease:ncit_C27096": "oncotree:UESL",
+    "metakb.disease:ncit_C4662": "oncotree:MELC",
+    "metakb.disease:ncit_C3875": "oncotree:EPM",
+    "metakb.disease:ncit_C3183": "oncotree:LMP",
+    "metakb.disease:ncit_C5461": "oncotree:BRAIN",
+    "metakb.disease:ncit_C179229": "oncotree:ENCG",
+    "metakb.disease:ncit_C180378": "oncotree:BRAIN",
+    "metakb.disease:ncit_C186547": "oncotree:NBL",
+    "metakb.disease:ncit_C6791": "oncotree:SACA",
+    "metakb.disease:ncit_C4726": "oncotree:ACPG",
+    "metakb.disease:ncit_C129424": "oncotree:DIFG",
+    # overly broad/no meaningful oncotree equivalent
+    # often there are okay-ish mappings here, but the source term doesn't fit into the
+    # oncotree anatomical hierarchy
+    "metakb.disease:ncit_C121618": None,
+    "metakb.disease:ncit_C9292": None,
+    "metakb.disease:ncit_C2929": None,
+    "metakb.disease:ncit_C3161": None,
+    "metakb.disease:ncit_C3262": None,
+    "metakb.disease:ncit_C27091": None,
+    "metakb.disease:ncit_C9118": None,
+    "metakb.disease:ncit_C36046": None,
+    "metakb.disease:ncit_C4716": None,
+    "metakb.disease:ncit_C39976": None,
+    "metakb.disease:ncit_C4925": None,
+    # non-malignant/non-cancer terms
+    # oncotree generally doesn't include benign tumor terms
+    "metakb.disease:ncit_C5656": None,
+    "metakb.disease:ncit_C3826": None,
+    "metakb.disease:ncit_C177779": None,
+    "metakb.disease:mondo_0024291": None,
+    "metakb.disease:mondo_0017318": None,
+    "metakb.disease:mondo_0016231": None,
+    "metakb.disease:ncit_C84626": None,
+    "metakb.disease:ncit_C53316": None,
+    "metakb.disease:ncit_C157748": None,
 }
 
 
@@ -157,9 +205,9 @@ def get_manually_curated_category_for_term(term_id: str) -> ConceptMapping | Non
     :param term_id: raw metakb term
     :return: concept mapping for oncotree, if known
     """
-    oncotree_id = _MANUAL_CATEGORY_MAPPING.get(term_id)
-    if not oncotree_id:
+    if term_id not in _MANUAL_CATEGORY_MAPPING:
         return None
+    oncotree_id = _MANUAL_CATEGORY_MAPPING[term_id]
     return ConceptMapping(
         relation=Relation.BROAD_MATCH,
         coding=Coding(
