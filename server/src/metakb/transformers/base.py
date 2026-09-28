@@ -23,6 +23,7 @@ from metakb.normalizers import ViccNormalizers
 from metakb.schemas.data import TransformedData
 from metakb.source_data import SourceDataStore
 from metakb.transformers.disease_categories import (
+    ManualCategoryStatus,
     get_category_for_mondo_term,
     get_manually_curated_category_for_term,
     get_mondo_handler,
@@ -123,6 +124,8 @@ class Transformer(ABC):
     def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
         """Retrieve normalized disease concept
 
+        Also adds disease categorization as a "broad match" mapping.
+
         :param disease: source-derived disease concept
         :return: either a successful normalized object, or ``None`` if unsuccessful
         """
@@ -138,20 +141,23 @@ class Transformer(ABC):
                     "normalize.disease.", "metakb.disease:"
                 )
                 category_mapping = None
-                if manual_mapping := get_manually_curated_category_for_term(
+                manual_result = get_manually_curated_category_for_term(
                     normalized_disease.id
-                ):
-                    category_mapping = manual_mapping
+                )
+                if isinstance(manual_result, ConceptMapping):
+                    category_mapping = manual_result
+                elif manual_result is ManualCategoryStatus.NO_CATEGORY_POSSIBLE:
+                    pass
                 else:
                     if oncotree_mapping := self._get_mapping_by_disease_source(
                         normalized_disease.mappings, DiseaseSourceName.ONCOTREE
                     ):
                         category_mapping = oncotree_mapping
-                    elif mondo_mapping := self._get_mapping_by_disease_source(  # noqa: SIM102
+                    elif mondo_xref := self._get_mapping_by_disease_source(  # noqa: SIM102
                         normalized_disease.mappings, DiseaseSourceName.MONDO
                     ):
                         if mondo_mapping := get_category_for_mondo_term(
-                            self._mondo_handle, mondo_mapping.coding.code.root
+                            self._mondo_handle, mondo_xref.coding.code.root
                         ):
                             category_mapping = mondo_mapping
                     if not category_mapping and "oncotree" not in normalized_disease.id:

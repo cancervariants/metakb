@@ -4,6 +4,7 @@ Mostly useful for the UI. Temporarily homed here, but might get moved to the nor
 """
 
 import logging
+from enum import Enum, auto
 
 import fastobo
 from disease.schemas import (
@@ -16,6 +17,16 @@ from ga4gh.core.models import Coding, ConceptMapping, Relation, code
 from wags_tails.mondo import MondoData
 
 _logger = logging.getLogger(__name__)
+
+
+def get_mondo_handler() -> fastobo.doc.OboDoc:
+    """Get MONDO OBO handler
+
+    Pretty limited configurability because this probably should eventually move somewhere else.
+    """
+    getter = MondoData()
+    file, _ = getter.get_latest()
+    return fastobo.load(file)
 
 
 class CategorizationError(Exception):
@@ -199,7 +210,15 @@ _MANUAL_CATEGORY_MAPPING = {
 }
 
 
-def get_manually_curated_category_for_term(term_id: str) -> ConceptMapping | None:
+class ManualCategoryStatus(Enum):
+    """Use to indicate possible outcomes from manual categorization"""
+
+    NO_CATEGORY_POSSIBLE = auto()
+
+
+def get_manually_curated_category_for_term(
+    term_id: str,
+) -> ConceptMapping | ManualCategoryStatus | None:
     """Provide manually-curated mappings where no computable option is available
 
     :param term_id: raw metakb term
@@ -207,7 +226,11 @@ def get_manually_curated_category_for_term(term_id: str) -> ConceptMapping | Non
     """
     if term_id not in _MANUAL_CATEGORY_MAPPING:
         return None
+
     oncotree_id = _MANUAL_CATEGORY_MAPPING[term_id]
+    if oncotree_id is None:
+        return ManualCategoryStatus.NO_CATEGORY_POSSIBLE
+
     return ConceptMapping(
         relation=Relation.BROAD_MATCH,
         coding=Coding(
@@ -216,13 +239,3 @@ def get_manually_curated_category_for_term(term_id: str) -> ConceptMapping | Non
             code=code(root=oncotree_id.split(":", 1)[-1]),
         ),
     )
-
-
-def get_mondo_handler() -> fastobo.doc.OboDoc:
-    """Get MONDO OBO handler
-
-    Pretty limited configurability because this probably should eventually move somewhere else.
-    """
-    getter = MondoData()
-    file, _ = getter.get_latest()
-    return fastobo.load(file)
