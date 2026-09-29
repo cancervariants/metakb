@@ -99,6 +99,7 @@ def configure_logs(
     logging.basicConfig(
         filename=log_filename,
         format="[%(asctime)s] - %(name)s - %(levelname)s : %(message)s",
+        force=True,
     )
     logger = logging.getLogger("metakb")
     logger.setLevel(log_level)
