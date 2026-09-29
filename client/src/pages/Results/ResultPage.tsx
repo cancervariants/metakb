@@ -19,7 +19,7 @@ import {
   evidenceOrder,
   normalizeResults,
   applyFilters,
-  buildFilterOptions,
+  buildEntityFilterOptions,
   TAB_LABELS,
 } from '../../utils'
 import { VariantDiseaseHeatmap } from '../../components/VariantDiseaseHeatmap/VariantDiseaseHeatmap'
@@ -46,6 +46,10 @@ type EvidenceBuckets = {
 }
 
 const CHART_MIN_WIDTH = 420
+
+type EntityOption = { id: string; name?: string | null }
+
+const getEntityLabel = (entity: EntityOption): string => entity.name ?? entity.id
 
 type EntityState =
   | { type: 'gene'; data: MappableConcept }
@@ -228,9 +232,11 @@ const ResultPage = () => {
     }
   }, [activeTab, searchQuery])
 
-  const variantOptions = buildFilterOptions(results[activeTab], 'variant_name')
-  const diseaseOptions = Array.from(
-    new Set(results[activeTab].flatMap((r) => r.disease).filter(Boolean)),
+  const variantOptions = buildEntityFilterOptions(
+    results[activeTab].flatMap((result) => (result.variant ? [result.variant] : [])),
+  )
+  const diseaseOptions = buildEntityFilterOptions(
+    results[activeTab].flatMap((result) => result.diseases),
   )
   const ageOfOnsetOptions = Array.from(
     new Set(
@@ -239,8 +245,8 @@ const ResultPage = () => {
         .filter((id): id is string => id != null),
     ),
   )
-  const therapyOptions = Array.from(
-    new Set(results[activeTab].flatMap((r) => r.therapy.therapyNames).filter(Boolean)),
+  const therapyOptions = buildEntityFilterOptions(
+    results[activeTab].flatMap((result) => result.therapy.therapies),
   )
 
   const evidenceLevelOptions = Array.from(
@@ -257,6 +263,29 @@ const ResultPage = () => {
     new Set(results[activeTab].flatMap((r) => r.sources).filter(Boolean)),
   )
 
+  const entityLabels = useMemo(() => {
+    const variants = new Map<string, string>()
+    const diseases = new Map<string, string>()
+    const therapies = new Map<string, string>()
+    const addLabel = <T extends EntityOption>(labels: Map<string, string>, entity: T) => {
+      if (!labels.has(entity.id)) labels.set(entity.id, getEntityLabel(entity))
+    }
+
+    Object.values(results)
+      .flat()
+      .forEach((result) => {
+        if (result.variant?.id) addLabel(variants, result.variant as EntityOption)
+        result.diseases.forEach((disease) => {
+          if (disease.id) addLabel(diseases, disease as EntityOption)
+        })
+        result.therapy.therapies.forEach((therapy) => {
+          if (therapy.id) addLabel(therapies, therapy as EntityOption)
+        })
+      })
+
+    return { variants, diseases, therapies }
+  }, [results])
+
   const clearAllFilters = () => {
     setSelectedVariants([])
     setSelectedDiseases([])
@@ -269,20 +298,33 @@ const ResultPage = () => {
   }
 
   const activeFilters = [
-    ...selectedVariants.map((v) => ({ type: 'variant', value: v })),
-    ...selectedDiseases.map((d) => ({ type: 'disease', value: d })),
+    ...selectedVariants.map((v) => ({
+      type: 'variant',
+      value: v,
+      label: entityLabels.variants.get(v) ?? v,
+    })),
+    ...selectedDiseases.map((d) => ({
+      type: 'disease',
+      value: d,
+      label: entityLabels.diseases.get(d) ?? d,
+    })),
     ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
       type: 'age_of_onset',
       value: conceptId,
+      label: conceptId,
     })),
     ...(selectedAgesOfOnset.includeNotSpecified
-      ? [{ type: 'age_of_onset_not_specified', value: 'not_specified' }]
+      ? [{ type: 'age_of_onset_not_specified', value: 'not_specified', label: 'not_specified' }]
       : []),
-    ...selectedTherapies.map((t) => ({ type: 'therapy', value: t })),
-    ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e })),
-    ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s })),
-    ...selectedSignificance.map((s) => ({ type: 'significance', value: s })),
-    ...selectedSources.map((src) => ({ type: 'source', value: src })),
+    ...selectedTherapies.map((t) => ({
+      type: 'therapy',
+      value: t,
+      label: entityLabels.therapies.get(t) ?? t,
+    })),
+    ...selectedEvidenceLevels.map((e) => ({ type: 'evidence_level', value: e, label: e })),
+    ...selectedStarRatings.map((s) => ({ type: 'star_rating', value: s, label: s })),
+    ...selectedSignificance.map((s) => ({ type: 'significance', value: s, label: s })),
+    ...selectedSources.map((src) => ({ type: 'source', value: src, label: src })),
   ]
   const removeFilter = (filter: { type: string; value: string }) => {
     switch (filter.type) {
@@ -390,7 +432,7 @@ const ResultPage = () => {
                             {activeFilters.map((f) => (
                               <Chip
                                 key={`${f.type}-${f.value}`}
-                                label={f.value}
+                                label={f.label}
                                 onDelete={() => removeFilter(f)}
                                 color="primary"
                                 variant="outlined"
@@ -403,6 +445,8 @@ const ResultPage = () => {
                       <ChecklistFilter
                         title="Variant"
                         options={variantOptions}
+                        getOptionId={(option) => option.id}
+                        getOptionLabel={getEntityLabel}
                         selected={selectedVariants}
                         setSelected={setSelectedVariants}
                       />
@@ -410,6 +454,8 @@ const ResultPage = () => {
                       <ChecklistFilter
                         title="Disease"
                         options={diseaseOptions}
+                        getOptionId={(option) => option.id}
+                        getOptionLabel={getEntityLabel}
                         selected={selectedDiseases}
                         setSelected={setSelectedDiseases}
                       />
@@ -426,6 +472,8 @@ const ResultPage = () => {
                             <ChecklistFilter
                               title="Therapy"
                               options={therapyOptions}
+                              getOptionId={(option) => option.id}
+                              getOptionLabel={getEntityLabel}
                               selected={selectedTherapies}
                               setSelected={setSelectedTherapies}
                             />
@@ -449,6 +497,8 @@ const ResultPage = () => {
                       <ChecklistFilter
                         title="Significance"
                         options={significanceOptions}
+                        getOptionId={(option) => option}
+                        getOptionLabel={(option) => option}
                         selected={selectedSignificance}
                         setSelected={setSelectedSignificance}
                       />
@@ -456,6 +506,8 @@ const ResultPage = () => {
                       <ChecklistFilter
                         title="Source"
                         options={sourceOptions}
+                        getOptionId={(option) => option}
+                        getOptionLabel={(option) => option}
                         selected={selectedSources}
                         setSelected={setSelectedSources}
                       />

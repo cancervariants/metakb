@@ -13,31 +13,45 @@ import {
 } from '@mui/material'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 
-export interface ChecklistFilterProps {
+export interface ChecklistFilterProps<T> {
   // title of filter section
   title: string
-  // literal options to select from (eg disease names, star ratings, etc)
-  options: string[]
+  // complete options to select from
+  options: T[]
+  // stable key stored in selection state
+  getOptionId: (option: T) => string
+  // user-facing text for an option
+  getOptionLabel: (option: T) => string
   // subset of options indicating what's selected by the user
   selected: string[]
   // setter to set selections
   setSelected: (values: string[]) => void
 }
 
-const ChecklistFilter = ({ title, options, selected, setSelected }: ChecklistFilterProps) => {
+const ChecklistFilter = <T,>({
+  title,
+  options,
+  getOptionId,
+  getOptionLabel,
+  selected,
+  setSelected,
+}: ChecklistFilterProps<T>) => {
   // we only show the top 5 filters at a time, so this tracks if the user clicked a button to show all or not
   const [showMore, setShowMore] = useState(false)
   const [search, setSearch] = useState('')
 
   const maxVisible = 5
 
-  const filteredOptions = options.filter((opt) => opt.toLowerCase().includes(search.toLowerCase()))
+  const filteredOptions = options.filter((opt) =>
+    getOptionLabel(opt).toLowerCase().includes(search.toLowerCase()),
+  )
 
   const visibleOptions = showMore ? filteredOptions : filteredOptions.slice(0, maxVisible)
 
-  const toggleOption = (opt: string, checked: boolean) => {
-    if (checked) setSelected([...selected, opt])
-    else setSelected(selected.filter((x) => x !== opt))
+  const toggleOption = (option: T, checked: boolean) => {
+    const id = getOptionId(option)
+    if (checked) setSelected([...selected, id])
+    else setSelected(selected.filter((selectedId) => selectedId !== id))
   }
 
   return (
@@ -95,14 +109,14 @@ const ChecklistFilter = ({ title, options, selected, setSelected }: ChecklistFil
         <FormGroup>
           {visibleOptions.map((opt) => (
             <FormControlLabel
-              key={opt}
+              key={getOptionId(opt)}
               control={
                 <Checkbox
-                  checked={selected.includes(opt)}
+                  checked={selected.includes(getOptionId(opt))}
                   onChange={(e) => toggleOption(opt, e.target.checked)}
                 />
               }
-              label={opt}
+              label={getOptionLabel(opt)}
             />
           ))}
         </FormGroup>
