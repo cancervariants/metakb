@@ -33,6 +33,11 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const displayedThreshold = hoveredRating !== null ? Number(hoveredRating) : selectedThreshold
 
   const selectMinimumRating = (minimumRating: string) => {
+    if (selectedThreshold === Number(minimumRating)) {
+      setSelected([])
+      return
+    }
+
     setSelected(RATINGS.filter((rating) => Number(rating) >= Number(minimumRating)))
   }
 
@@ -78,6 +83,11 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
           alignItems="center"
           onMouseLeave={() => setHoveredRating(null)}
           paddingTop="8px"
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setHoveredRating(null)
+            }
+          }}
         >
           {RATINGS.map((rating) => {
             const numericRating = Number(rating)
@@ -93,7 +103,6 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
                 aria-label={`Filter by ${rating}`}
                 onMouseEnter={() => setHoveredRating(rating)}
                 onFocus={() => setHoveredRating(rating)}
-                onBlur={() => setHoveredRating(null)}
                 onClick={() => selectMinimumRating(rating)}
                 sx={{
                   color: isHoverPreview
