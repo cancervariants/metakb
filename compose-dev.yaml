@@ -20,7 +20,7 @@ services:
     command: >
       sh -c "
       pip install -e .[dev,tests] &&
-      uvicorn src.metakb.main:app --reload --host 0.0.0.0 --port 8000
+      fastapi dev src/metakb/main.py --host 0.0.0.0
       "
     volumes:
       - .:/app
