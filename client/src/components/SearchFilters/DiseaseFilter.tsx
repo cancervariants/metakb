@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material'
 import type { MappableConcept } from '../../models/domain'
-import { getAvailableDiseaseTissues } from '../../utils/oncotree'
+import { getDiseaseTissueGroups } from '../../utils/oncotree'
 
 export interface DiseaseFilterProps {
   diseases: MappableConcept[]
@@ -20,10 +20,18 @@ export interface DiseaseFilterProps {
 }
 
 const DiseaseFilter = ({ diseases, selected, onChange }: DiseaseFilterProps) => {
-  const tissues = getAvailableDiseaseTissues(diseases)
+  const tissueGroups = getDiseaseTissueGroups(diseases)
 
-  const handleTissueChange = (tissueCode: string, checked: boolean) => {
-    onChange(checked ? [...selected, tissueCode] : selected.filter((code) => code !== tissueCode))
+  const handleDiseaseChange = (diseaseId: string, checked: boolean) => {
+    onChange(checked ? [...selected, diseaseId] : selected.filter((id) => id !== diseaseId))
+  }
+
+  const handleTissueChange = (diseaseIds: string[], checked: boolean) => {
+    onChange(
+      checked
+        ? [...new Set([...selected, ...diseaseIds])]
+        : selected.filter((id) => !diseaseIds.includes(id)),
+    )
   }
 
   return (
@@ -63,18 +71,44 @@ const DiseaseFilter = ({ diseases, selected, onChange }: DiseaseFilterProps) => 
 
       <AccordionDetails sx={{ px: 0 }}>
         <FormGroup>
-          {tissues.map((tissue) => (
-            <FormControlLabel
-              key={tissue.code}
-              control={
-                <Checkbox
-                  checked={selected.includes(tissue.code)}
-                  onChange={(event) => handleTissueChange(tissue.code, event.target.checked)}
+          {tissueGroups.map((group) => {
+            const diseaseIds = group.diseases.map((disease) => disease.id)
+            const selectedCount = diseaseIds.filter((id) => selected.includes(id)).length
+            const checked = diseaseIds.length > 0 && selectedCount === diseaseIds.length
+            const indeterminate = selectedCount > 0 && !checked
+
+            return (
+              <Box key={group.code}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={checked}
+                      indeterminate={indeterminate}
+                      onChange={(event) => handleTissueChange(diseaseIds, event.target.checked)}
+                    />
+                  }
+                  label={group.name}
                 />
-              }
-              label={tissue.name}
-            />
-          ))}
+
+                <Box sx={{ ml: 2 }}>
+                  {group.diseases.map((disease) => (
+                    <FormControlLabel
+                      key={`${group.code}-${disease.id}`}
+                      control={
+                        <Checkbox
+                          checked={selected.includes(disease.id)}
+                          onChange={(event) =>
+                            handleDiseaseChange(disease.id, event.target.checked)
+                          }
+                        />
+                      }
+                      label={disease.name ?? disease.id}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            )
+          })}
         </FormGroup>
       </AccordionDetails>
     </Accordion>

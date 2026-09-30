@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import type { MappableConcept } from '../models/domain'
-import { diseaseMatchesTissues, getAvailableDiseaseTissues, getDiseaseTissues } from './oncotree'
+import {
+  diseaseMatchesTissues,
+  getAvailableDiseaseTissues,
+  getDiseaseTissueGroups,
+  getDiseaseTissues,
+} from './oncotree'
 
 const disease = (overrides: Partial<MappableConcept>): MappableConcept => ({
   conceptType: 'Disease',
@@ -83,5 +88,29 @@ describe('OncoTree disease resolution', () => {
     ])
     expect(diseaseMatchesTissues(bowelDisease, ['BRAIN', 'BOWEL'])).toBe(true)
     expect(diseaseMatchesTissues(bowelDisease, ['BRAIN'])).toBe(false)
+  })
+
+  it('groups selectable diseases under their resolved tissues', () => {
+    const bowelDisease = disease({
+      id: 'metakb.disease:oncotree_HGNEC',
+      name: 'High-Grade Neuroendocrine Carcinoma',
+    })
+    const brainDisease = disease({
+      id: 'metakb.disease:oncotree_PRNET',
+      name: 'Primary Nervous System Tumor',
+    })
+
+    expect(getDiseaseTissueGroups([brainDisease, bowelDisease])).toEqual([
+      {
+        code: 'BOWEL',
+        name: 'Bowel',
+        diseases: [bowelDisease],
+      },
+      {
+        code: 'BRAIN',
+        name: 'CNS/Brain',
+        diseases: [brainDisease],
+      },
+    ])
   })
 })

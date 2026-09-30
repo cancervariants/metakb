@@ -12,6 +12,10 @@ export type OncoTreeTissue = {
   name: string
 }
 
+export type DiseaseTissueGroup = OncoTreeTissue & {
+  diseases: (MappableConcept & { id: string })[]
+}
+
 const ONCOTREE_ID_PATTERN = /(?:^|[:_])oncotree[_:](.+)$/i
 
 const normalizeCode = (value: string | null | undefined): string | null => {
@@ -84,6 +88,34 @@ export const getAvailableDiseaseTissues = (diseases: MappableConcept[]): OncoTre
   })
 
   return Array.from(tissues.values()).sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/**
+ * Group ID-bearing disease concepts by every top-level OncoTree tissue to
+ * which they resolve. A disease with mappings in multiple tissues appears in
+ * each matching group.
+ */
+export const getDiseaseTissueGroups = (diseases: MappableConcept[]): DiseaseTissueGroup[] => {
+  const groups = new Map<string, DiseaseTissueGroup>()
+
+  diseases.forEach((disease) => {
+    if (!disease.id) return
+
+    getDiseaseTissues(disease).forEach((tissue) => {
+      const group = groups.get(tissue.code) ?? { ...tissue, diseases: [] }
+      if (!group.diseases.some((groupedDisease) => groupedDisease.id === disease.id)) {
+        group.diseases.push(disease as MappableConcept & { id: string })
+      }
+      groups.set(tissue.code, group)
+    })
+  })
+
+  return Array.from(groups.values())
+    .map((group) => ({
+      ...group,
+      diseases: [...group.diseases].sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id)),
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export const diseaseMatchesTissues = (disease: MappableConcept, selectedTissueCodes: string[]) =>

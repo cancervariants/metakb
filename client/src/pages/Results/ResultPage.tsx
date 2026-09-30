@@ -36,7 +36,6 @@ import AgeOfOnsetFilter, {
 } from '../../components/SearchFilters/AgeOfOnsetFilter'
 import { getTermAndChildrenIds } from '../../utils/ageOfOnset'
 import EvidenceLevelFilter from '../../components/SearchFilters/EvidenceLevelFilter'
-import { getAvailableDiseaseTissues } from '../../utils/oncotree'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -82,7 +81,7 @@ const ResultPage = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<string[]>([])
-  const [selectedDiseaseTissues, setSelectedDiseaseTissues] = useState<string[]>([])
+  const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
   const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<AgeOfOnsetSelection>({
     conceptIds: [],
     includeNotSpecified: false,
@@ -95,7 +94,7 @@ const ResultPage = () => {
 
   const selectedFilters = {
     variants: selectedVariants,
-    diseaseTissues: selectedDiseaseTissues,
+    diseases: selectedDiseases,
     agesOfOnset: selectedAgesOfOnset,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
@@ -240,7 +239,6 @@ const ResultPage = () => {
   const diseaseOptions = buildEntityFilterOptions(
     results[activeTab].flatMap((result) => result.diseases),
   )
-  const diseaseTissueOptions = getAvailableDiseaseTissues(diseaseOptions)
   const ageOfOnsetOptions = Array.from(
     new Set(
       results[activeTab]
@@ -291,7 +289,7 @@ const ResultPage = () => {
 
   const clearAllFilters = () => {
     setSelectedVariants([])
-    setSelectedDiseaseTissues([])
+    setSelectedDiseases([])
     setSelectedAgesOfOnset({ conceptIds: [], includeNotSpecified: false })
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
@@ -306,10 +304,10 @@ const ResultPage = () => {
       value: v,
       label: entityLabels.variants.get(v) ?? v,
     })),
-    ...selectedDiseaseTissues.map((code) => ({
-      type: 'disease_tissue',
-      value: code,
-      label: diseaseTissueOptions.find((tissue) => tissue.code === code)?.name ?? code,
+    ...selectedDiseases.map((id) => ({
+      type: 'disease',
+      value: id,
+      label: entityLabels.diseases.get(id) ?? id,
     })),
     ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
       type: 'age_of_onset',
@@ -335,8 +333,8 @@ const ResultPage = () => {
         setSelectedVariants((prev) => prev.filter((v) => v !== filter.value))
         break
 
-      case 'disease_tissue':
-        setSelectedDiseaseTissues((prev) => prev.filter((code) => code !== filter.value))
+      case 'disease':
+        setSelectedDiseases((prev) => prev.filter((id) => id !== filter.value))
         break
 
       case 'age_of_onset': {
@@ -465,8 +463,8 @@ const ResultPage = () => {
                       <hr />
                       <DiseaseFilter
                         diseases={diseaseOptions}
-                        selected={selectedDiseaseTissues}
-                        onChange={setSelectedDiseaseTissues}
+                        selected={selectedDiseases}
+                        onChange={setSelectedDiseases}
                       />
                       <hr />
                       <AgeOfOnsetFilter
