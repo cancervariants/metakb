@@ -29,6 +29,7 @@ import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
 import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
+import DiseaseFilter from '../../components/SearchFilters/DiseaseFilter'
 import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
 import AgeOfOnsetFilter, {
   AgeOfOnsetSelection,
@@ -303,10 +304,10 @@ const ResultPage = () => {
       value: v,
       label: entityLabels.variants.get(v) ?? v,
     })),
-    ...selectedDiseases.map((d) => ({
+    ...selectedDiseases.map((id) => ({
       type: 'disease',
-      value: d,
-      label: entityLabels.diseases.get(d) ?? d,
+      value: id,
+      label: entityLabels.diseases.get(id) ?? id,
     })),
     ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
       type: 'age_of_onset',
@@ -333,7 +334,7 @@ const ResultPage = () => {
         break
 
       case 'disease':
-        setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
+        setSelectedDiseases((prev) => prev.filter((id) => id !== filter.value))
         break
 
       case 'age_of_onset': {
@@ -460,13 +461,10 @@ const ResultPage = () => {
                         setSelected={setSelectedVariants}
                       />
                       <hr />
-                      <ChecklistFilter
-                        title="Disease"
-                        options={diseaseOptions}
-                        getOptionId={(option) => option.id}
-                        getOptionLabel={getEntityLabel}
+                      <DiseaseFilter
+                        diseases={diseaseOptions}
                         selected={selectedDiseases}
-                        setSelected={setSelectedDiseases}
+                        onChange={setSelectedDiseases}
                       />
                       <hr />
                       <AgeOfOnsetFilter

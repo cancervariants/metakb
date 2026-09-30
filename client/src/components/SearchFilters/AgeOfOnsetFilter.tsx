@@ -1,15 +1,6 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  Typography,
-} from '@mui/material'
+import { Box, Checkbox, FormControlLabel } from '@mui/material'
 import { AGE_OF_ONSET_TERMS, getParentIds, getTermAndChildrenIds } from '../../utils/ageOfOnset'
+import FilterAccordion from './FilterAccordion'
 
 export type AgeOfOnsetSelection = {
   conceptIds: string[]
@@ -122,74 +113,38 @@ const AgeOfOnsetFilter = ({ options, value, onChange }: AgeOfOnsetFilterProps) =
   }
 
   return (
-    <Accordion
-      defaultExpanded={false}
-      sx={{
-        boxShadow: 'none',
-        '&:before': { display: 'none' },
-        backgroundColor: 'transparent',
-      }}
+    <FilterAccordion
+      title="Age of Onset"
+      hasSelection={hasSelection}
+      onClear={() => onChange({ conceptIds: [], includeNotSpecified: false })}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{
-          minHeight: 'unset !important',
-          px: 0,
-          '& .MuiAccordionSummary-content': {
-            margin: 0,
-          },
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">Age of Onset</Typography>
+      {visibleRootIds.length > 0 && (
+        <>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={specifiedChecked}
+                indeterminate={specifiedIndeterminate}
+                onChange={(event) => handleSpecifiedChange(event.target.checked)}
+              />
+            }
+            label="Age of onset specified"
+          />
 
-          {hasSelection && (
-            <Button
-              size="small"
-              color="success"
-              onClick={(event) => {
-                event.stopPropagation()
-                onChange({
-                  conceptIds: [],
-                  includeNotSpecified: false,
-                })
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </Box>
-      </AccordionSummary>
+          <Box sx={{ ml: 2 }}>{visibleRootIds.map((termId) => renderTerm(termId))}</Box>
+        </>
+      )}
 
-      <AccordionDetails sx={{ px: 0 }}>
-        {visibleRootIds.length > 0 && (
-          <>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={specifiedChecked}
-                  indeterminate={specifiedIndeterminate}
-                  onChange={(event) => handleSpecifiedChange(event.target.checked)}
-                />
-              }
-              label="Age of onset specified"
-            />
-
-            <Box sx={{ ml: 2 }}>{visibleRootIds.map((termId) => renderTerm(termId))}</Box>
-          </>
-        )}
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={includeNotSpecified}
-              onChange={(event) => handleNotSpecifiedChange(event.target.checked)}
-            />
-          }
-          label="Age of onset not specified"
-        />
-      </AccordionDetails>
-    </Accordion>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={includeNotSpecified}
+            onChange={(event) => handleNotSpecifiedChange(event.target.checked)}
+          />
+        }
+        label="Age of onset not specified"
+      />
+    </FilterAccordion>
   )
 }
 
