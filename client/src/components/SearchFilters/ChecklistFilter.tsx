@@ -1,17 +1,6 @@
 import { useState } from 'react'
-import {
-  Box,
-  FormGroup,
-  FormControlLabel,
-  Checkbox,
-  Button,
-  TextField,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { FormGroup, FormControlLabel, Checkbox, Button, TextField } from '@mui/material'
+import FilterAccordion from './FilterAccordion'
 
 export interface ChecklistFilterProps<T> {
   // title of filter section
@@ -55,79 +44,44 @@ const ChecklistFilter = <T,>({
   }
 
   return (
-    <Accordion
-      defaultExpanded={false}
-      sx={{
-        boxShadow: 'none',
-        '&:before': { display: 'none' },
-        '& .Mui-expanded': { margin: 0 },
-      }}
+    <FilterAccordion
+      title={title}
+      hasSelection={selected.length > 0}
+      onClear={() => setSelected([])}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{
-          minHeight: 'unset !important',
-          '& .MuiAccordionSummary-content': {
-            margin: 0,
-          },
-          '& .MuiButtonBase-root': {
-            padding: 0,
-          },
-          px: 0,
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">{title}</Typography>
-          {selected.length > 0 && (
-            <Button
-              size="small"
-              color="success"
-              onClick={(e) => {
-                e.stopPropagation()
-                setSelected([])
-              }}
-            >
-              clear
-            </Button>
-          )}
-        </Box>
-      </AccordionSummary>
+      {/* Search box if more than 5 options */}
+      {options.length > maxVisible && (
+        <TextField
+          size="small"
+          placeholder={`Search ${title.toLowerCase()}...`}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          fullWidth
+          sx={{ mb: 1 }}
+        />
+      )}
 
-      <AccordionDetails>
-        {/* Search box if more than 5 options */}
-        {options.length > maxVisible && (
-          <TextField
-            size="small"
-            placeholder={`Search ${title.toLowerCase()}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            fullWidth
-            sx={{ mb: 1 }}
+      <FormGroup>
+        {visibleOptions.map((opt) => (
+          <FormControlLabel
+            key={getOptionId(opt)}
+            control={
+              <Checkbox
+                checked={selected.includes(getOptionId(opt))}
+                onChange={(e) => toggleOption(opt, e.target.checked)}
+              />
+            }
+            label={getOptionLabel(opt)}
           />
-        )}
+        ))}
+      </FormGroup>
 
-        <FormGroup>
-          {visibleOptions.map((opt) => (
-            <FormControlLabel
-              key={getOptionId(opt)}
-              control={
-                <Checkbox
-                  checked={selected.includes(getOptionId(opt))}
-                  onChange={(e) => toggleOption(opt, e.target.checked)}
-                />
-              }
-              label={getOptionLabel(opt)}
-            />
-          ))}
-        </FormGroup>
-
-        {filteredOptions.length > maxVisible && (
-          <Button size="small" onClick={() => setShowMore(!showMore)}>
-            {showMore ? 'Show less' : 'Show more'}
-          </Button>
-        )}
-      </AccordionDetails>
-    </Accordion>
+      {filteredOptions.length > maxVisible && (
+        <Button size="small" onClick={() => setShowMore(!showMore)}>
+          {showMore ? 'Show less' : 'Show more'}
+        </Button>
+      )}
+    </FilterAccordion>
   )
 }
 

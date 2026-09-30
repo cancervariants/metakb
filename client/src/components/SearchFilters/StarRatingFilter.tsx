@@ -1,16 +1,8 @@
 import { useState } from 'react'
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  IconButton,
-  Typography,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Box, IconButton, Typography } from '@mui/material'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
+import FilterAccordion from './FilterAccordion'
 
 export interface StarRatingFilterProps {
   // literal star rating options to select from ('1', '2', etc)
@@ -42,84 +34,52 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   }
 
   return (
-    <Accordion
-      defaultExpanded={false}
-      sx={{
-        boxShadow: 'none',
-        '&:before': { display: 'none' },
-      }}
+    <FilterAccordion
+      title="Star Rating"
+      hasSelection={selected.length > 0}
+      onClear={() => setSelected([])}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{
-          minHeight: 'unset !important',
-          px: 0,
-          '& .MuiAccordionSummary-content': {
-            margin: 0,
-          },
+      <Box
+        display="flex"
+        alignItems="center"
+        onMouseLeave={() => setHoveredRating(null)}
+        paddingTop="8px"
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setHoveredRating(null)
+          }
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">Star Rating</Typography>
+        {RATINGS.map((rating) => {
+          const numericRating = Number(rating)
 
-          {selected.length > 0 && (
-            <Button
+          const isActive = displayedThreshold !== null && numericRating <= displayedThreshold
+
+          const isHoverPreview = hoveredRating !== null && isActive
+
+          return (
+            <IconButton
+              key={rating}
               size="small"
-              color="success"
-              onClick={(event) => {
-                event.stopPropagation()
-                setSelected([])
+              aria-label={`Filter by ${rating}`}
+              onMouseEnter={() => setHoveredRating(rating)}
+              onFocus={() => setHoveredRating(rating)}
+              onClick={() => selectMinimumRating(rating)}
+              sx={{
+                color: isHoverPreview
+                  ? 'text.secondary'
+                  : isActive
+                    ? 'warning.main'
+                    : 'action.disabled',
               }}
             >
-              Clear
-            </Button>
-          )}
-        </Box>
-      </AccordionSummary>
-
-      <AccordionDetails sx={{ px: 0 }}>
-        <Box
-          display="flex"
-          alignItems="center"
-          onMouseLeave={() => setHoveredRating(null)}
-          paddingTop="8px"
-          onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) {
-              setHoveredRating(null)
-            }
-          }}
-        >
-          {RATINGS.map((rating) => {
-            const numericRating = Number(rating)
-
-            const isActive = displayedThreshold !== null && numericRating <= displayedThreshold
-
-            const isHoverPreview = hoveredRating !== null && isActive
-
-            return (
-              <IconButton
-                key={rating}
-                size="small"
-                aria-label={`Filter by ${rating}`}
-                onMouseEnter={() => setHoveredRating(rating)}
-                onFocus={() => setHoveredRating(rating)}
-                onClick={() => selectMinimumRating(rating)}
-                sx={{
-                  color: isHoverPreview
-                    ? 'text.secondary'
-                    : isActive
-                      ? 'warning.main'
-                      : 'action.disabled',
-                }}
-              >
-                {isActive ? <StarIcon /> : <StarBorderIcon />}
-              </IconButton>
-            )
-          })}
-          <Typography sx={{ transform: 'translate(5px, 1px)' }}>& up</Typography>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+              {isActive ? <StarIcon /> : <StarBorderIcon />}
+            </IconButton>
+          )
+        })}
+        <Typography sx={{ transform: 'translate(5px, 1px)' }}>& up</Typography>
+      </Box>
+    </FilterAccordion>
   )
 }
 

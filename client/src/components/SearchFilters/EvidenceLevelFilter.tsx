@@ -1,14 +1,5 @@
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Box, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import FilterAccordion from './FilterAccordion'
 
 export interface EvidenceLevelFilterProps {
   // literal evidence level options to select from ('A', 'B', etc)
@@ -23,56 +14,24 @@ const LEVELS = ['A', 'B', 'C', 'D']
 
 const EvidenceLevelFilter = ({ options, selected, setSelected }: EvidenceLevelFilterProps) => {
   return (
-    <Accordion
-      defaultExpanded={false}
-      sx={{
-        boxShadow: 'none',
-        '&:before': { display: 'none' },
-      }}
+    <FilterAccordion
+      title="Evidence Level"
+      hasSelection={selected.length > 0}
+      onClear={() => setSelected([])}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{
-          minHeight: 'unset !important',
-          px: 0,
-          '& .MuiAccordionSummary-content': {
-            margin: 0,
-          },
-        }}
-      >
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">Evidence Level</Typography>
-
-          {selected.length > 0 && (
-            <Button
-              size="small"
-              color="success"
-              onClick={(event) => {
-                event.stopPropagation()
-                setSelected([])
-              }}
-            >
-              Clear
-            </Button>
-          )}
-        </Box>
-      </AccordionSummary>
-
-      <AccordionDetails sx={{ px: 0 }}>
-        <Box display="flex" alignItems="center" justifyContent="center" paddingTop="8px">
-          <ToggleButtonGroup
-            value={selected}
-            onChange={(_event, newOptions) => setSelected(newOptions)}
-          >
-            {LEVELS.map((level) => (
-              <ToggleButton key={level} value={level} disabled={!options.includes(level)}>
-                <Typography sx={{ fontWeight: 'bold' }}>{level}</Typography>
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+      <Box display="flex" alignItems="center" justifyContent="center" paddingTop="8px">
+        <ToggleButtonGroup
+          value={selected}
+          onChange={(_event, newOptions) => setSelected(newOptions)}
+        >
+          {LEVELS.map((level) => (
+            <ToggleButton key={level} value={level} disabled={!options.includes(level)}>
+              <Typography sx={{ fontWeight: 'bold' }}>{level}</Typography>
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      </Box>
+    </FilterAccordion>
   )
 }
 
