@@ -405,11 +405,20 @@ const ResultPage = () => {
                 sx={{ marginBottom: 2 }}
               >
                 <Tab
-                  label={`Therapeutic (${filteredByTab.therapeutic.length})`}
+                  label={`Therapeutic Response (${filteredByTab.therapeutic.length})`}
                   value="therapeutic"
+                  disabled={!filteredByTab.therapeutic.length}
                 />
-                <Tab label={`Diagnostic (${filteredByTab.diagnostic.length})`} value="diagnostic" />
-                <Tab label={`Prognostic (${filteredByTab.prognostic.length})`} value="prognostic" />
+                <Tab
+                  label={`Diagnostic (${filteredByTab.diagnostic.length})`}
+                  value="diagnostic"
+                  disabled={!filteredByTab.diagnostic.length}
+                />
+                <Tab
+                  label={`Prognostic (${filteredByTab.prognostic.length})`}
+                  value="prognostic"
+                  disabled={!filteredByTab.prognostic.length}
+                />
               </Tabs>
               <Box id="search-type-label">
                 <Typography variant="h6" fontWeight="bold" mb={2}>
