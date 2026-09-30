@@ -16,7 +16,7 @@ from ga4gh.va_spec.aac_2017.models import (
 )
 from ga4gh.va_spec.base import Statement, System
 
-from metakb.transformers.methodology import FDA_SYSTEM, src_strength_to_vicc_code
+from metakb.core.methodology import FDA_SYSTEM, src_strength_to_vicc_code
 
 
 @pytest.fixture(scope="session")
