@@ -182,6 +182,7 @@ _MANUAL_CATEGORY_MAPPING = {
     "metakb.disease:ncit_C6791": "oncotree:SACA",
     "metakb.disease:ncit_C4726": "oncotree:ACPG",
     "metakb.disease:ncit_C129424": "oncotree:DIFG",
+    "metakb.disease:ncit_C129309": "oncotree:DIFG",  # mondo record has outdated oncotree xref
     # overly broad/no meaningful oncotree equivalent
     # often there are okay-ish mappings here, but the source term doesn't fit into the
     # oncotree anatomical hierarchy
