@@ -19,22 +19,22 @@ from ga4gh.va_spec.base import (
     VariantTherapeuticResponseProposition,
 )
 
-from metakb.normalizers import ViccNormalizers
+from metakb.core.identifiers import (
+    compute_assertion_id,
+    compute_combo_id,
+)
+from metakb.core.methodology import (
+    add_evidence_to_assertion,
+    initialize_assertion,
+)
+from metakb.core.normalizers import ViccNormalizers
+from metakb.core.source_data import SourceDataStore
 from metakb.schemas.data import TransformedData
-from metakb.source_data import SourceDataStore
 from metakb.transformers.disease_categories import (
     ManualCategoryStatus,
     get_category_for_mondo_term,
     get_manually_curated_category_for_term,
     get_mondo_handler,
-)
-from metakb.transformers.identifiers import (
-    compute_assertion_id,
-    compute_combo_id,
-)
-from metakb.transformers.methodology import (
-    add_evidence_to_assertion,
-    initialize_assertion,
 )
 
 _logger = logging.getLogger(__name__)

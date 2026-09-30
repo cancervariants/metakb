@@ -5,7 +5,6 @@ from http import HTTPStatus
 from pathlib import Path
 
 import requests
-import requests_cache
 
 from metakb.harvesters.base import FetchMode, Harvester
 from metakb.schemas.data import MoaHarvestedData
@@ -39,10 +38,9 @@ class MoaHarvester(Harvester):
         :return: List of MOA gene names
         """
         genes = []
-        with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/genes", timeout=60)
-            if r.status_code == HTTPStatus.OK:
-                genes = r.json()
+        r = requests.get("https://moalmanac.org/api/genes", timeout=60)
+        if r.status_code == HTTPStatus.OK:
+            genes = r.json()
         return genes
 
     def _harvest_sources(self, assertion_resp: list[dict]) -> list[dict]:
@@ -96,18 +94,16 @@ class MoaHarvester(Harvester):
 
         :return: All moa assertion records
         """
-        with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/assertions", timeout=60)
-            return r.json()
+        r = requests.get("https://moalmanac.org/api/assertions", timeout=60)
+        return r.json()
 
     def _get_all_variants(self) -> list[dict]:
         """Return all variant records
 
         :return: All moa variant records
         """
-        with requests_cache.disabled():
-            r = requests.get("https://moalmanac.org/api/features", timeout=60)
-            return r.json()
+        r = requests.get("https://moalmanac.org/api/features", timeout=60)
+        return r.json()
 
     def _source_item(self, source: dict) -> dict:
         """Harvest an individual MOA source of evidence

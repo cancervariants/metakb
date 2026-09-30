@@ -67,7 +67,7 @@ from ga4gh.vrs.models import (
 )
 from pydantic import BaseModel, Field, RootModel
 
-from metakb.transformers import methodology
+from metakb.core import methodology
 
 _logger = logging.getLogger(__name__)
 

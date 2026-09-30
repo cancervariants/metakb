@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
+from metakb.core.normalizers import ViccNormalizers
+from metakb.core.source_data import SourceDataStore
 from metakb.harvesters.base import Harvester
 from metakb.harvesters.moa import MoaHarvester
-from metakb.normalizers import ViccNormalizers
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 
 TEST_DATA_DIR = Path(__file__).resolve().parents[0] / "data"
 TEST_HARVESTERS_DIR = TEST_DATA_DIR / "harvesters"

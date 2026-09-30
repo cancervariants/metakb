@@ -5,8 +5,8 @@ import pytest
 from ga4gh.core.models import Extension
 from ga4gh.va_spec.aac_2017.models import VariantClinicalSignificanceStatement
 
+from metakb.core.source_data import SourceDataStore
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 from metakb.transformers.mci import MciTransformer
 
 

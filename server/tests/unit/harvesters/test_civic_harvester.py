@@ -2,9 +2,9 @@ from pathlib import Path
 
 from tests.conftest import check_source_harvest
 
+from metakb.core.source_data import SourceDataStore
 from metakb.harvesters.civic import CivicHarvester
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 
 
 def test_harvest(tmp_path: Path):
