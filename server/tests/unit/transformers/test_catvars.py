@@ -10,8 +10,8 @@ from ga4gh.cat_vrs.models import (
 )
 from ga4gh.vrs import models
 
+from metakb.core.catvars import get_normalized_protein_consequence_name
 from metakb.repository.neo4j_models import CategoricalVariantNode
-from metakb.transformers.catvars import get_normalized_protein_consequence_name
 
 
 @pytest.fixture

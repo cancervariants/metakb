@@ -30,28 +30,32 @@ dependencies = [
     "ga4gh.cat_vrs~=0.8.0-a2",
     "ga4gh.va_spec==0.5.0-a0",
     "cool-seq-tool ~= 0.16.0",
-    "gene-normalizer[etl]~=0.11.5",
+    "gene-normalizer~=0.11.5",
     "variation-normalizer~=0.15.4",
-    "disease-normalizer[etl]~=0.11.2",
-    "thera-py[etl]~=0.11.0",
-    "civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552",
-    "requests",
+    "disease-normalizer~=0.11.2",
+    "thera-py~=0.11.0",
     "pydantic==2.*",
     "pydantic-settings",
-    "requests-cache",
     "neo4j==5.*",
     "uvicorn",
     "fastapi",
     "boto3",
     "botocore",
-    "click",
     "jinja2",
-    "pandas>=2.3.3, <3.0",
     "async-lru",
-    "tqdm",
 ]
 
 [project.optional-dependencies]
+ingest = [
+    "click",
+    "gene-normalizer[etl]",
+    "disease-normalizer[etl]",
+    "thera-py[etl]",
+    "civicpy @ git+https://github.com/griffithlab/civicpy@dcfc0f9fa8644e659b23a71e3435d3d76538b552",
+    "pandas>=2.3.3, <3.0",
+    "tqdm",
+    "requests",
+]
 deploy = [
     "uvloop",
     "websockets",
@@ -80,17 +84,9 @@ codegen = [
     "astor>=0.8.1",
     "typing_extensions>=4.8.0",
 ]
-notebooks = ["ipykernel", "jupyterlab"]
-docs = [
-    "sphinx==6.1.3",
-    "sphinx-autodoc-typehints==1.22.0",
-    "sphinx-autobuild==2021.3.14",
-    "sphinx-copybutton==0.5.2",
-    "sphinxext-opengraph==0.8.2",
-    "furo==2023.3.27",
-    "sphinx-github-changelog==1.2.1",
-    "sphinx-click==5.0.1",
-    "sphinxcontrib-images==1.0.1",
+notebooks = [
+    "ipykernel",
+    "jupyterlab",
 ]
 
 [project.urls]

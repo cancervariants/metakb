@@ -11,7 +11,7 @@ from typing import ClassVar
 
 from pydantic import BaseModel
 
-from metakb.config import get_config
+from metakb.core.config import get_config
 from metakb.schemas.app import SourceName
 from metakb.schemas.data import TransformedData
 

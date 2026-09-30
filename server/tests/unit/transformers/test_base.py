@@ -14,8 +14,8 @@ from ga4gh.va_spec.base import (
     TherapyGroup,
 )
 
+from metakb.core.source_data import SourceDataStore
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 from metakb.transformers.base import Transformer
 from metakb.transformers.civic import CivicTransformer
 
