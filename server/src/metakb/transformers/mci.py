@@ -21,11 +21,11 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele, MoleculeType
 from tqdm import tqdm
 
+from metakb.core.identifiers import hash_proposition
 from metakb.harvesters.mci import MciHarvestedData
 from metakb.schemas.data import TransformedData
 from metakb.transformers import phenotypes
 from metakb.transformers.base import Transformer
-from metakb.transformers.identifiers import hash_proposition
 
 _logger = logging.getLogger(__name__)
 

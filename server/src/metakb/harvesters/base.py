@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from enum import StrEnum
 from pathlib import Path
 
-from metakb.source_data import SourceDataStore
+from metakb.core.source_data import SourceDataStore
 
 _logger = logging.getLogger(__name__)
 

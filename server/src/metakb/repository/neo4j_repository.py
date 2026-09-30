@@ -29,7 +29,7 @@ from neo4j import (
 )
 from neo4j.graph import Node
 
-from metakb.config import get_config
+from metakb.core.config import get_config
 from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.repository.neo4j_models import (
     AlleleNode,

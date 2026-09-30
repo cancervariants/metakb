@@ -52,12 +52,12 @@ END |
 // replace condition block
 WITH statement, $statement.has_condition AS conditionInput
 
-CALL {
+CALL (conditionInput) {
   WITH conditionInput
   WITH conditionInput
   WHERE conditionInput IS NOT NULL
 
-  CALL {
+  CALL (conditionInput) {
     // ConditionSet case
     WITH conditionInput
     WITH conditionInput
@@ -69,7 +69,7 @@ CALL {
     WITH conditionSet, conditionInput
     UNWIND conditionInput.conditions AS childInput
 
-    CALL {
+    CALL (childInput) {
       // child condition set
       WITH childInput
       WITH childInput
@@ -128,7 +128,7 @@ MERGE (statement)-[:HAS_SUBJECT_VARIANT]->(cv)
 
 // add edges to supporting documents
 WITH statement
-CALL {
+CALL (statement) {
   WITH statement
   WITH statement, coalesce($statement.has_documents, []) AS docs
   UNWIND docs AS document
@@ -138,7 +138,7 @@ CALL {
 }
 
 // add edges to contained evidence lines
-CALL {
+CALL (statement) {
   WITH statement
   WITH statement, coalesce($statement.has_evidence_lines, []) AS ev_lines
   UNWIND ev_lines AS ev_line
