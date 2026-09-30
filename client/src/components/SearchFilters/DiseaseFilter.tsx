@@ -60,7 +60,11 @@ const DiseaseFilter = ({ diseases, selected, onChange }: DiseaseFilterProps) => 
                         onChange={(event) => handleDiseaseChange(disease.id, event.target.checked)}
                       />
                     }
-                    label={disease.name ?? disease.id}
+                    label={
+                      disease.name
+                        ? disease.name[0].toUpperCase() + disease.name.slice(1)
+                        : disease.id
+                    }
                   />
                 ))}
               </Box>
