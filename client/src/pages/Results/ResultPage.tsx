@@ -29,12 +29,14 @@ import VariationInfo from '../../components/EntityInfo/VariationInfo'
 import { CategoricalVariant, MappableConcept } from '../../models/domain'
 import ContentContainer from '../../components/common/ContentContainer'
 import ChecklistFilter from '../../components/SearchFilters/ChecklistFilter'
+import DiseaseFilter from '../../components/SearchFilters/DiseaseFilter'
 import StarRatingFilter from '../../components/SearchFilters/StarRatingFilter'
 import AgeOfOnsetFilter, {
   AgeOfOnsetSelection,
 } from '../../components/SearchFilters/AgeOfOnsetFilter'
 import { getTermAndChildrenIds } from '../../utils/ageOfOnset'
 import EvidenceLevelFilter from '../../components/SearchFilters/EvidenceLevelFilter'
+import { getAvailableDiseaseTissues } from '../../utils/oncotree'
 
 type SearchType = 'gene' | 'variation'
 const API_BASE = '/api/search/statements'
@@ -80,7 +82,7 @@ const ResultPage = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedVariants, setSelectedVariants] = useState<string[]>([])
-  const [selectedDiseases, setSelectedDiseases] = useState<string[]>([])
+  const [selectedDiseaseTissues, setSelectedDiseaseTissues] = useState<string[]>([])
   const [selectedAgesOfOnset, setSelectedAgesOfOnset] = useState<AgeOfOnsetSelection>({
     conceptIds: [],
     includeNotSpecified: false,
@@ -93,7 +95,7 @@ const ResultPage = () => {
 
   const selectedFilters = {
     variants: selectedVariants,
-    diseases: selectedDiseases,
+    diseaseTissues: selectedDiseaseTissues,
     agesOfOnset: selectedAgesOfOnset,
     therapies: selectedTherapies,
     evidenceLevels: selectedEvidenceLevels,
@@ -238,6 +240,7 @@ const ResultPage = () => {
   const diseaseOptions = buildEntityFilterOptions(
     results[activeTab].flatMap((result) => result.diseases),
   )
+  const diseaseTissueOptions = getAvailableDiseaseTissues(diseaseOptions)
   const ageOfOnsetOptions = Array.from(
     new Set(
       results[activeTab]
@@ -288,7 +291,7 @@ const ResultPage = () => {
 
   const clearAllFilters = () => {
     setSelectedVariants([])
-    setSelectedDiseases([])
+    setSelectedDiseaseTissues([])
     setSelectedAgesOfOnset({ conceptIds: [], includeNotSpecified: false })
     setSelectedTherapies([])
     setSelectedEvidenceLevels([])
@@ -303,10 +306,10 @@ const ResultPage = () => {
       value: v,
       label: entityLabels.variants.get(v) ?? v,
     })),
-    ...selectedDiseases.map((d) => ({
-      type: 'disease',
-      value: d,
-      label: entityLabels.diseases.get(d) ?? d,
+    ...selectedDiseaseTissues.map((code) => ({
+      type: 'disease_tissue',
+      value: code,
+      label: diseaseTissueOptions.find((tissue) => tissue.code === code)?.name ?? code,
     })),
     ...selectedAgesOfOnset.conceptIds.map((conceptId) => ({
       type: 'age_of_onset',
@@ -332,8 +335,8 @@ const ResultPage = () => {
         setSelectedVariants((prev) => prev.filter((v) => v !== filter.value))
         break
 
-      case 'disease':
-        setSelectedDiseases((prev) => prev.filter((d) => d !== filter.value))
+      case 'disease_tissue':
+        setSelectedDiseaseTissues((prev) => prev.filter((code) => code !== filter.value))
         break
 
       case 'age_of_onset': {
@@ -451,13 +454,10 @@ const ResultPage = () => {
                         setSelected={setSelectedVariants}
                       />
                       <hr />
-                      <ChecklistFilter
-                        title="Disease"
-                        options={diseaseOptions}
-                        getOptionId={(option) => option.id}
-                        getOptionLabel={getEntityLabel}
-                        selected={selectedDiseases}
-                        setSelected={setSelectedDiseases}
+                      <DiseaseFilter
+                        diseases={diseaseOptions}
+                        selected={selectedDiseaseTissues}
+                        onChange={setSelectedDiseaseTissues}
                       />
                       <hr />
                       <AgeOfOnsetFilter

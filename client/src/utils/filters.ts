@@ -8,6 +8,7 @@
 
 import { AgeOfOnsetSelection } from '../components/SearchFilters/AgeOfOnsetFilter'
 import { AssertionResult } from './results'
+import { diseaseMatchesTissues } from './oncotree'
 
 /**
  * Builds a frequency map of values from a list of results.
@@ -76,7 +77,7 @@ export const applyFilters = (
   items: AssertionResult[],
   selected: {
     variants: string[]
-    diseases: string[]
+    diseaseTissues: string[]
     agesOfOnset: AgeOfOnsetSelection
     therapies: string[]
     evidenceLevels: string[]
@@ -91,8 +92,8 @@ export const applyFilters = (
       (r.variant?.id != null && selected.variants.includes(r.variant.id))
 
     const diseaseMatch =
-      selected.diseases.length === 0 ||
-      r.diseases.some((disease) => disease.id != null && selected.diseases.includes(disease.id))
+      selected.diseaseTissues.length === 0 ||
+      r.diseases.some((disease) => diseaseMatchesTissues(disease, selected.diseaseTissues))
 
     const ageOfOnsetFilterActive =
       selected.agesOfOnset.conceptIds.length > 0 || selected.agesOfOnset.includeNotSpecified
