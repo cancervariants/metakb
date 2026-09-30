@@ -113,4 +113,19 @@ describe('OncoTree disease resolution', () => {
       },
     ])
   })
+
+  it('places diseases without a resolvable OncoTree term in Uncategorized', () => {
+    const unmappedDisease = disease({
+      id: 'metakb.disease:ncit_C5105',
+      name: 'Colorectal Adenocarcinoma',
+    })
+
+    expect(getDiseaseTissueGroups([unmappedDisease])).toEqual([
+      {
+        code: 'UNCATEGORIZED',
+        name: 'Uncategorized',
+        diseases: [unmappedDisease],
+      },
+    ])
+  })
 })

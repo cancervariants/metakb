@@ -16,6 +16,11 @@ export type DiseaseTissueGroup = OncoTreeTissue & {
   diseases: (MappableConcept & { id: string })[]
 }
 
+export const UNCATEGORIZED_TISSUE: OncoTreeTissue = {
+  code: 'UNCATEGORIZED',
+  name: 'Uncategorized',
+}
+
 const ONCOTREE_ID_PATTERN = /(?:^|[:_])oncotree[_:](.+)$/i
 
 const normalizeCode = (value: string | null | undefined): string | null => {
@@ -101,7 +106,8 @@ export const getDiseaseTissueGroups = (diseases: MappableConcept[]): DiseaseTiss
   diseases.forEach((disease) => {
     if (!disease.id) return
 
-    getDiseaseTissues(disease).forEach((tissue) => {
+    const tissues = getDiseaseTissues(disease)
+    ;(tissues.length > 0 ? tissues : [UNCATEGORIZED_TISSUE]).forEach((tissue) => {
       const group = groups.get(tissue.code) ?? { ...tissue, diseases: [] }
       if (!group.diseases.some((groupedDisease) => groupedDisease.id === disease.id)) {
         group.diseases.push(disease as MappableConcept & { id: string })
