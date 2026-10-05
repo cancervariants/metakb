@@ -55,6 +55,7 @@ ingest = [
     "pandas>=2.3.3, <3.0",
     "tqdm",
     "requests",
+    "fastobo",
 ]
 deploy = [
     "uvloop",

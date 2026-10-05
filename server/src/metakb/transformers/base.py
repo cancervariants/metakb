@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import TypeVar
 
+from disease.schemas import SourceName as DiseaseSourceName
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.core.models import ConceptMapping, MappableConcept, Relation
 from ga4gh.va_spec.base import (
@@ -29,6 +30,12 @@ from metakb.core.methodology import (
 from metakb.core.normalizers import ViccNormalizers
 from metakb.core.source_data import SourceDataStore
 from metakb.schemas.data import TransformedData
+from metakb.transformers.disease_categories import (
+    ManualCategoryStatus,
+    get_category_for_mondo_term,
+    get_manually_curated_category_for_term,
+    get_mondo_handler,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -62,6 +69,7 @@ class Transformer(ABC):
         self.vicc_normalizers = (
             ViccNormalizers() if normalizers is None else normalizers
         )
+        self._mondo_handle = get_mondo_handler()  # use for disease categorization
 
     ### Basic/public behavior
 
@@ -99,8 +107,24 @@ class Transformer(ABC):
                         raise ValueError
         return queries
 
+    @staticmethod
+    def _get_mapping_by_disease_source(
+        mappings: list[ConceptMapping] | None, source: DiseaseSourceName
+    ) -> ConceptMapping | None:
+        """Use for extracting xrefs when resolving categorizations"""
+        if not mappings:
+            return None
+        source_mappings = [
+            m for m in mappings if m.coding.id.lower().startswith(source.value.lower())
+        ]
+        if source_mappings:
+            return source_mappings[0]
+        return None
+
     def _normalize_disease(self, disease: MappableConcept) -> MappableConcept | None:
         """Retrieve normalized disease concept
+
+        Also adds disease categorization as a "broad match" mapping.
 
         :param disease: source-derived disease concept
         :return: either a successful normalized object, or ``None`` if unsuccessful
@@ -109,13 +133,43 @@ class Transformer(ABC):
             result = self.vicc_normalizers.normalize_disease(query)[0]
             # deepcopying creates some redundant work, but avoids non idempotent strangeness
             result = result.model_copy(deep=True)
+
             if result.disease:
                 normalized_disease = result.disease
                 normalized_disease.id = normalized_disease.id.replace(":", "_")
                 normalized_disease.id = normalized_disease.id.replace(
                     "normalize.disease.", "metakb.disease:"
                 )
-                normalized_disease.mappings = None
+                category_mapping = None
+                manual_result = get_manually_curated_category_for_term(
+                    normalized_disease.id
+                )
+                if isinstance(manual_result, ConceptMapping):
+                    category_mapping = manual_result
+                elif manual_result is ManualCategoryStatus.NO_CATEGORY_POSSIBLE:
+                    pass
+                else:
+                    if oncotree_mapping := self._get_mapping_by_disease_source(
+                        normalized_disease.mappings, DiseaseSourceName.ONCOTREE
+                    ):
+                        category_mapping = oncotree_mapping
+                    elif mondo_xref := self._get_mapping_by_disease_source(  # noqa: SIM102
+                        normalized_disease.mappings, DiseaseSourceName.MONDO
+                    ):
+                        if mondo_mapping := get_category_for_mondo_term(
+                            self._mondo_handle, mondo_xref.coding.code.root
+                        ):
+                            category_mapping = mondo_mapping
+                    if not category_mapping and "oncotree" not in normalized_disease.id:
+                        _logger.warning(
+                            "Unable to get disease category for %s",
+                            normalized_disease.id,
+                        )
+                if category_mapping:
+                    normalized_disease.mappings = [category_mapping]
+                else:
+                    normalized_disease.mappings = None
+
                 normalized_disease.extensions = None
                 return normalized_disease
         return None
