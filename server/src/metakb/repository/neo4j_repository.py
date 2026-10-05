@@ -5,7 +5,7 @@ from typing import NamedTuple
 from urllib.parse import urlparse, urlunparse
 
 from ga4gh.cat_vrs.models import CategoricalVariant
-from ga4gh.core.models import Extension, MappableConcept
+from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import (
     Condition,
     ConditionSet,
@@ -929,28 +929,6 @@ class Neo4jRepository(AbstractRepository):
         )
 
         return self._get_statements_from_results(search_results)
-
-    async def get_gene(self, gene_id: str) -> MappableConcept | None:
-        """Attempt to retrieve a gene given exact ID match
-
-        :param gene_id: exact gene_id as stored in DB (eg `"metakb.gene:hgnc_6407"`)
-        :return: gene if available, with child gene objects in extensions
-        """
-
-        async def _get_gene_tx(tx: AsyncManagedTransaction, **kwargs) -> list[Record]:
-            result = await tx.run(queries_catalog.get_gene(), **kwargs)
-            return [record async for record in result]
-
-        result = await self.session.execute_read(
-            _get_gene_tx,
-            gene_id=gene_id,
-        )
-        if not result:
-            return None
-        gene = GeneNode(**result[0]["gene"]).to_gks()
-        child_genes = [GeneNode(**i).to_gks() for i in result[0]["child_genes"]]
-        gene.extensions.append(Extension(name="source_gene_objects", value=child_genes))
-        return gene
 
     async def get_stats(self) -> RepositoryStats:
         """Fetch counts for entities

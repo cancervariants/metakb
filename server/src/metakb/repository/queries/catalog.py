@@ -140,8 +140,3 @@ def load_evidence_line() -> LiteralString:
 @cache
 def load_strength() -> LiteralString:
     return cast("LiteralString", _load("load_strength.cypher"))
-
-
-@cache
-def get_gene() -> LiteralString:
-    return cast("LiteralString", _load("get_gene.cypher"))
