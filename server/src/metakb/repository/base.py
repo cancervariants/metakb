@@ -2,7 +2,6 @@
 
 import abc
 
-from ga4gh.core.models import MappableConcept
 from ga4gh.va_spec.base import Statement
 from pydantic import BaseModel
 
@@ -69,14 +68,6 @@ class AbstractRepository(abc.ABC):
         :param start: pagination start point
         :param limit: page size
         :return: list of statements matching provided criteria
-        """
-
-    @abc.abstractmethod
-    async def get_gene(self, gene_id: str) -> MappableConcept | None:
-        """Attempt to retrieve a gene given exact ID match
-
-        :param gene_id: exact gene_id as stored in DB (eg `"metakb.gene:hgnc_6407"`)
-        :return: gene if available, with child gene objects in extensions
         """
 
     @abc.abstractmethod

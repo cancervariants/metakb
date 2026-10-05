@@ -69,7 +69,7 @@ tests = [
     "mock",
     "pytest-asyncio",
     "deepdiff",
-    "httpx",
+    "httpx2",
     "jsonschema~=4.24",  # pin to avoid deprecation of ref resolver
     "pyyaml",
 ]
