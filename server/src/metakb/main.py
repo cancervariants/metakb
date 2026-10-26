@@ -47,7 +47,7 @@ app = FastAPI(
     title="The VICC Meta-Knowledgebase",
     description=METAKB_DESCRIPTION,
     version=__version__,
-    license={
+    license_info={
         "name": "MIT",
         "url": "https://github.com/cancervariants/metakb/blob/main/LICENSE",
     },
