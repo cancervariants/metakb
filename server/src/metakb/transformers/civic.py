@@ -25,14 +25,14 @@ from ga4gh.vrs.models import Allele, CopyNumberChange
 from pydantic.dataclasses import dataclass
 from tqdm import tqdm
 
-from metakb.schemas.data import TransformedData
-from metakb.transformers import phenotypes
-from metakb.transformers.base import Transformer
-from metakb.transformers.catvars import (
+from metakb.core.catvars import (
     build_copynumberchange_catvar,
     build_proteinsequenceconsequence_catvar,
 )
-from metakb.transformers.identifiers import compute_combo_id
+from metakb.core.identifiers import compute_combo_id
+from metakb.schemas.data import TransformedData
+from metakb.transformers import phenotypes
+from metakb.transformers.base import Transformer
 
 _logger = logging.getLogger(__name__)
 

@@ -18,12 +18,12 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
+from metakb.core import catvars as build_catvars
+from metakb.core.identifiers import compute_combo_id
 from metakb.harvesters.fda_poda import FdaPodaHarvestedData
 from metakb.schemas.data import TransformedData
-from metakb.transformers import catvars as build_catvars
 from metakb.transformers import phenotypes
 from metakb.transformers.base import Transformer
-from metakb.transformers.identifiers import compute_combo_id
 
 _logger = logging.getLogger(__name__)
 

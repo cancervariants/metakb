@@ -15,7 +15,9 @@
 
 import {
   EvidenceLine,
+  CategoricalVariant,
   MappableConcept,
+  MolecularVariation,
   Statement,
   VariantDiagnosticProposition,
   VariantPrognosticProposition,
@@ -25,6 +27,7 @@ import { AgeOfOnset } from './ageOfOnset'
 import {
   getConditionsFromProposition,
   getTherapyFromProposition,
+  getVariantFromProposition,
   getVariantNameFromProposition,
 } from './propositions'
 import { getSources } from './sources'
@@ -48,6 +51,8 @@ export enum TherapyInteractionType {
  */
 export interface NormalizedTherapy {
   therapyNames: string[]
+  /** Complete therapy entities, retained for filtering and richer filter UIs. */
+  therapies: MappableConcept[]
   therapyInteractionType: TherapyInteractionType
 }
 
@@ -82,10 +87,14 @@ export interface AssertionResult {
   proposition: SupportedAssertionProposition
   /** Human-readable variant name (normalized for display) */
   variant_name: string
+  /** Complete subject-variant entity when the API embeds one. */
+  variant: MolecularVariation | CategoricalVariant | null
   /** Highest evidence level among grouped evidence */
   evidence_level: string
   /** Associated diseases, may include multiple names */
   disease: string[]
+  /** Complete non-phenotype disease concepts, retained for filtering. */
+  diseases: MappableConcept[]
   /** Associated age of onset */
   ageOfOnset: AgeOfOnset | null
   /** Therapy or combination therapy (if applicable) */
@@ -263,8 +272,10 @@ export const normalizeResults = (data: Record<string, Statement>): AssertionResu
       {
         proposition: assertion.proposition,
         variant_name: getVariantNameFromProposition(assertion.proposition),
+        variant: getVariantFromProposition(assertion.proposition),
         evidence_level: getEvidenceGrade(assertion.strength),
         disease: conditions.diseases,
+        diseases: conditions.diseaseEntities,
         ageOfOnset: conditions.ageOfOnset,
         therapy: getTherapyFromProposition(assertion.proposition),
         significance: assertion.proposition?.predicate

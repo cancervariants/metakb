@@ -7,9 +7,10 @@ import { getExtension } from '../../utils'
 
 type GeneInfoProps = {
   data: MappableConcept
+  searchTerm: string
 }
 
-const GeneInfo = ({ data }: GeneInfoProps) => {
+const GeneInfo = ({ data, searchTerm }: GeneInfoProps) => {
   const longName = getExtension<string>(data, 'approved_name') ?? ''
   const aliases = getExtension<string[]>(data, 'aliases') ?? []
   const sourcedDescription = getExtension<{
@@ -36,10 +37,10 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
       .sort((a, b) => a.conceptId.localeCompare(b.conceptId)) ?? []
 
   return (
-    <Box id="results-info-container" sx={{ backgroundColor: 'white', padding: 5, borderRadius: 2 }}>
+    <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
         <Box>
-          <Typography variant="h4" mb={2} fontWeight="bold">
+          <Typography variant="h4" fontWeight="bold">
             {data.name}
           </Typography>
         </Box>
@@ -59,6 +60,9 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
           </Typography>
         </Box>
       </Box>
+      <Typography variant="caption" sx={{ fontStyle: 'italic' }}>
+        Resolved from <strong>{searchTerm}</strong>
+      </Typography>
       <InfoRow label="Full Name" show={!!longName}>
         {longName}
       </InfoRow>
@@ -90,7 +94,7 @@ const GeneInfo = ({ data }: GeneInfoProps) => {
           </span>
         ))}
       </InfoRow>
-    </Box>
+    </>
   )
 }
 

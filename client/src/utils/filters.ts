@@ -40,6 +40,24 @@ export function buildCountMap<T, K extends keyof T>(results: T[], key: K): Recor
 }
 
 /**
+ * Returns ID-bearing entity options in first-seen order, retaining the entire
+ * original object so filter UIs can use its metadata.
+ */
+export function buildEntityFilterOptions<T extends { id?: string | null }>(
+  entities: T[],
+): (T & { id: string })[] {
+  const options = new Map<string, T & { id: string }>()
+
+  entities.forEach((entity) => {
+    if (entity.id && !options.has(entity.id)) {
+      options.set(entity.id, entity as T & { id: string })
+    }
+  })
+
+  return Array.from(options.values())
+}
+
+/**
  * Filters an array of `AssertionResult` rows against the currently
  * selected filter criteria.
  *
@@ -69,10 +87,12 @@ export const applyFilters = (
 ): AssertionResult[] => {
   return items.filter((r) => {
     const variantMatch =
-      selected.variants.length === 0 || selected.variants.includes(r.variant_name)
+      selected.variants.length === 0 ||
+      (r.variant?.id != null && selected.variants.includes(r.variant.id))
 
     const diseaseMatch =
-      selected.diseases.length === 0 || r.disease.some((d: string) => selected.diseases.includes(d))
+      selected.diseases.length === 0 ||
+      r.diseases.some((disease) => disease.id != null && selected.diseases.includes(disease.id))
 
     const ageOfOnsetFilterActive =
       selected.agesOfOnset.conceptIds.length > 0 || selected.agesOfOnset.includeNotSpecified
@@ -85,7 +105,9 @@ export const applyFilters = (
 
     const therapyMatch =
       selected.therapies.length === 0 ||
-      r.therapy.therapyNames.some((t: string) => selected.therapies.includes(t))
+      r.therapy.therapies.some(
+        (therapy) => therapy.id != null && selected.therapies.includes(therapy.id),
+      )
 
     const levelMatch =
       selected.evidenceLevels.length === 0 || selected.evidenceLevels.includes(r.evidence_level)

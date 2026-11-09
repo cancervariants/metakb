@@ -31,15 +31,15 @@ from ga4gh.va_spec.base import (
 from ga4gh.vrs.models import Allele
 from tqdm import tqdm
 
-from metakb.schemas.data import MoaHarvestedData, TransformedData
-from metakb.transformers import catvars as build_catvars
-from metakb.transformers.base import Transformer
-from metakb.transformers.identifiers import compute_combo_id
-from metakb.transformers.methodology import (
+from metakb.core import catvars as build_catvars
+from metakb.core.identifiers import compute_combo_id
+from metakb.core.methodology import (
     VICC_CODE_EXACT_MAPPING_INDEX,
     MoaEvidenceLevel,
     get_evidence_level_coding,
 )
+from metakb.schemas.data import MoaHarvestedData, TransformedData
+from metakb.transformers.base import Transformer
 
 _logger = logging.getLogger(__name__)
 

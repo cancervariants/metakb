@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from metakb.config import get_config
+from metakb.core.config import get_config
 from metakb.repository.base import AbstractRepository, RepositoryStats
 from metakb.restapi.dependencies import get_repository
 from metakb.schemas.api import ServiceInfo, ServiceOrganization, ServiceType

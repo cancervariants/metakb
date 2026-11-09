@@ -1,17 +1,8 @@
 import { useState } from 'react'
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  IconButton,
-  Tooltip,
-  Typography,
-} from '@mui/material'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Box, IconButton, Typography } from '@mui/material'
 import StarIcon from '@mui/icons-material/Star'
 import StarBorderIcon from '@mui/icons-material/StarBorder'
+import FilterAccordion from './FilterAccordion'
 
 export interface StarRatingFilterProps {
   // literal star rating options to select from ('1', '2', etc)
@@ -26,8 +17,6 @@ export interface StarRatingFilterProps {
 
 const RATINGS = ['1', '2', '3', '4']
 
-const getRatingLabel = (rating: string) => (rating === '4' ? '4 stars' : `${rating}+ stars`)
-
 const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const [hoveredRating, setHoveredRating] = useState<string | null>(null)
 
@@ -36,80 +25,61 @@ const StarRatingFilter = ({ selected, setSelected }: StarRatingFilterProps) => {
   const displayedThreshold = hoveredRating !== null ? Number(hoveredRating) : selectedThreshold
 
   const selectMinimumRating = (minimumRating: string) => {
+    if (selectedThreshold === Number(minimumRating)) {
+      setSelected([])
+      return
+    }
+
     setSelected(RATINGS.filter((rating) => Number(rating) >= Number(minimumRating)))
   }
 
   return (
-    <Accordion
-      defaultExpanded
-      sx={{
-        boxShadow: 'none',
-        '&:before': { display: 'none' },
-        backgroundColor: 'transparent',
-      }}
+    <FilterAccordion
+      title="Star Rating"
+      hasSelection={selected.length > 0}
+      onClear={() => setSelected([])}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        sx={{
-          minHeight: 'unset !important',
-          px: 0,
-          '& .MuiAccordionSummary-content': {
-            margin: 0,
-          },
+      <Box
+        display="flex"
+        alignItems="center"
+        onMouseLeave={() => setHoveredRating(null)}
+        paddingTop="8px"
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) {
+            setHoveredRating(null)
+          }
         }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-          <Typography fontWeight="bold">Star Rating</Typography>
+        {RATINGS.map((rating) => {
+          const numericRating = Number(rating)
 
-          {selected.length > 0 && (
-            <Button
+          const isActive = displayedThreshold !== null && numericRating <= displayedThreshold
+
+          const isHoverPreview = hoveredRating !== null && isActive
+
+          return (
+            <IconButton
+              key={rating}
               size="small"
-              color="success"
-              onClick={(event) => {
-                event.stopPropagation()
-                setSelected([])
+              aria-label={`Filter by ${rating}`}
+              onMouseEnter={() => setHoveredRating(rating)}
+              onFocus={() => setHoveredRating(rating)}
+              onClick={() => selectMinimumRating(rating)}
+              sx={{
+                color: isHoverPreview
+                  ? 'text.secondary'
+                  : isActive
+                    ? 'warning.main'
+                    : 'action.disabled',
               }}
             >
-              Clear
-            </Button>
-          )}
-        </Box>
-      </AccordionSummary>
-
-      <AccordionDetails sx={{ px: 0 }}>
-        <Box display="flex" alignItems="center" onMouseLeave={() => setHoveredRating(null)}>
-          {RATINGS.map((rating) => {
-            const numericRating = Number(rating)
-
-            const isActive = displayedThreshold !== null && numericRating <= displayedThreshold
-
-            const isHoverPreview = hoveredRating !== null && isActive
-
-            return (
-              <Tooltip key={rating} title={getRatingLabel(rating)} arrow>
-                <IconButton
-                  size="small"
-                  aria-label={`Filter by ${getRatingLabel(rating)}`}
-                  onMouseEnter={() => setHoveredRating(rating)}
-                  onFocus={() => setHoveredRating(rating)}
-                  onBlur={() => setHoveredRating(null)}
-                  onClick={() => selectMinimumRating(rating)}
-                  sx={{
-                    color: isHoverPreview
-                      ? 'text.secondary'
-                      : isActive
-                        ? 'warning.main'
-                        : 'action.disabled',
-                  }}
-                >
-                  {isActive ? <StarIcon /> : <StarBorderIcon />}
-                </IconButton>
-              </Tooltip>
-            )
-          })}
-        </Box>
-      </AccordionDetails>
-    </Accordion>
+              {isActive ? <StarIcon /> : <StarBorderIcon />}
+            </IconButton>
+          )
+        })}
+        <Typography sx={{ transform: 'translate(5px, 1px)' }}>& up</Typography>
+      </Box>
+    </FilterAccordion>
   )
 }
 

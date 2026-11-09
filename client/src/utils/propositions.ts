@@ -18,6 +18,9 @@ import {
   Therapeutic,
   TherapyGroup,
   Condition,
+  MappableConcept,
+  MolecularVariation,
+  CategoricalVariant,
 } from '../models/domain'
 import { AGE_OF_ONSET_TERMS, AgeOfOnset } from './ageOfOnset'
 import { NormalizedTherapy, TherapyInteractionType } from './results'
@@ -61,15 +64,15 @@ export function getTherapyFromProposition(
     | undefined,
 ): NormalizedTherapy {
   let interactionType = TherapyInteractionType.None
-  let therapies: string[] = []
+  let therapies: MappableConcept[] = []
 
-  if (!prop) return { therapyInteractionType: interactionType, therapyNames: therapies }
+  if (!prop) return { therapyInteractionType: interactionType, therapyNames: [], therapies }
 
   if ('objectTherapeutic' in prop) {
     const therapeutic = prop.objectTherapeutic
 
     if (typeof therapeutic !== 'string') {
-      therapies = getTherapyNames(therapeutic) ?? []
+      therapies = getTherapyEntities(therapeutic)
 
       if (isTherapyGroup(therapeutic)) {
         const operator = therapeutic.membershipOperator?.toUpperCase()
@@ -82,7 +85,11 @@ export function getTherapyFromProposition(
     }
   }
 
-  return { therapyInteractionType: interactionType, therapyNames: therapies }
+  return {
+    therapyInteractionType: interactionType,
+    therapyNames: therapies.map((therapy) => therapy.name).filter((name): name is string => !!name),
+    therapies,
+  }
 }
 
 /**
@@ -93,22 +100,20 @@ function isTherapyGroup(obj: Therapeutic): obj is TherapyGroup {
 }
 
 /**
- * Extracts human-readable therapy names from a Therapeutic object.
+ * Extracts individual therapy entities from a Therapeutic object.
  *
  * @param objectTherapeutic - Therapeutic object to format
- * @returns String list of therapy names or [] if not available
+ * @returns Complete therapy entities, excluding IRI references
  */
-const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
-  if (!objectTherapeutic) return null
+const getTherapyEntities = (objectTherapeutic: Therapeutic): MappableConcept[] => {
+  if (!objectTherapeutic) return []
 
   if (isTherapyGroup(objectTherapeutic)) {
-    // It's a TherapyGroup
-    return objectTherapeutic.therapies.map((t) => t?.name).filter((n): n is string => Boolean(n))
+    return objectTherapeutic.therapies
   }
 
-  // Otherwise it's a single MappableConcept
   if (objectTherapeutic.conceptType === 'Therapy') {
-    return objectTherapeutic.name ? [objectTherapeutic.name] : []
+    return [objectTherapeutic]
   }
 
   return []
@@ -116,11 +121,13 @@ const getTherapyNames = (objectTherapeutic: Therapeutic): string[] | null => {
 
 type ConditionInfo = {
   diseases: string[]
+  diseaseEntities: MappableConcept[]
   ageOfOnset: AgeOfOnset | null
 }
 
 const emptyConditionInfo = (): ConditionInfo => ({
   diseases: [],
+  diseaseEntities: [],
   ageOfOnset: null,
 })
 
@@ -175,6 +182,7 @@ function getConditionInfo(condition: string | Condition | undefined): ConditionI
     if (diseaseName) {
       result.diseases.push(diseaseName)
     }
+    result.diseaseEntities.push(value)
   }
 
   visit(condition)
@@ -249,6 +257,24 @@ export function getVariantNameFromProposition(
     return subjectVariant.name ?? ''
   }
   return ''
+}
+
+/**
+ * Extracts the complete subject-variant entity when it is embedded in a proposition.
+ * IRI references cannot provide metadata and are intentionally excluded.
+ */
+export function getVariantFromProposition(
+  prop:
+    | VariantTherapeuticResponseProposition
+    | VariantDiagnosticProposition
+    | VariantPrognosticProposition
+    | VariantOncogenicityProposition
+    | VariantPathogenicityProposition
+    | ExperimentalVariantFunctionalImpactProposition,
+): MolecularVariation | CategoricalVariant | null {
+  if (!prop || typeof prop.subjectVariant === 'string') return null
+
+  return prop.subjectVariant
 }
 
 export type HasExtensions = {

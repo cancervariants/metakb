@@ -1,4 +1,0 @@
-.. _normalization:
-
-Concept normalization
----------------------

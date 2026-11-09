@@ -5,8 +5,8 @@ import pytest
 from ga4gh.cat_vrs.models import CategoricalVariant
 from ga4gh.va_spec.base import ConditionSet, TherapyGroup
 
+from metakb.core.source_data import SourceDataStore
 from metakb.schemas.app import SourceName
-from metakb.source_data import SourceDataStore
 from metakb.transformers.civic import CivicTransformer
 
 

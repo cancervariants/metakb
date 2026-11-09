@@ -18,7 +18,17 @@ import click
 from botocore.exceptions import ClientError, EndpointConnectionError
 
 from metakb import __version__
-from metakb.config import get_config
+from metakb.core.config import configure_logs, get_config
+from metakb.core.normalizers import (
+    NORMALIZER_AWS_ENV_VARS,
+    IllegalUpdateError,
+    NormalizerName,
+    ViccNormalizers,
+    probe_variation_normalizer_runtime,
+    update_normalizer,
+)
+from metakb.core.normalizers import check_normalizers as check_normalizer_health
+from metakb.core.source_data import SourceDataStore
 from metakb.harvesters import (
     CBioPortalHarvester,
     CivicHarvester,
@@ -27,21 +37,10 @@ from metakb.harvesters import (
 )
 from metakb.harvesters.base import FetchMode, Harvester
 from metakb.harvesters.mci import MciHarvester
-from metakb.log_config import configure_logs
-from metakb.normalizers import (
-    NORMALIZER_AWS_ENV_VARS,
-    IllegalUpdateError,
-    NormalizerName,
-    ViccNormalizers,
-    probe_variation_normalizer_runtime,
-    update_normalizer,
-)
-from metakb.normalizers import check_normalizers as check_normalizer_health
 from metakb.repository.base import AbstractRepository
 from metakb.repository.neo4j_repository import Neo4jRepository, get_driver
 from metakb.schemas.app import SourceName
 from metakb.services import load_from_json, save_db_snapshot
-from metakb.source_data import SourceDataStore
 from metakb.transformers import (
     CivicTransformer,
     FdaPodaTransformer,
@@ -222,7 +221,9 @@ def cli() -> None:
 
     Other commands are available for more granular control over the update process.
     """  # noqa: D301
-    configure_logs(logging.DEBUG) if get_config().debug else configure_logs()
+    configure_logs(
+        logging.DEBUG, console=False
+    ) if get_config().debug else configure_logs(console=False)
 
 
 _normalizer_db_url_description = "URL endpoint of normalizer database. If not given, the individual normalizers will revert to their own defaults."
