@@ -24,5 +24,9 @@
   },
   "dependencies": {
     "@mui/x-data-grid": "^8.21.0"
-  }
+  },
+  "engines": {
+    "node": ">=22.12.0 <23"
+  },
+  "packageManager": "pnpm@9.15.9"
 }
