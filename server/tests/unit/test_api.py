@@ -5,14 +5,38 @@ from pathlib import Path
 import jsonschema
 import pytest
 import yaml
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from metakb.main import app
+from metakb.main import app, mount_client
 
 
 @pytest.fixture(scope="module")
 def client():
     return TestClient(app)
+
+
+@pytest.mark.ci_ok
+def test_frontend(tmp_path: Path):
+    """Serve a minimal frontend build without application startup dependencies."""
+    html = "<!doctype html><html><body>MetaKB</body></html>"
+    (tmp_path / "index.html").write_text(html)
+    assets = tmp_path / "assets"
+    assets.mkdir()
+    (assets / "app.js").write_text("console.log('MetaKB');")
+
+    frontend = FastAPI()
+    mount_client(frontend, tmp_path)
+    with TestClient(frontend) as client:
+        for path in ("/", "/search"):
+            response = client.get(path)
+            assert response.status_code == 200
+            assert response.headers["content-type"].startswith("text/html")
+            assert response.text == html
+
+        response = client.get("/assets/app.js")
+        assert response.status_code == 200
+        assert response.text == "console.log('MetaKB');"
 
 
 @pytest.mark.filterwarnings(

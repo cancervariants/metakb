@@ -88,23 +88,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BUILD_DIR = Path(__file__).parent / "build"
-try:
-    app.mount("/assets", StaticFiles(directory=BUILD_DIR / "assets"), name="assets")
-except RuntimeError:
-    _logger.warning(
-        "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`",
-        BUILD_DIR,
-    )
-    _logger.debug("Build dir contents: %s", BUILD_DIR.rglob("*"))
-else:
-    templates = Jinja2Templates(directory=BUILD_DIR.as_posix())
 
-    @app.get("/{full_path:path}", include_in_schema=False)
-    async def get_client(request: Request, full_path: str):  # noqa: ANN201, ARG001
-        """Serve static client files
+def mount_client(app: FastAPI, build_dir: Path) -> None:
+    """Register frontend routes after all API routes.
 
-        This route should be the VERY LAST thing associated with the Fastapi `app` object,
-        because it should shadow all unclaimed paths
-        """
-        return templates.TemplateResponse("index.html", {"request": request})
+    :param app: fastapi app instance
+    :param build_dir: location of static client files. In production we expect this to
+        be located in a directory named "build" in the repo root
+    """
+    try:
+        app.mount("/assets", StaticFiles(directory=build_dir / "assets"), name="assets")
+    except RuntimeError:
+        _logger.warning(
+            "Unable to locate static frontend files under path `%s`. Proceeding without defining `get_client()`",
+            build_dir,
+        )
+        _logger.debug("Build dir contents: %s", build_dir.rglob("*"))
+    else:
+        templates = Jinja2Templates(directory=build_dir.as_posix())
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def get_client(request: Request, full_path: str):  # noqa: ANN202, ARG001
+            """Serve the frontend for all unclaimed paths."""
+            return templates.TemplateResponse(request=request, name="index.html")
+
+
+mount_client(app, Path(__file__).parent / "build")
