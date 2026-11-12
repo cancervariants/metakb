@@ -90,7 +90,12 @@ app.add_middleware(
 
 
 def mount_client(app: FastAPI, build_dir: Path) -> None:
-    """Register frontend routes after all API routes."""
+    """Register frontend routes after all API routes.
+
+    :param app: fastapi app instance
+    :param build_dir: location of static client files. In production we expect this to
+        be located in a directory named "build" in the repo root
+    """
     try:
         app.mount("/assets", StaticFiles(directory=build_dir / "assets"), name="assets")
     except RuntimeError:
