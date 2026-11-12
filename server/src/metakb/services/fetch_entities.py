@@ -63,7 +63,7 @@ def _update_gene_from_civic_gid(
             ),
         )
     )
-    if not gene.get_extensions_by_name("gene_description"):  # noqa: SIM102
+    if not [e for e in gene.extensions if e.name == "gene_description"]:  # noqa: SIM102
         if civic_description := civic_gene.get_extensions_by_name("description"):
             gene.extensions.append(
                 Extension(
