@@ -296,3 +296,7 @@ uv pip compile pyproject.toml --extra deploy -o ../requirements.txt --no-annotat
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## MetaKB v1
+
+MetaKB v1 was an Elasticsearch-backed web application for searching an aggregated collection of cancer knowledgebase records. It was described in the publication [A harmonized meta-knowledgebase of clinical interpretations of somatic genomic variants in cancer](https://www.nature.com/articles/s41588-020-0603-8) and hosted at [search.cancervariants.org](https://search.cancervariants.org). The service has since been retired, but its [code](https://github.com/ohsu-comp-bio/g2p-aggregator) and [data](https://s3-us-west-2.amazonaws.com/g2p-0.10/index.html) remain available for reproducing it.
