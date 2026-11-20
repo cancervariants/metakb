@@ -446,7 +446,7 @@ class DiseaseNode(_MappableConceptNode):
         return MappableConcept(
             id=self.id,
             conceptType="Disease",
-            name=self.name or None,
+            name=self.name or self.id,
             mappings=_Mappings(json.loads(self.mappings)).root,
             primaryCoding=self._load_primary_coding(),
         )
@@ -475,7 +475,7 @@ class PhenotypeNode(BaseNode):
         return MappableConcept(
             id=self.id,
             conceptType="Phenotype",
-            name=self.name or None,
+            name=self.name or self.id,
             mappings=_Mappings(json.loads(self.mappings)).root or None,
         )
 
@@ -567,7 +567,7 @@ class DrugNode(_MappableConceptNode):
         return MappableConcept(
             id=self.id,
             conceptType="Therapy",
-            name=self.name or None,
+            name=self.name or self.id,
             mappings=_Mappings(json.loads(self.mappings)).root,
             extensions=_Extensions(json.loads(self.extensions)).root,
             primaryCoding=self._load_primary_coding(),
@@ -741,7 +741,7 @@ class StrengthNode(BaseNode):
         extensions = _Extensions(json.loads(self.extensions)).root
         return MappableConcept(
             id=self.id,
-            name=self.name or None,
+            name=self.name or (self.id if not coding else None),
             mappings=_Mappings(json.loads(self.mappings)).root or None,
             primaryCoding=coding,
             extensions=extensions or None,
